@@ -214,7 +214,8 @@ do
 	end
 
 	do
-		local on = hook.GetTable()["Think"][tag .. "antipen"] ~= nil
+		local thinks = hook.GetTable()["Think"] or {} -- no addons = error
+		local on = thinks[tag .. "antipen"] ~= nil
 
 		local shutdown = 0
 		function stopPenetration(enabled, timed)
@@ -526,7 +527,7 @@ do
 	logf("Fixed physics destruction of ragdolls.")
 end
 
-if system.IsLinux() then
+if LINUX then
 	util.IsValidModelCS = util.IsValidModelCS or util.IsValidModel
 	function util.IsValidModel(m, ...)
 		return util.IsValidModelCS(m, ...) or util.IsValidModelCS(m:lower(), ...)

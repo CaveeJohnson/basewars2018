@@ -599,7 +599,7 @@ end
 do
 	-- Think based antipen and freeze
 
-	local longFrame = 0.03
+	local longFrame = 0.072
 
 	local lastThink = SysTime() + 1
 	local lagStart
@@ -612,14 +612,19 @@ do
 			lagStart = lagStart or now
 			local lag = now - lagStart
 
+			if len > 0.5 then
+				warnf(c_frmtime, "very long frame (%1.2f s)", len)
+			end
+
 			if lag > 5 then
 				emergencyMode()
+				warnf(c_frmtime, "[lag now %1.2f s]", lag)
 			elseif lag > 3 then
 				freezeMovement()
+				warnf(c_frmtime, "[lag now %1.2f s]", lag)
 			elseif lag > 1.5 then
 				stopPenetration(true)
-			elseif len > 0.5 then
-				warnf(c_frmtime, "very long frame (%1.2f s)", len)
+				warnf(c_frmtime, "[lag now %1.2f s]", lag)
 			end
 		else
 			lagStart = nil

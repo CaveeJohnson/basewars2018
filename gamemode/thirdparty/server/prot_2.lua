@@ -51,7 +51,7 @@ do
 	local alrt_snd = Sound("npc/roller/code2.wav")
 
 	function alertf(form, ...)
-		if chat.AddText then
+		if chat and chat.AddText then
 			chat.AddText(alrt_col, "! ", color_white, string.format(form, ...))
 			BroadcastLua("surface.PlaySound'" .. alrt_snd .. "'")
 		end

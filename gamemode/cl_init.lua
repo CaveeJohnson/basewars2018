@@ -7,7 +7,7 @@ if not basewars.contentNotificationDone then
 	local tf2 = IsMounted("tf") or util.IsValidModel("models/props_forest/cliff_wall_05.mdl")
 
 	local msg = [[You are missing content the Gamemode requires!
-Required Conent:
+Required Content:
     Counter Strike: Source (%s)
     Team Fortress 2 (%s)
 

@@ -219,7 +219,16 @@ end
 function ENT:PreTakeDamage(dmginfo)
 	if self:hasPowerStored() and not hook.Run("BW_ShouldDamageProtectedEntity", self, dmginfo) then -- DOCUMENT:
 		self:takeEnergy(100 * dmginfo:GetDamage()) -- TODO: Config
-		dmginfo:SetDamage(0)
+		if self:getEnergy() <= 0 then
+			self:setEnergy(0)
+
+			if self:isActive() then
+				self:setActive(false)
+				self:doSequence("shutdown", self.shutdownSounds)
+			end
+		else
+			dmginfo:SetDamage(0)
+		end
 	end
 end
 

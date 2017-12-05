@@ -9,16 +9,21 @@ function ext:log(event, ply, ...)
 	Msg("\n")
 end
 
+function ext:formEnt(entity)
+	local pos = entity:GetPos()
+	return string.format("%s:%i @ %1.0f %1.0f %1.0f", entity:GetClass(), entity:EntIndex(), pos.x, pos.y, pos.z)
+end
+
 function ext:PlayerSpawnedProp(ply, model, entity)
-	self:log("prop", ply, self.white, entity:GetModel(), self.grey, " (" .. tostring(entity) .. " @ " .. tostring(entity:GetPos()) .. ")")
+	self:log("prop", ply, self.white, entity:GetModel(), self.grey, " (" .. ext:formEnt(entity) .. ")")
 end
 
 function ext:PlayerSpawnedEffect(ply, model, entity)
-	self:log("effect", ply, self.white, entity:GetModel(), self.grey, " (" .. tostring(entity) .. " @ " .. tostring(entity:GetPos()) .. ")")
+	self:log("effect", ply, self.white, entity:GetModel(), self.grey, " (" .. ext:formEnt(entity) .. ")")
 end
 
 function ext:PlayerSpawnedSENT(ply, entity)
-	self:log("sent", ply, self.white, entity.PrintName or entity:GetClass(), self.grey, " (" .. tostring(entity) .. " @ " .. tostring(entity:GetPos()) .. ")")
+	self:log("sent", ply, self.white, entity.PrintName or entity:GetClass(), self.grey, " (" .. ext:formEnt(entity) .. ")")
 end
 
 function ext:PlayerSpawnedVehicle(ply, entity)

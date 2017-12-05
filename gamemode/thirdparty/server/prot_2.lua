@@ -3,6 +3,7 @@
 
 local tag = "bw18-prot2"
 
+
 local c_physics = "PHYS"
 local c_badents = "ENTS"
 local c_baddamg = "DAMG"
@@ -203,6 +204,8 @@ do
 				for _, v in ipairs(hooks) do
 					hook.Remove(v, tag .. "stopBuilding")
 				end
+
+				stopPenetration(false)
 			else
 				for _, v in ipairs(hooks) do
 					hook.Add(v, tag .. "stopBuilding", stopThat)
@@ -248,10 +251,10 @@ do
 		alertf("Server entering emergency mode, 10 seconds of forced anti-penetration, building disabled.")
 
 		freezeTbl(ents.GetAll())
-		stopPenetration(true, 10)
+		stopPenetration(true, 9.5)
 
 		toggleBuilding(true)
-		timer.Simple(10, toggleBuilding)
+		timer.Create(tag .. "emergencyMode", 10, 1, toggleBuilding)
 	end
 end
 
@@ -599,7 +602,7 @@ end
 do
 	-- Think based antipen and freeze
 
-	local longFrame = 0.072
+	local longFrame = 0.1
 
 	local lastThink = SysTime() + 1
 	local lagStart, lagEnded, done
@@ -641,7 +644,7 @@ do
 
 			local lagover = now - lagEnded
 
-			if lagover > 15 then
+			if lagover > 1 then
 				lagStart = nil
 				lagEnded = nil
 

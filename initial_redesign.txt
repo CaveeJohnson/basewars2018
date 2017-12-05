@@ -1,0 +1,122 @@
+14:​31​ - [GM-Dev] Orbitei: theres 3 major things that bug me
+14:​31​ - [GM-Dev] Orbitei: 1: the power system
+14:​31​ - [GM-Dev] Orbitei: 2: base building
+14:​31​ - [GM-Dev] Orbitei: 3: entities, and how they interact
+
+14:​32​ - [GM-Dev] Orbitei: you see
+14:​32​ - [GM-Dev] Orbitei: the thing is that NOBODY understands the current power system
+14:​32​ - [GM-Dev] Orbitei: with the internal buffer and such
+14:​32​ - [$] Olipwnz: idk what the power system is
+14:​32​ - [$] Olipwnz: u said its the bar for printers and such
+14:​32​ - [$] Olipwnz: but one generator powers a whole base
+14:​32​ - [GM-Dev] Orbitei: its the PW bar
+14:​32​ - [GM-Dev] Orbitei: exactly
+14:​33​ - [GM-Dev] Orbitei: the current power system is a clusterfuck
+
+14:​33​ - [GM-Dev] Orbitei: what i was thinking is
+14:​33​ - [GM-Dev] Orbitei: 5 types of entities
+14:​34​ - [GM-Dev] Orbitei: active consumer, passive consumer, non-consuming, active generator, passive generator
+14:​34​ - [GM-Dev] Orbitei: then making the hud much more obvious in regards to it
+
+14:​38​ - [GM-Dev] Orbitei: issue 1, the power
+14:​36​ - [GM-Dev] Orbitei: active consumer = when its used it consumes power
+14:​36​ - [GM-Dev] Orbitei: passive consumer = always taking power
+14:​36​ - [GM-Dev] Orbitei: like printers
+14:​36​ - [GM-Dev] Orbitei: non-consumer = requires power in the 'grid' to be above 0 but doesnt CONSUME power
+14:​37​ - [GM-Dev] Orbitei: passive-providers = current generators
+14:​37​ - [GM-Dev] Orbitei: active-providers = a generator that outputs more but needs maintaining
+-- the core, which is explained in part 2 will act as the 'grid' in that consumers pull from it and providers push to it
+-- rather than having a buffer which is constantly added to and taken from, providers will have a +x power
+-- the total grid power being +SUM(x1, x2, ...), for example +200, consumers are then taken away from it in the same fashion
+-- if the end total is > 0, the leftover will charge 'capacitors' attached to the core (only the core has a 'power buffer' now)
+-- if the end total is < 0, (ie consuming more than producing) the 'capacitors' will make up the difference, if the capacitors are empty
+-- the core will give a VERY OBVIOUS alarm, then shut down completely
+
+-- Also, this removes all the individual power bars, that dont explain anything, and allows for a single UI on the core
+-- and just +150 on a generator and -20 on a printer, etc
+
+Orbitei: a generator
+Orbitei: rather than having
+Orbitei: PW: 69/429]
+Orbitei: just has
+Orbitei: PW: +100/t
+
+Orbitei: printers rather than
+Orbitei: 5403/12
+Orbitei: have
+Orbitei: -20/t
+
+Orbitei: and the core is like
+Orbitei:
+producing: +100/t
+consuming: -20/t
+total: +80/t
+
+PW [========         ] 500k/1 million
+
+
+14:​38​ - [GM-Dev] Orbitei: issue 2
+14:​38​ - [GM-Dev] Orbitei: the base building
+14:​38​ - [GM-Dev] Orbitei: if you cant tell
+14:​38​ - [GM-Dev] Orbitei: im crazy for automation
+14:​38​ - [GM-Dev] Orbitei: i like reducing mods work
+
+14:​39​ - [GM-Dev] Orbitei: so base building needs a single
+14:​39​ - [GM-Dev] Orbitei: big
+14:​39​ - [GM-Dev] Orbitei: change
+14:​39​ - [GM-Dev] Orbitei: and thats the concept of a buildable area
+14:​39​ - [GM-Dev] Orbitei: if your prop is in the 'wilderness'
+14:​39​ - [GM-Dev] Orbitei: its fair game
+14:​39​ - [GM-Dev] Orbitei: no antirandomraid on it
+14:​39​ - [GM-Dev] Orbitei: it can be broken by ANYONE
+14:​39​ - [GM-Dev] Orbitei: but
+14:​40​ - [GM-Dev] Orbitei: you can have a 'core' for your base
+14:​40​ - [GM-Dev] Orbitei: which prevents anyone but you/faction building there
+14:​40​ - [GM-Dev] Orbitei: the core would need powering
+14:​40​ - [GM-Dev] Orbitei: larger area = more power
+	14:​40​ - [GM-Dev] Orbitei: this solves 1: stupid big bases
+	14:​40​ - [GM-Dev] Orbitei: 2: propblock
+	14:​40​ - [GM-Dev] Orbitei: 3: multibasing
+-- as mentioned above, the core would be the central 'power' grid too
+-- this also allows for interesting dynamics such as protecting the core at all costs
+-- as if during a raid the core survives, the base is still technically 'claimed', whereas
+-- destroying the core means everything else in the base becomes fair game, even after the raid
+
+14:​41​ - [GM-Dev] Orbitei: issue 3, entity interaction
+14:​42​ - [GM-Dev] Orbitei: theres a few things id like to do in the backend
+14:​42​ - [GM-Dev] Orbitei: one of them is remove physgunning entities all together
+14:​42​ - [GM-Dev] Orbitei: :^)
+14:​42​ - [GM-Dev] Orbitei: but hear me out on this
+14:​42​ - [GM-Dev] Orbitei: rather than
+14:​42​ - [GM-Dev] Orbitei: buy entity
+14:​42​ - [GM-Dev] Orbitei: physgun into corner
+14:​42​ - [GM-Dev] Orbitei: done
+14:​43​ - [GM-Dev] Orbitei: id like to have like
+14:​43​ - [GM-Dev] Orbitei: packaged entities
+14:​43​ - [GM-Dev] Orbitei: if you get me
+14:​43​ - [GM-Dev] Orbitei: like a box when you can expand in to an entity
+
+14:​43​ - [GM-Dev] Orbitei: imagine
+14:​43​ - [GM-Dev] Orbitei: you buy a generator
+14:​43​ - [GM-Dev] Orbitei: its a box
+14:​43​ - [GM-Dev] Orbitei: you move the box
+14:​43​ - [GM-Dev] Orbitei: where you want it
+14:​43​ - [GM-Dev] Orbitei: then you 'expand' it
+14:​43​ - [GM-Dev] Orbitei: it becomes the generator
+
+14:​44​ - [GM-Dev] Orbitei: if you want to move it somewhere else
+14:​44​ - [GM-Dev] Orbitei: you can pack it back up
+14:​44​ - [GM-Dev] Orbitei: it would allow stuff to be moved easier and also stop abuse by physgunning objects
+14:​44​ - [GM-Dev] Orbitei: 2 birds with 1 stone
+-- also it would prevent a huge amount of lag caused by unfrozen stuff
+
+14:​45​ - [GM-Dev] Orbitei: also with entities
+14:​45​ - [GM-Dev] Orbitei: i feel like
+14:​45​ - [GM-Dev] Orbitei: a armor dispenser
+14:​45​ - [GM-Dev] Orbitei: then a t2 armor dispenser
+14:​45​ - [GM-Dev] Orbitei: is complete shit
+14:​45​ - [GM-Dev] Orbitei: entities should be upgradable
+14:​45​ - [GM-Dev] Orbitei: like printers
+14:​45​ - [$] Run em through: Like the og basewars
+14:​45​ - [GM-Dev] Orbitei: yes but more modular
+14:​45​ - [$] Run em through: Totally agree

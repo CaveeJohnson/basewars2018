@@ -1,0 +1,14 @@
+"basewars2018"
+{
+	"base"        "sandbox"
+	"title"       "BaseWars"
+	"version"     "0"
+	"description" "Hexahedron BaseWars redesigned."
+
+	"author_name" "hexahedron"
+	"author_url"  "http://hexahedron.pw/, http://hexahedronic.github.io/"
+
+	"hide"        "0"
+	"menusystem"  "1"
+	"selectable"  "1"
+}

@@ -15,7 +15,7 @@ All code by Hexahedron Studios, who are:
 	Squigglesquiggle
 	Moku
 ]]
-GM.Copyright = "Copyright (c) 2017- Hexahedron"
+GM.Copyright = "Copyright (c) 2017- Hexahedron Studios"
 
 
 basewars = basewars or {}
@@ -35,7 +35,10 @@ do
 	basewars.extBase = {}
 
 	function basewars.extBase:getTag()
-		return "bw18_ext." .. self.name
+		if self.__tag then return self.__tag end
+		self.__tag = "bw18_ext." .. self.name
+
+		return self.__tag
 	end
 
 	local meta = {__index = basewars.extBase, __tostring = function(o) return string.format("basewars_extension [%s]", o:getTag()) end}
@@ -53,6 +56,8 @@ do
 		return new
 	end
 
+	-- For those of you wondering, this returns a virtual interface to
+	-- the extension so that it is readonly and always can be refreshed by luarefresh.
 	function basewars.getExtension(name)
 		if not basewars.__ext[name] then return end
 		return setmetatable({}, {__index = function(t, k) return basewars.__ext[name][k] end, __tostring = function(o) return string.format("basewars_extension [%s] (INSTANCE)", o:getTag()) end})
@@ -86,3 +91,18 @@ do
 		return num > 0 and "+"..basewars.nformat(num) or basewars.nformat(num)
 	end
 end
+
+function basewars.sameOwner(e1, e2, orWorldDisconnected)
+	if e1 == e2 then return true end
+
+	local o1 = e1:IsPlayer() and e1 or e1:CPPIGetOwner()
+	local o2 = e2:IsPlayer() and e2 or e2:CPPIGetOwner()
+	if o1 == o2 then return true end
+
+	if orWorldDisconnected and (not IsValid(o1) or not IsValid(o2)) then
+		return true
+	end
+
+	return false
+end
+

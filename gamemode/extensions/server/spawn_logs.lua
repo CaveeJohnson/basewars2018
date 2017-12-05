@@ -15,15 +15,15 @@ function ext:formEnt(entity)
 end
 
 function ext:PlayerSpawnedProp(ply, model, entity)
-	self:log("prop", ply, self.white, entity:GetModel(), self.grey, " (" .. ext:formEnt(entity) .. ")")
+	self:log("prop", ply, self.white, entity:GetModel(), self.grey, " (" .. self:formEnt(entity) .. ")")
 end
 
 function ext:PlayerSpawnedEffect(ply, model, entity)
-	self:log("effect", ply, self.white, entity:GetModel(), self.grey, " (" .. ext:formEnt(entity) .. ")")
+	self:log("effect", ply, self.white, entity:GetModel(), self.grey, " (" .. self:formEnt(entity) .. ")")
 end
 
 function ext:PlayerSpawnedSENT(ply, entity)
-	self:log("sent", ply, self.white, entity.PrintName or entity:GetClass(), self.grey, " (" .. ext:formEnt(entity) .. ")")
+	self:log("sent", ply, self.white, entity.PrintName or entity:GetClass(), self.grey, " (" .. self:formEnt(entity) .. ")")
 end
 
 function ext:PlayerSpawnedVehicle(ply, entity)

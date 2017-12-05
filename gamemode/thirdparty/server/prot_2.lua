@@ -374,8 +374,8 @@ do
 		end
 	end
 
-	ENTITY.__TakeDamageInfo = ENTITY.__TakeDamageInfo or ENTITY.TakeDamageInfo
-	function ENTITY:TakeDamageInfo(info)
+	ENTITY.TakeDamageInfoUnsafe = ENTITY.TakeDamageInfoUnsafe or ENTITY.TakeDamageInfo
+	function ENTITY:TakeDamageInfo(info, ...)
 		if not info then
 			error("No arguments provided to TakeDamageInfo", 2)
 		end
@@ -386,12 +386,12 @@ do
 		end
 
 		if world or self:IsPlayer() then
-			return self:__TakeDamageInfo(info)
+			return self:TakeDamageInfoUnsafe(info, ...)
 		end
 
 		fixDamage(self, info)
 
-		return self:__TakeDamageInfo(info)
+		return self:TakeDamageInfoUnsafe(info, ...)
 	end
 	logf("Fixed invalid TakeDamageInfo.")
 
@@ -515,13 +515,13 @@ do
 end
 
 do
-	ENTITY.__PhysicsDestroy = ENTITY.__PhysicsDestroy or ENTITY.PhysicsDestroy
+	ENTITY.PhysicsDestroyUnsafe = ENTITY.PhysicsDestroyUnsafe or ENTITY.PhysicsDestroy
 	function ENTITY:PhysicsDestroy(...)
 		if self:GetClass() == "prop_ragdoll" then
 			error("Attempting to call PhysicsDestroy on a ragdoll", 2)
 		end
 
-		return self:__PhysicsDestroy(...)
+		return self:PhysicsDestroyUnsafe(...)
 	end
 
 	logf("Fixed physics destruction of ragdolls.")
@@ -550,7 +550,7 @@ end
 
 do
 	PLAYER.SendLuaUnsafe = PLAYER.SendLuaUnsafe or PLAYER.SendLua
-	function PLAYER:SendLua(code)
+	function PLAYER:SendLua(code, ...)
 		if not tostring(code) then return false end
 		code = tostring(code)
 
@@ -564,11 +564,11 @@ do
 			return false
 		end
 
-		return self:SendLuaUnsafe(code)
+		return self:SendLuaUnsafe(code, ...)
 	end
 
 	BroadcastLuaUnsafe = BroadcastLuaUnsafe or BroadcastLua
-	function BroadcastLua(code)
+	function BroadcastLua(code, ...)
 		if not tostring(code) then return false end
 		code = tostring(code)
 
@@ -586,7 +586,7 @@ do
 			end
 		end
 
-		return BroadcastLuaUnsafe(code)
+		return BroadcastLuaUnsafe(code, ...)
 	end
 
 	logf("Fixed Broadcast/SendLua breaking with strings > 254 chars.")
@@ -602,33 +602,53 @@ do
 	local longFrame = 0.072
 
 	local lastThink = SysTime() + 1
-	local lagStart
+	local lagStart, lagEnded, done
 
 	local function doThink()
 		local now = SysTime()
 		local len = now - lastThink
 
 		if len > longFrame then
+			lagEnded = nil
+
 			lagStart = lagStart or now
+			done = done or 0
+
 			local lag = now - lagStart
 
 			if len > 0.5 then
 				warnf(c_frmtime, "very long frame (%1.2f s)", len)
 			end
 
-			if lag > 5 then
+			if lag > 5 and done < 5 then
+				done = 5
+
 				emergencyMode()
 				warnf(c_frmtime, "[lag now %1.2f s]", lag)
-			elseif lag > 3 then
+			elseif lag > 3 and done < 3 then
+				done = 3
+
 				freezeMovement()
 				warnf(c_frmtime, "[lag now %1.2f s]", lag)
-			elseif lag > 1.5 then
+			elseif lag > 1.5 and done < 1.5 then
+				done = 1.5
+
 				stopPenetration(true)
 				warnf(c_frmtime, "[lag now %1.2f s]", lag)
 			end
-		else
-			lagStart = nil
-			stopPenetration(false)
+		elseif lagStart then
+			lagEnded = lagEnded or now
+
+			local lagover = now - lagEnded
+
+			if lagover > 15 then
+				lagStart = nil
+				lagEnded = nil
+
+				stopPenetration(false)
+			end
+
+			done = nil
 		end
 
 		lastThink = SysTime()

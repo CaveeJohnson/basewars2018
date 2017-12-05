@@ -29,16 +29,7 @@ local function loadFolder(name)
 	local dir = GM.gmFolder .. name
 	basewars.logf("loading directory '%s'", name)
 
-	local i = 0
-	local files = file.Find(dir .. "*.lua", "LUA")
-
-	for _, name in ipairs(files) do
-		if validFile(name) then
-			i = i + 1
-			includeCS(dir .. name)
-		end
-	end
-	basewars.logf("    loaded %d shared files", i)
+	local i, files
 
 	if SERVER then
 		i = 0
@@ -61,6 +52,17 @@ local function loadFolder(name)
 		end
 	end
 	basewars.logf("    loaded %d client files", i)
+
+	i = 0
+	files = file.Find(dir .. "*.lua", "LUA")
+
+	for _, name in ipairs(files) do
+		if validFile(name) then
+			i = i + 1
+			includeCS(dir .. name)
+		end
+	end
+	basewars.logf("    loaded %d shared files", i)
 end
 
 loadFolder("core/")

@@ -76,8 +76,12 @@ function ENT:ping()
 	util.Effect("basewars_scan", e)
 end
 
+function ENT:hasPowerStored()
+	return self:getEnergy() >= -(self:getPassiveRate() + self:getActiveRate())
+end
+
 function ENT:canActivate()
-	return not self:isSequenceOngoing() and self:getEnergy() >= -(self:getPassiveRate() + self:getActiveRate())
+	return not self:isSequenceOngoing() and self:hasPowerStored()
 end
 
 local net_tag = "core_area"
@@ -213,7 +217,8 @@ function ENT:transmitAreaEnts(ply)
 end
 
 function ENT:PreTakeDamage(dmginfo)
-	if self:canActivate() and not hook.Run("BW_ShouldDamageProtectedEntity", self, dmginfo) then -- DOCUMENT:
+	if self:hasPowerStored() and not hook.Run("BW_ShouldDamageProtectedEntity", self, dmginfo) then -- DOCUMENT:
+		self:takeEnergy(100 * dmginfo:GetDamage()) -- TODO: Config
 		dmginfo:SetDamage(0)
 	end
 end

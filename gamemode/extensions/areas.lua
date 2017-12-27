@@ -1,3 +1,11 @@
+if SERVER and not navmesh.IsLoaded() then
+	SetGlobalBool("bw18_navmesh_missing", true)
+	return
+elseif CLIENT and GetGlobalBool("bw18_navmesh_missing") then
+	return
+end
+
+
 local ext = basewars.createExtension"areas"
 
 if SERVER then

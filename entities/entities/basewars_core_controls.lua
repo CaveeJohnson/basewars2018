@@ -551,11 +551,6 @@ else
 		if self.__selected and not IsValid(self.__selected) then
 			self.__selected = nil
 		end
-
-		local list = self.__entityList
-		if self:validCore() and (not list or (list and #list == 0)) then
-			self.__entityList = self:getCore():getAreaEnts()
-		end
 	end
 
 	do

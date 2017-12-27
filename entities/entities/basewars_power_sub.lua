@@ -4,7 +4,7 @@ ENT.Base = "basewars_power_base"
 ENT.Type = "anim"
 DEFINE_BASECLASS(ENT.Base)
 
-ENT.PrintName = "BaseWars2017 Sub Power"
+ENT.PrintName = "BaseWars2018 Sub Power"
 
 ENT.BasePassiveRate = 0
 

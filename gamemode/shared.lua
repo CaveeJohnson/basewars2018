@@ -15,7 +15,7 @@ All code by Hexahedron Studios, who are:
 	Squigglesquiggle
 	Moku
 ]]
-GM.Copyright = "Copyright (c) 2017- Hexahedron Studios"
+GM.Copyright = "Copyright \xc2\xa9 2017-2018 Hexahedron Studios"
 
 
 basewars = basewars or {}

@@ -687,7 +687,7 @@ else
 			surface.SetFont(FONT_MP_EASTEREGG)
 			surface.SetTextPos(8, rt_h - 14)
 			surface.SetTextColor(255, 255, 255)
-			surface.DrawText("Copyright \xc2\xa9 2017- Huckhedrons Studerio")
+			surface.DrawText("Copyright \xc2\xa9 2017-2018 Huckhedrons Studerio")
 
 			cam.End2D()
 			render.PopRenderTarget()

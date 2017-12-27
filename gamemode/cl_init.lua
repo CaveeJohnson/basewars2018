@@ -1,6 +1,8 @@
 include("include.lua")
 
-RunConsoleCommand("gmod_mcore_test", "1")
+if WINDOWS then
+	RunConsoleCommand("gmod_mcore_test", "1")
+end
 
 if not basewars.contentNotificationDone then
 	local css = IsMounted("cstrike") or util.IsValidModel("models/props/cs_assault/money.mdl")

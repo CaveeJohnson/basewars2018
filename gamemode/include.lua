@@ -1,5 +1,11 @@
 AddCSLuaFile()
 
+OS   = jit.os:upper()
+ARCH = jit.arch:upper()
+
+_G[OS  ] = true
+_G[ARCH] = true
+
 local function includeCS(file)
 	include(file)
 

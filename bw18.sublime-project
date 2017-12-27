@@ -1,0 +1,43 @@
+{
+	"folders":
+	[
+		{
+			"folder_exclude_patterns":
+			[
+				"config"
+			],
+			"name": "Gamemode",
+			"path": "gamemode"
+		},
+		{
+			"name": "Entities",
+			"path": "entities/entities"
+		},
+		{
+			"name": "Weapons",
+			"path": "entities/weapons"
+		},
+		{
+			"name": "Effects",
+			"path": "entities/effects"
+		},
+		{
+			"name": "Config",
+			"path": "gamemode/config"
+		},
+		{
+			"folder_exclude_patterns":
+			[
+				"*"
+			],
+			"name": "Project",
+			"path": "."
+		}
+	],
+	// Just make sure we are all on the same page
+	"settings":
+	{
+		"tab_size": 4,
+		"translate_tabs_to_spaces": false,
+	}
+}

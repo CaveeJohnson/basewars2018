@@ -157,7 +157,8 @@ function basewars.spawnCore(ply, pos, ang, class)
 	core:SetAngles(ang)
 
 	ply:SetNW2Entity("baseCore", core)
-	core:setAbsoluteOwner(ply)
+	core:CPPIGetOwner(ply)
+	core:setAbsoluteOwner(ply:SteamID64())
 
 	return core, "Success!"
 end

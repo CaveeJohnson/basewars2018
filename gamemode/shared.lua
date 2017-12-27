@@ -103,6 +103,10 @@ function basewars.sameOwner(e1, e2, orWorldDisconnected)
 		return true
 	end
 
+	if e1.ownershipCheck and e1:ownershipCheck(e2) then
+		return true
+	end
+
 	return false
 end
 

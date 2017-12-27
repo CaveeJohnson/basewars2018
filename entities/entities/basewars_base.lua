@@ -138,6 +138,8 @@ do
 	function ENT:SetupDataTables()
 		self:netVar("Int", "XP")
 		self:netVar("Int", "UpgradeLevel")
+
+		self:netVar("String", "AbsoluteOwner")
 	end
 end
 
@@ -154,6 +156,23 @@ end
 
 function ENT:isCriticalDamaged()
 	return self:Health() <= (self:GetMaxHealth() * self.criticalDamagePercent)
+end
+
+function ENT:ownershipCheck(ent)
+	if self:CPPIGetOwner() == ent then return true end
+
+	local abs_owner = self:getAbsoluteOwner()
+
+	if isentity(ent) then 
+		if ent:IsPlayer() and abs_owner == ent:SteamID64() then return true end
+	else
+		if abs_owner == ent then return true end
+	end
+
+	local res = hook.Run("BW_HasOwnership", ent, abs_owner)
+	if res ~= nil then return res end
+
+	return false
 end
 
 if CLIENT then return end

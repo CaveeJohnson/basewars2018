@@ -109,7 +109,7 @@ function ext:PlayerInitialSpawn(ply)
 	for i = 1, ext.knownEntCount do
 		local v = ext.knownEntities[i]
 
-		if v:CPPIGetOwner() == ply or hook.Run("BW_ShouldCoreBelongToPlayer", v, ply) then -- DOCUMENT:
+		if v:ownershipCheck(ply) or hook.Run("BW_ShouldCoreBelongToPlayer", v, ply) then -- DOCUMENT:
 			ply:SetNW2Entity("baseCore", v)
 
 			break
@@ -157,7 +157,7 @@ function basewars.spawnCore(ply, pos, ang, class)
 	core:SetAngles(ang)
 
 	ply:SetNW2Entity("baseCore", core)
-	core:CPPISetOwner(ply)
+	core:setAbsoluteOwner(ply)
 
 	return core, "Success!"
 end

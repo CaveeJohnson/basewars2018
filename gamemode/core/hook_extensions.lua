@@ -24,8 +24,8 @@ if SERVER then
 			if targ:PreTakeDamage(info) then return true end
 		end
 
-		local ret = self.BaseClass.EntityTakeDamage(self, targ, info, ...)
-		if ret then return true end
+		local res = self.BaseClass.EntityTakeDamage(self, targ, info, ...)
+		if res then return true end
 
 		hook.Run("EntityTakeDamageFinal", targ, info, ...)
 
@@ -50,7 +50,7 @@ end
 
 function GM:OnReloaded(...)
 	local a = {...}
-	timer.Create("gamemodereload_test", 1, 1, function()
+	timer.Create("post_gamemodereload", 1, 1, function()
 		hook.Run("PostReloaded", unpack(a))
 	end)
 

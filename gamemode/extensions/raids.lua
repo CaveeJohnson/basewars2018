@@ -56,8 +56,8 @@ function ext:canStartRaid(ply, core)
 	local ownCore = basewars.getCore(ply)
 	if ownCore == core then return false, "You cannot raid yourself!" end
 
-	local ret, why = hook.Run("BW_ShouldRaid", ownCore, core, ply) -- DOCUMENT:
-	if ret == false then return false, why end
+	local res, why = hook.Run("BW_ShouldRaid", ownCore, core, ply) -- DOCUMENT:
+	if res == false then return false, why end
 
 	return true, ownCore, core
 end

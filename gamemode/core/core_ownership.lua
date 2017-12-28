@@ -10,17 +10,16 @@ function basewars.hasCore(ply)
 	return IsValid(basewars.getCore(ply))
 end
 
-function ext:PostEntityCreated(ent)
-	if ent.isCore then
-		ent:requestAreaTransmit()
-	end
-end
-
 ext.knownEntities = {}
 ext.knownEntCount = 0
 
+function basewars.getCores()
+	return ext.knownEntities, ext.knownEntCount
+end
+
 function ext:PostEntityCreated(ent)
 	if not ent.isCore then return end
+	if CLIENT then ent:requestAreaTransmit() end
 
 	self.knownEntCount = self.knownEntCount + 1
 	self.knownEntities[self.knownEntCount] = ent
@@ -142,7 +141,8 @@ function basewars.spawnCore(ply, pos, ang, class)
 	for i = 1, ext.knownEntCount do
 		local v = ext.knownEntities[i]
 
-		if v:encompassesPos(pos) then
+		local radius2 = v:getProtectionRadius() * 2
+		if v:encompassesPos(pos) or v:GetPos():DistToSqr(pos) <= radius2*radius2 then
 			return false, "Core conflicts with another core's claim!"
 		elseif a and v.area and a:intersects(v.area) then
 			return false, "Core conflicts with another core's claim!"
@@ -160,7 +160,7 @@ function basewars.spawnCore(ply, pos, ang, class)
 
 	basewars.assignPlayerCore(ply, core)
 
-	core:CPPIGetOwner(ply)
+	core:CPPISetOwner(ply)
 	core:setAbsoluteOwner(ply:SteamID64())
 
 	return core, "Success!"

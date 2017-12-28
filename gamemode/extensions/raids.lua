@@ -121,7 +121,7 @@ function ext:BW_ShouldDamageProtectedEntity(ent, info)
 	end
 
 	local attackerTarg = self:getPlayerRaidTarget(attacker)
-	if attackerTarg ~= (ent.isCore and ent or ent:getCore()) then return false end
+	if attackerTarg ~= ((ent.isCore and ent) or (ent.getCore and ent:getCore())) then return false end
 
 	return true -- attackers core is raiding us
 end

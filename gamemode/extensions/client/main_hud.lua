@@ -73,13 +73,15 @@ local function drawBar(x, y, w, h, col1, col2, frac)
 	surface.DrawRect(x, y, w, h)
 
 	local over = false
-	while frac > 0.01 do
+	local iter = 0
+	while frac > 0.01 and iter < 5 do
 		local rem = math.min(frac, 1)
 		surface.SetDrawColor(over and over_load_t or col2)
 		surface.DrawRect(x, y, w * rem, h)
 
 		frac = frac - rem
 		over = true
+		iter = iter + 1
 	end
 
 	return h

@@ -16,12 +16,6 @@ function ext:PostEntityCreated(ent)
 	end
 end
 
-if CLIENT then return end
-
-function basewars.assignPlayerCore(ply, core)
-	ply:SetNW2Entity("baseCore", core)
-end
-
 ext.knownEntities = {}
 ext.knownEntCount = 0
 
@@ -43,14 +37,22 @@ function ext:EntityRemoved(ent)
 	for i = 1, self.knownEntCount do
 		local v = self.knownEntities[i]
 
-		if v ~= ent then
+		if v ~= ent and IsValid(ent) then
 			count = count + 1
 			new[count] = v
+
+			v.__coreOwnershipID = count
 		end
 	end
 
 	self.knownEntCount = count
 	self.knownEntities = new
+end
+
+if CLIENT then return end
+
+function basewars.assignPlayerCore(ply, core)
+	ply:SetNW2Entity("baseCore", core)
 end
 
 function ext:PostReloaded()
@@ -74,7 +76,7 @@ function ext:ShouldPlayerSpawnObject(ply, trace)
 	for i = 1, ext.knownEntCount do
 		local v = ext.knownEntities[i]
 
-		if core ~= v and ((pos and v:encompassesPos(pos)) or v:encompassesPos(pos2)) then
+		if not (core == v or v:ownershipCheck(ply)) and ((pos and v:encompassesPos(pos)) or v:encompassesPos(pos2)) then
 			return false
 		end
 	end
@@ -156,7 +158,8 @@ function basewars.spawnCore(ply, pos, ang, class)
 	core:DropToFloor()
 	core:SetAngles(ang)
 
-	ply:SetNW2Entity("baseCore", core)
+	basewars.assignPlayerCore(ply, core)
+
 	core:CPPIGetOwner(ply)
 	core:setAbsoluteOwner(ply:SteamID64())
 

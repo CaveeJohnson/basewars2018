@@ -66,25 +66,33 @@ end
 
 do
 	local numbers = {
-		[5] = {10^6, "Million"},
-		[4] = {10^9, "Billion"},
+		[5] = {10^6 , "Million"},
+		[4] = {10^9 , "Billion"},
 		[3] = {10^12, "Trillion"},
 		[2] = {10^15, "Quadrillion"},
 		[1] = {10^18, "Quintillion"},
 	}
 
-	function basewars.nformat(num)
-		local t = numbers -- TODO: Lang
+	local numbers_short = {
+		[5] = {10^6 , "m"},
+		[4] = {10^9 , "b"},
+		[3] = {10^12, "t"},
+		[2] = {10^15, "qd"},
+		[1] = {10^18, "qn"},
+	}
+
+	function basewars.nformat(num, long)
+		local t = long and numbers or numbers_short -- TODO: Lang
 		for i = 1, #t do
 			local div = t[i][1]
 			local str = t[i][2]
 
 			if num >= div or num <= -div then
-				return string.Comma(math.Round(num / div, 2)) .. " " .. str
+				return string.Comma(math.Truncate(num / div, 2)) .. " " .. str
 			end
 		end
 
-		return string.Comma(math.Round(num, 1))
+		return string.Comma(math.Truncate(num, 2))
 	end
 
 	function basewars.nsigned(num)

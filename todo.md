@@ -18,7 +18,7 @@ ENTITIES:
 
 
 Fixes:
-	[#] Cores dont handle players disconnecting, nothing does really
+	[X] Cores dont handle players disconnecting, nothing does really
 	[ ] Area tolerence causes overlaps, currently disabled
 	[ ] Hands dont autoselect, maybe needs a 1 tick delay
 	[ ] Playervars need support for Doubles / string numbers

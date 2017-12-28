@@ -2,7 +2,30 @@ local ext = basewars.createExtension"raids"
 
 ext.ongoingRaids = {}
 
--- TODO: BW_GetCoreIndicatorColor
+ext.color_orange = Color(255, 165, 0, 255)
+ext.color_red    = Color(255,   0, 0, 255)
+
+function ext:BW_GetCoreIndicatorColor(core)
+	if self.ongoingRaids[core] then
+		return self.color_orange
+	end
+end
+
+function ext:BW_GetCoreDisplayData(core, dt)
+	local data = self.ongoingRaids[core]
+
+	if data then
+		local len = data.time - (CurTime() - data.started)
+		local m = math.floor(len / 60)
+		local s = math.floor(len - m * 60)
+
+		table.insert(dt, self.color_red)
+		table.insert(dt, string.format("Raid Status:  ONGOING!    Time Left:  %.2d:%.2d", m, s))
+	else
+		table.insert(dt, 0)
+		table.insert(dt, "Raid Status: Clear")
+	end
+end
 
 function ext:getPlayerRaidTarget(ply)
 	if not ply:IsPlayer() then return false end
@@ -25,22 +48,24 @@ function ext:getRaidInfo(ent)
 	if not IsValid(ent) then return false end
 
 	if ent:IsPlayer() then
-		if not basewars.hasCore(ply) then return false end
+		if not basewars.hasCore(ent) then return false end
 
-		local core = basewars.getCore(ply)
+		local core = basewars.getCore(ent)
 		return ext.ongoingRaids[core]
 	elseif ent.isCore then
 		return ext.ongoingRaids[ent]
-	else
+	elseif ent.validCore then
 		if not ent:validCore() then return false end
 
 		local core = ent:getCore()
 		return ext.ongoingRaids[core]
+	else
+		return false
 	end
 end
 
 function ext:canStartRaid(ply, core)
-	if not basewars.hasCore(ply) then return false, "You must have a base to raid!" end
+	if not basewars.hasCore(ply) then return false, "You must have a core to raid!" end
 	if not IsValid(core) then return false, "Invalid raid target!" end
 
 	if IsValid(self:getPlayerRaidTarget(ply)) then return false, "You are already participating in a raid!" end
@@ -222,7 +247,7 @@ function ext:startRaid(ply, core)
 	core:raidEffect()
 	self:transmitRaidSingle(ownCore, core, time, started)
 
-	hook.Run("BW_RaidEnd", ownCore, core)
+	hook.Run("BW_RaidStart", ownCore, core)
 	self:transmitRaidStartEnd(false, ownCore, core)
 
 	timer.Create(

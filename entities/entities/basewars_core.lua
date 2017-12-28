@@ -14,7 +14,7 @@ ENT.DefaultRadius = 500
 ENT.selfDestructPower = 1e5
 
 ENT.isCore = true
-ENT.criticalDamagePercent = 0.005
+ENT.criticalDamagePercent = 0.1 -- high but cores are important!
 
 ENT.areasExt = basewars.getExtension"areas"
 ENT.PhysgunDisabled = true -- always due to area usage

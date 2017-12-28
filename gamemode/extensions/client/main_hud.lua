@@ -9,16 +9,15 @@ surface.CreateFont(ext.mainFont, {
 })
 
 local enabled
-local pos, ang = Vector(), Angle()
+local pos, ang, eye_ang = Vector(), Angle(), Angle()
 
 local is3d = true
 
-function hud_update_parameters(ply)
-	local vec = ply:EyeAngles()
+function hud_update_parameters()
+	eye_ang = EyeAngles()
+	eye_ang.r = 0
 	
-	ang = vec * 1
-	ang.r = ang.r * 0.3
-
+	ang = eye_ang * 1
 	ang:RotateAroundAxis(ang:Forward(), 90)
 	ang:RotateAroundAxis(ang:Right(), 90)
 	
@@ -26,7 +25,7 @@ function hud_update_parameters(ply)
 	local right   = ScrW() / 192.72
 	local up      = ScrH() / 200
 
-	pos = EyePos() + (vec:Forward() * forward) - (vec:Right() * right) + (vec:Up() * up)
+	pos = EyePos() + (eye_ang:Forward() * forward) - (eye_ang:Right() * right) + (eye_ang:Up() * up)
 end
 
 function HUD3DEN(yaw)
@@ -36,9 +35,6 @@ function HUD3DEN(yaw)
 	
 	local ang = ang * 1 -- copies
 		ang:RotateAroundAxis(ang:Right(), yaw)
-
-	local eye_ang = EyeAngles()
-	eye_ang.r = 0
 
 	local ratio = ScrW() * 0.000088
 	cam.Start3D(EyePos(), eye_ang, 90)
@@ -56,6 +52,7 @@ end
 
 local shade = Color(20, 20, 20, 200)
 local off_white = Color(240, 240, 240, 255)
+local off_white_t = Color(240, 240, 240, 180)
 local over_load = Color(182, 17, 244, 255)
 local over_load_t = Color(182, 17, 244, 90)
 
@@ -94,9 +91,35 @@ local col1 = Color(204,50,48,90)
 
 local pure_red = Color(255, 0, 0, 255)
 
-function ext:HUDPaint()
+local core
+local core_data = {}
+
+local time_string = string.format("Current Time:  %s", os.date("%H:%M"))
+
+timer.Create(ext:getTag(), 1, 0, function()
+	time_string = string.format("Current Time:  %s", os.date("%H:%M"))
+
 	local ply = LocalPlayer()
-	hud_update_parameters(ply)
+	core = basewars.getCore(ply)
+
+	if IsValid(core) then
+		core_data = {
+			off_white_t,
+			"Core online!",
+
+			core:isCriticalDamaged() and pure_red or off_white_t,
+			"Health:  " .. basewars.nformat(core:Health()) .. "/" .. basewars.nformat(core:GetMaxHealth()),
+
+			core:getEnergy() < (core:getEnergyCapacity() * 0.025) and pure_red or off_white_t,
+			"Energy:  " .. basewars.nformat(core:getEnergy()) .. "/" .. basewars.nformat(core:getEnergyCapacity()),
+		}
+		hook.Run("BW_GetCoreDisplayData", core, core_data)
+	end
+end)
+
+function ext:HUDPaint()
+	hud_update_parameters()
+	local ply = LocalPlayer()
 
 	local scrW = ScrW()
 	local scrH = ScrH()
@@ -123,15 +146,15 @@ function ext:HUDPaint()
 			cury = cury - bar_height
 			cury = cury - drawBar(curx, cury, bar_width, bar_height, col2, col1, hp / max_hp)
 
-			local money_string = string.format("Bank: £%s    Deployed: £%s", basewars.nformat(ply:getMoney()), basewars.nformat(0))
+			local money_string = string.format("Bank:  £%s    Deployed:  £%s", basewars.nformat(ply:getMoney()), basewars.nformat(0))
 			cury = cury - drawString(money_string, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
 
 			local level = ply:getLevel()
 			local xp = ply:getXP()
 			local next_xp = ply:getNextLevelXP()
 
-			local level_text       = string.format("Level: %d" ,  basewars.nformat(level))
-			local xp_text          = string.format("XP: %d/ %d" , xp, next_xp)
+			local level_text       = string.format("Level:  %d" ,  basewars.nformat(level))
+			local xp_text          = string.format("XP:  %d/ %d" , xp, next_xp)
 			local level_text_final = string.format("%s    %s", level_text, xp_text)
 			cury = cury - drawString(level_text_final, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
 		else
@@ -140,25 +163,34 @@ function ext:HUDPaint()
 
 		cury = yindent
 
-		cury = cury + drawString(string.format("Current Time:    %s", os.date("%H:%M")), curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+		cury = cury + drawString(time_string, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 		cury = cury + 8
 
-		local core = basewars.getCore(ply)
 		if IsValid(core) then
 			surface.SetDrawColor(20, 20, 20, 128)
 			surface.DrawRect(curx, cury, 512, 192)
 
 			curx, cury = curx + 4, cury + 4
-			cury = cury + drawString("Core online! " .. tostring(core), curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+
+			local col = off_white_t
+			for _, v in ipairs(core_data) do
+				if istable(v) and v.r then
+					col = v
+				elseif v == 0 then
+					col = off_white_t
+				else
+					cury = cury + drawString(tostring(v), curx, cury, col, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+				end
+			end
 		else
-			local failure = "WARNING: Core did not respond to ping after 3000ms"
+			local failure = "WARNING:  Core did not respond to ping after 1000ms"
 			local w, h = surface.GetTextSize(failure)
 
 			surface.SetDrawColor(20, 20, 20, 128)
 			surface.DrawRect(curx, cury, w + 8, h + 8)
 
 			curx, cury = curx + 4, cury + 4
-			cury = cury + drawString(failure, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+			cury = cury + drawString(failure, curx, cury, off_white_t, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 		end
 	HUD3DEX()
 

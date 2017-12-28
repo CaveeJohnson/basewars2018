@@ -11,6 +11,8 @@ ENT.Model = "models/props_lab/generatorconsole.mdl"
 ENT.isControlPanel = true
 ENT.isCoreControlPanel = true
 
+ENT.noActions = true
+
 do
 	local black = Color(0, 0, 0)
 	local red = Color(100, 20, 20)
@@ -39,7 +41,6 @@ ext.maxPanelInteractDist = 700 ^ 2
 ext.opNameToCode = {
 	connect = {1, "Connect"},
 	disconnect = {2, "Disconnect"},
-	toggleCore = {3, "Toggle core"},
 }
 
 if SERVER then
@@ -152,6 +153,17 @@ else
 
 -- CLIENT
 
+function ext:commitActionRaw(panel, action, ent)
+	net.Start(self:getTag())
+		net.WriteEntity(panel)
+		net.WriteUInt(action, 4)
+
+		if ent then
+			net.WriteEntity(ent)
+		end
+	net.SendToServer()
+end
+
 function ext:commitAction(panel, action, ent)
 	local method = self.opNameToCode[action]
 	if not method then
@@ -228,7 +240,6 @@ else
 	local red, green, blue = Color(230, 0, 0), Color(0, 190, 0), Color(25, 48, 254)
 	local orange           = Color(255, 153, 0)
 	local gray             = Color(150, 150, 150)
-	local scr_color        = Color(51, 153, 255, 100)
 
 	local selcolor         = Color(255, 255, 0)
 
@@ -261,7 +272,7 @@ else
 	})
 
 	surface.CreateFont(FONT_MP_CONTROLS, {
-		font = "DejaVu Sans",
+		font = "Arial",
 		size = 32
 	})
 
@@ -517,6 +528,17 @@ else
 	function ENT:Initialize()
 		BaseClass.Initialize(self)
 
+		math.randomseed(self:EntIndex())
+		local bg = HSVToColor(math.random(0, 360), math.random(60, 100) / 100, math.random(60, 100) / 100)
+		self.__cr = bg.r
+		self.__cg = bg.g
+		self.__cb = bg.b
+
+		self.__ind_color = bg
+		self.__scr_color = ColorAlpha(bg, 100)
+		self.__box_color = ColorAlpha(bg, 255)
+		self.__slc_color = Color(255 - bg.r, 255 - bg.g, 255 - bg.b, 100)
+
 		-- Create material for rendering the main panel
 		local tex = GetRenderTargetEx(string.format("bw2018_rtcc_%f", SysTime()), 1200, 600, RT_SIZE_DEFAULT, MATERIAL_RT_DEPTH_NONE, 2, 0, IMAGE_FORMAT_RGBA8888)
 		local mat = CreateMaterial(string.format("bw2018_matgencc_%d", self:EntIndex()), "VertexLitGeneric", {
@@ -671,7 +693,7 @@ else
 			local tex, mat = self.tex, self.mat
 
 			render.PushRenderTarget(tex)
-			render.Clear(51, 153, 255, 255)
+			render.Clear(self.__cr, self.__cg, self.__cb, 255)
 			cam.Start2D()
 
 			if self:validCore() then
@@ -729,6 +751,7 @@ else
 		do
 			local s_setDrawColor = surface.SetDrawColor
 			local s_drawRect = surface.DrawRect
+			local s_drawORect = surface.DrawOutlinedRect
 
 			local s_setTextColor = surface.SetTextColor
 			local s_setFont = surface.SetFont
@@ -737,41 +760,48 @@ else
 
 			local s_format = string.format
 
-			function ENT:drawEntityEntry(ent, p, i, my, scroll)
+			function ENT:drawEntityEntry(ent, p, i, my, scroll, a)
 				local y = (i - 1) * 40 + 4 - scroll
 				if ent == self.__selected then
-					s_setDrawColor(255, 140, 26, 200)
-					s_drawRect(2, y - 2, 450, 36)
+					s_setDrawColor(100, 90, 80, 200)
+					s_drawRect(2, y - 2, 486 - a, 36)
 				end
+
+				local con = (ent.isCore and ent:isActive()) or (ent.validCore and ent:validCore())
+
+				s_setDrawColor(0, 0, 0, 255)
+				s_drawRect(6, y + 6, 20, 20)
+				s_setDrawColor((ent.isCoreControlPanel and ent.__ind_color) or (con and green) or red)
+				s_drawRect(8, y + 8, 16, 16)
 
 				-- OPT:
 				local entname    = ent.PrintName or ent:GetClass()
-				local ft, nW, nH = fitToSize(entname, 32, 250)
+				s_setFont(FONT_MP_CONTROLS)
+				local gW, gH     = surface.GetTextSize(entname)
 
 				s_setTextColor(255, 255, 255)
-				s_setFont(ft)
-				s_setTextPos(4, y + 16 - nH / 2)
+				s_setTextPos(32, y + 2)
 				s_drawText(entname)
 
-				local con = ent:validCore()
+				if ent.isPoweredEntity and not ent.isControlPanel then
+					local tp  = ent:calcEnergyThroughput()
+					local tpt = s_format("%s/t", basewars.nsigned(tp))
 
-				s_setTextColor(con and green or red)
-				s_setFont(FONT_MP_CONTROLS)
-				s_setTextPos(266, y)
-				s_drawText(con and "O" or "X")
+					local Tw, Th = getTextSize(FONT_EP_TP, tpt)
+					local Tx, Ty = 490 - Tw - a - 8, y + 16 - Th / 2
 
-				local tp  = ent:calcEnergyThroughput()
-				local tpt = s_format("%s/t", basewars.nsigned(tp))
+					s_setFont(FONT_EP_TP)
 
-				local Tw, Th = getTextSize(FONT_EP_TP, tpt)
+					s_setTextColor(0, 0, 0, 200)
+					s_setTextPos(Tx + 1, Ty + 1)
+					s_drawText(tpt)
+					s_setTextColor((tp > 0 and green) or (tp < 0 and red) or gray)
+					s_setTextPos(Tx, Ty)
+					s_drawText(tpt)
+					-- OPT: End, see above
+				end
 
-				s_setTextColor((tp > 0 and green) or (tp < 0 and red) or gray)
-				s_setFont(FONT_EP_TP)
-				s_setTextPos(490 - Tw - 38, y + 16 - Th / 2)
-				s_drawText(tpt)
-				-- OPT: End, see above
-
-				if (my > 0 and my < 394) and p:DrawButton("", FONT_MP_EASTEREGG, 2, y, 450, 32, transparent) then
+				if (my > 0 and my < 394) and p:DrawButton("", FONT_MP_EASTEREGG, 2, y, 486 - a, 32, transparent) then
 					self:selectEntity(ent)
 				end
 			end
@@ -804,7 +834,7 @@ else
 
 			p:BeginRender()
 
-			p:DrawRect(0, 0, 490, 450, scr_color)
+			p:DrawRect(0, 0, 490, 450, self.__scr_color)
 
 			if not plyLookingAtPanel then p:EndRender() return end
 
@@ -818,11 +848,14 @@ else
 			scroll.w = 24
 			scroll.h = 382
 
+			local scrolled
+
 			if content_h >= 382 then
 				scroll.content_h = content_h
 
 				scroll:handleInput(mx, my, pressing)
 				scroll:draw()
+				scrolled = true
 			else
 				scroll.bar_o = 0
 			end
@@ -832,7 +865,7 @@ else
 			local scroll_amt = scroll:getScroll()
 			for i, ent in ipairs(entlist) do
 				if IsValid(ent) then
-					self:drawEntityEntry(ent, p, i, my, scroll_amt)
+					self:drawEntityEntry(ent, p, i, my, scroll_amt, scrolled and 36 or 0)
 				end
 			end
 
@@ -871,6 +904,7 @@ else
 			if not IsValid(ent) then return end
 
 			local time = CurTime()
+			local selcolor = self.__box_color
 			selcolor.a = (125 + m_sin(time * 4) * 50) * (m_floor(time * 15) % 2 == 0 and 1 or 0.85)
 
 			local mins, maxs = ent:OBBMins(), ent:OBBMaxs()
@@ -892,10 +926,11 @@ else
 	end
 
 	function ENT:onCoreAreaEntsUpdated(core, ents, count)
-		local elist       = {}
+		local elist       = {core}
 		self.__entityList = elist
 
 		local s, present = self.__selected
+		if s == core then present = true end
 		for i = 1, count do
 			local ent = ents[i]
 			if IsValid(ent) and ent ~= self then
@@ -914,6 +949,18 @@ else
 
 	function ENT:getActions(ent)
 		if ent.__actions then return ent.__actions end
+
+		if ent.noActions then
+			ent.__actions = {}
+			return ent.__actions
+		end
+
+		if ent.isCore then
+			ent.__actions = {
+				{"Toggle active", function(self) ext:commitActionRaw(self, 3) end}
+			}
+			return ent.__actions
+		end
 
 		local actions = {}
 

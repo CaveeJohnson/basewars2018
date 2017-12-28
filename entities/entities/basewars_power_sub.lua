@@ -7,6 +7,7 @@ DEFINE_BASECLASS(ENT.Base)
 ENT.PrintName = "BaseWars2018 Sub Power"
 
 ENT.BasePassiveRate = 0
+ENT.BaseActiveRate = 0
 
 function ENT:SetupDataTables()
 	BaseClass.SetupDataTables(self)
@@ -62,5 +63,6 @@ function ENT:Initialize()
 	BaseClass.Initialize(self)
 
 	self:setPassiveRate(self.BasePassiveRate)
+	self:setActiveRate(self.BaseActiveRate)
 end
 

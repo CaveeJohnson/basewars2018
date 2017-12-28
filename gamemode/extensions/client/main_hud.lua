@@ -13,7 +13,7 @@ local pos, ang, eye_ang = Vector(), Angle(), Angle()
 
 local is3d = true
 
-function hud_update_parameters()
+local function hud_update_parameters()
 	eye_ang = EyeAngles()
 	eye_ang.r = 0
 	
@@ -28,7 +28,7 @@ function hud_update_parameters()
 	pos = EyePos() + (eye_ang:Forward() * forward) - (eye_ang:Right() * right) + (eye_ang:Up() * up)
 end
 
-function HUD3DEN(yaw)
+local function HUD3DEN(yaw)
 	if not is3d then return end
 	if enabled then return end
 		enabled = true
@@ -41,7 +41,7 @@ function HUD3DEN(yaw)
 	cam.Start3D2D(pos - (ang:Up() * yaw * ratio), ang, 0.01)
 end
 
-function HUD3DEX()
+local function HUD3DEX()
 	if not is3d then return end
 	if not enabled then return end
 		enabled = false

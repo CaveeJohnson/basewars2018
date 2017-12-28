@@ -250,20 +250,39 @@ function ext:startRaid(ply, core)
 	hook.Run("BW_RaidStart", ownCore, core)
 	self:transmitRaidStartEnd(false, ownCore, core)
 
+	local raidOver = function()
+		ext.ongoingRaids[ownCore] = nil
+		ext.ongoingRaids[core] = nil
+
+		self:cleanOngoing()
+		self:transmitRaids()
+
+		hook.Run("BW_RaidEnd", ownCore, core)
+		self:transmitRaidStartEnd(true, ownCore, core)
+	end
+
+	local tid = string.format("raid%s%s", tostring(ownCore), tostring(core))
 	timer.Create(
-		string.format("raid%s%s", tostring(ownCore), tostring(core)),
+		tid .. "tick",
+		1,
+		time,
+
+		function()
+			if not (IsValid(ownCore) and IsValid(core)) then
+				timer.Destroy(tid.."tick")
+				timer.Destroy(tid)
+
+				basewars.logf("raid ended earlier due to validity failure: %s vs %s", tostring(ownCore), tostring(core))
+				raidOver()
+			end
+		end
+	)
+
+	timer.Create(
+		tid,
 		time,
 		1,
 
-		function()
-			self:cleanOngoing()
-			self:transmitRaids()
-
-			ext.ongoingRaids[ownCore] = nil
-			ext.ongoingRaids[core] = nil
-
-			hook.Run("BW_RaidEnd", ownCore, core)
-			self:transmitRaidStartEnd(true, ownCore, core)
-		end
+		raidOver
 	)
 end

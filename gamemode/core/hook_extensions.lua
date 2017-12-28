@@ -93,5 +93,10 @@ function GM:PlayerSpawn(ply, ...)
 		ply:SetPos(res)
 	end
 
+	local a = {...}
+	timer.Simple(0, function()
+		if IsValid(ply) then hook.Run("PostPlayerSpawn", ply, unpack(a)) end
+	end)
+
 	return self.BaseClass.PlayerSpawn(self, ply, ...)
 end

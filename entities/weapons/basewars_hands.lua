@@ -118,7 +118,10 @@ end
 
 local ext = basewars.createExtension"hands"
 
-function ext:PlayerSpawn(ply)
+function ext:PostPlayerSpawn(ply)
 	local hands = ply:Give("basewars_hands")
-	if IsValid(hands) then ply:SetActiveWeapon(hands) end
+	if IsValid(hands) then
+		ply:SelectWeapon("basewars_hands")
+		ply:SetActiveWeapon(hands)
+	end
 end

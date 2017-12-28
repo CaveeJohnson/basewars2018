@@ -29,7 +29,7 @@ end
 
 function ENT:updateEnergyThroughput(name, old, new)
 	local base = (name == "PassiveRate" and new) or self:getPassiveRate()
-	if (name == "Active" and true) or self:isActive() then
+	if (name == "Active" and new == true) or (name ~= "Active" and self:isActive()) then
 		base = base + ((name == "ActiveRate" and new) or self:getActiveRate())
 	end
 

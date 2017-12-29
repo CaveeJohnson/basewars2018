@@ -92,7 +92,7 @@ local col1 = Color(204,50,48,90)
 
 local pure_red = Color(255, 0, 0, 255)
 
-local core, validCorePast
+local core, encompassing_core, valid_core_past
 local core_data = {}
 
 local time_string = string.format("Current Time:  %s", os.date("%H:%M"))
@@ -102,9 +102,10 @@ timer.Create(ext:getTag(), 1, 0, function()
 
 	local ply = LocalPlayer()
 	core = basewars.getCore(ply)
+	encompassing_core = basewars.getEncompassingCoreForPos(ply)
 
 	if IsValid(core) then
-		validCorePast = CurTime()
+		valid_core_past = CurTime()
 		core_data = {
 			off_white_t,
 			"Core online!",
@@ -184,7 +185,7 @@ function ext:HUDPaint()
 					cury = cury + drawString(tostring(v), curx, cury, col, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 				end
 			end
-		elseif validCorePast and validCorePast + 20 > CurTime() then
+		elseif valid_core_past and valid_core_past + 20 > CurTime() then
 			local failure = "WARNING:  Core did not respond to ping after 1000ms"
 			local w, h = surface.GetTextSize(failure)
 
@@ -199,9 +200,13 @@ function ext:HUDPaint()
 	HUD3DEX()
 
 	curx, cury = scrW - xindent, yindent
-	--HUD3DEN(rot_y)
-
-	--HUD3DEX()
+	HUD3DEN(rot_y)
+		if encompassing_core then
+			local own = encompassing_core == core
+			cury = cury + drawString("In range of core", curx, cury, off_white_t, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+			cury = cury + drawString(own and "Friendly" or "Hostile", curx, cury, own and off_white_t2 or pure_red, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+		end
+	HUD3DEX()
 end
 
 ext.hudNoDraw = {

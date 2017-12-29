@@ -16,7 +16,7 @@ ENT.selfDestructPower = 1e5
 ENT.isCore = true
 ENT.criticalDamagePercent = 0.1 -- high but cores are important!
 
-ENT.areasExt = basewars.getExtension"areas"
+--ENT.areasExt = basewars.getExtension"areas" -- disabled
 ENT.PhysgunDisabled = true -- always due to area usage
 
 function ENT:SetupDataTables()
@@ -151,6 +151,37 @@ do
 		local col = hook.Run("BW_GetCoreIndicatorColor", self) or (self:isActive() and green or red) -- DOCUMENT:
 		self.indicatorColor = col
 	end
+end
+
+function ENT:encompassesPos(pos)
+	if self.area then
+		--if not self.area:containsWithinTolSqr(pos) then return false end
+		if not self.area:containsNoTol(pos) then return false end -- TODO: Tolerence overlap
+	else
+		local rad = self:getProtectionRadius()
+		if self:GetPos():DistToSqr(pos) > rad * rad then return false end
+	end
+
+	return true
+end
+
+function ENT:encompassesEntity(ent)
+	if not IsValid(ent) or ent:IsPlayer() then return false end
+	if not self:encompassesPos(ent:GetPos()) then return false end
+
+	local res = hook.Run("BW_ShouldCoreOwnEntity", self, ent) -- DOCUMENT:
+	if res ~= nil then return res end
+
+	return true
+end
+
+function ENT:protectsEntity(ent)
+	if not (self:isActive() and self:encompassesEntity(ent)) then return false end
+
+	local res = hook.Run("BW_ShouldCoreProtectEntity", self, ent) -- DOCUMENT:
+	if res ~= nil then return res end
+
+	return true -- encompass check not needed due to think cleaning
 end
 
 if CLIENT then return end
@@ -296,9 +327,25 @@ function ENT:OnRemove()
 end
 
 function ENT:setRadius(rad)
+	local t, c = basewars.getCores()
+
+	if c > 1 then
+		local pos = self:GetPos()
+		for i = 1, c do -- TODO: Areas
+			local v = t[i]
+			local check = rad + v:getProtectionRadius()
+
+			if v ~= self and pos:DistToSqr(v:GetPos()) < check*check then
+				return false, "New size would conflict with another core's claim"
+			end
+		end
+	end
+
 	self:setProtectionRadius(rad)
-	self:genArea(true)
+	--self:genArea(true)
 	self:updateAreaCost()
+
+	return true
 end
 
 function ENT:Initialize()
@@ -338,26 +385,31 @@ ENT.shutdownSounds = {
 	{"ambient/machines/thumper_shutdown1.wav", 3.4428117275238},
 }
 
-function ENT:doSequence(type, sounds, callback)
-	if self:isSequenceOngoing() then return end
+function ENT:doSequence(type, sounds, callback, regardless)
+	if self:isSequenceOngoing() and not regardless then return false end
+	local do_it = not self:isSequenceOngoing()
 
 	self.ongoingSequence = type
 	self:setSequenceOngoing(true)
 
 	local time = 0
 	for i, v in ipairs(sounds) do
-		timer.Simple(time, function() if IsValid(self) then self:EmitSound(v[1]) end end)
+		if do_it then timer.Simple(time, function() if IsValid(self) then self:EmitSound(v[1]) end end) end
 		time = time + v[2] + 0.05
 	end
 
 	timer.Simple(time + 1, function()
 		if IsValid(self) then
-			self.ongoingSequence = nil
-			self:setSequenceOngoing(false)
+			if do_it then
+				self.ongoingSequence = nil
+				self:setSequenceOngoing(false)
+			end
 
 			if callback then callback(self, time + 1) end
 		end
 	end)
+
+	return true
 end
 
 ENT.raidSounds = {
@@ -391,11 +443,11 @@ function ENT:explodeEffects()
 	ParticleEffect("mvm_hatch_destroy", pos + Vector(0, 0, 32), Angle())
 end
 
-function ENT:selfDestruct()
+function ENT:selfDestruct(dmginfo)
 	self.__alarm = CreateSound(self, "ambient/alarms/apc_alarm_loop1.wav")
 	self.__alarm:Play()
 
-	self:doSequence("selfDestruct", self.selfDestructSounds, function()
+	local boom = function()
 		if self.__alarm then self.__alarm:Stop() end
 
 		self:setActive(false)
@@ -404,7 +456,11 @@ function ENT:selfDestruct()
 			local v = self.areaEnts[i]
 
 			if IsValid(v) then
-				v:TakeDamage(self.selfDestructPower, self, self)
+				if dmginfo then
+					v:TakeDamage(self.selfDestructPower, dmginfo:GetAttacker(), dmginfo:GetInflictor())
+				else
+					v:TakeDamage(self.selfDestructPower, self, self)
+				end
 			end
 		end
 
@@ -420,7 +476,9 @@ function ENT:selfDestruct()
 
 		self:explodeEffects()
 		self:explode(false, 500)
-	end)
+	end
+
+	self:doSequence("selfDestruct", self.selfDestructSounds, boom, true)
 end
 
 function ENT:toggle()
@@ -442,7 +500,7 @@ function ENT:Use(user)
 end
 
 function ENT:Think()
-	self:genArea()
+	--self:genArea()
 
 	self.nextAreaTransmit = self.nextAreaTransmit or 0
 	if self.nextAreaTransmit <= CurTime() then
@@ -495,35 +553,4 @@ function ENT:networkContainsEnt(ent)
 	end
 
 	return false
-end
-
-function ENT:encompassesPos(pos)
-	if self.area then
-		--if not self.area:containsWithinTolSqr(pos) then return false end
-		if not self.area:containsNoTol(pos) then return false end -- TODO: Tolerence overlap
-	else
-		local rad = self:getProtectionRadius()
-		if self:GetPos():DistToSqr(pos) > rad * rad then return false end
-	end
-
-	return true
-end
-
-function ENT:encompassesEntity(ent)
-	if not IsValid(ent) or ent:IsPlayer() then return false end
-	if not self:encompassesPos(ent:GetPos()) then return false end
-
-	local res = hook.Run("BW_ShouldCoreOwnEntity", self, ent) -- DOCUMENT:
-	if res ~= nil then return res end
-
-	return true
-end
-
-function ENT:protectsEntity(ent)
-	if not (self:isActive() and self:encompassesEntity(ent)) then return false end
-
-	local res = hook.Run("BW_ShouldCoreProtectEntity", self, ent) -- DOCUMENT:
-	if res ~= nil then return res end
-
-	return true -- encompass check not needed due to think cleaning
 end

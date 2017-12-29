@@ -258,9 +258,14 @@ function ENT:OnTakeDamage(dmginfo)
 	end
 
 	self:SetHealth(self:Health() - dmg)
-	if self:Health() <= 0 then
-		hook.Run("BW_OnEntityExplode", self, dmginfo) -- DOCUMENT:
+	if self:Health() <= 0 and not self.exploded then
+		self.exploded = true
 
-		self:explode(dmginfo:IsExplosionDamage())
+		local res = hook.Run("BW_PreEntityExplode", self, dmginfo) -- DOCUMENT:
+
+		if res ~= false then
+			self:explode(dmginfo:IsExplosionDamage())
+		end
+		hook.Run("BW_OnEntityExplode", self, dmginfo) -- DOCUMENT:
 	end
 end

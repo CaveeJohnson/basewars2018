@@ -2,6 +2,8 @@ if SERVER and not navmesh.IsLoaded() then
 	return
 end
 
+if true then return end -- disabled due to networking being aweful + code not shared :v
+
 
 local ext = basewars.createExtension"areas"
 

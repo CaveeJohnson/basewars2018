@@ -17,6 +17,20 @@ function basewars.getCores()
 	return ext.knownEntities, ext.knownEntCount
 end
 
+function basewars.getEncompassingCoreForPos(pos)
+	pos = isvector(pos) and pos or pos:GetPos()
+
+	for i = 1, ext.knownEntCount do
+		local v = ext.knownEntities[i]
+
+		if v:encompassesPos(pos) then
+			return v
+		end
+	end
+
+	return nil
+end
+
 function ext:PostEntityCreated(ent)
 	if not ent.isCore then return end
 	if CLIENT then ent:requestAreaTransmit() end
@@ -48,12 +62,6 @@ function ext:EntityRemoved(ent)
 	self.knownEntities = new
 end
 
-if CLIENT then return end
-
-function basewars.assignPlayerCore(ply, core)
-	ply:SetNW2Entity("baseCore", core)
-end
-
 function ext:PostReloaded()
 	local i = 0
 
@@ -65,6 +73,29 @@ function ext:PostReloaded()
 	end
 
 	self.knownEntCount = i
+end
+
+if CLIENT then
+	local prot   = Color(120, 100, 170, 2)
+	local prot2  = Color(120, 100, 170, 4)
+
+	function ext:PostDrawTranslucentRenderables(d, s)
+		if s then return end
+
+		for i = 1, self.knownEntCount do
+			local v = self.knownEntities[i]
+
+			render.SetColorMaterial()
+			render.DrawSphere(v:GetPos(),  v:getProtectionRadius(), 25, 25, prot)
+			render.DrawSphere(v:GetPos(), -v:getProtectionRadius(), 25, 25, prot2)
+		end
+	end
+
+	return
+end
+
+function basewars.assignPlayerCore(ply, core)
+	ply:SetNW2Entity("baseCore", core)
 end
 
 function ext:ShouldPlayerSpawnObject(ply, trace)
@@ -106,6 +137,14 @@ function ext:BW_ShouldCoreOwnEntity(core, ent)
 	if basewars.getCore(owner) ~= core then return false end
 end
 
+function ext:BW_PreEntityExplode(ent, dmginfo)
+	if ent.isCore then
+		ent:selfDestruct(dmginfo)
+
+		return false
+	end
+end
+
 function ext:PlayerInitialSpawn(ply)
 	for i = 1, ext.knownEntCount do
 		local v = ext.knownEntities[i]
@@ -141,8 +180,8 @@ function basewars.spawnCore(ply, pos, ang, class)
 	for i = 1, ext.knownEntCount do
 		local v = ext.knownEntities[i]
 
-		local radius2 = v:getProtectionRadius() * 2
-		if v:encompassesPos(pos) or v:GetPos():DistToSqr(pos) <= radius2*radius2 then
+		local combined_rad = v:getProtectionRadius() + rad
+		if v:encompassesPos(pos) or v:GetPos():DistToSqr(pos) <= combined_rad*combined_rad then
 			return false, "Core conflicts with another core's claim!"
 		elseif a and v.area and a:intersects(v.area) then
 			return false, "Core conflicts with another core's claim!"

@@ -7,7 +7,7 @@ ENTITIES:
 	[ ] Active Generator
 	[ ] Printer
 	[ ] Turret
-	[ ] Spawnpoint
+	[X] Spawnpoint
 	[X] Core
 	[X] Core Control Panel
 	[ ] Radar
@@ -19,12 +19,14 @@ ENTITIES:
 
 Fixes:
 	[X] Cores dont handle players disconnecting, nothing does really
-	[ ] Area tolerence causes overlaps, currently disabled
+	[-] Area tolerence causes overlaps, currently disabled
 	[X] Hands dont autoselect, maybe needs a 1 tick delay
 	[ ] Playervars need support for Doubles / string numbers
 	[X] Control panel works on literaly any entity, check if the entitiy is encompassed
+	[ ] Cloning machine only works if p = 0 and y % 90 = whole, needs to be static
 
 
+OLD:
 Weekend: Done
 	[X] Entity damage
 	[X] Remove downsyndrome from interaction hud
@@ -42,9 +44,9 @@ Mon: Done
 	[X] TOP PRIORITY: Disable spawning of bloody everything, noclip, etc
 	[X] TOP PRIORITY: Block driving
 	[X] Package anticrash with gamemode
-	[#] Decrap base gamemode stuff and profile
+	[X] Decrap base gamemode stuff and profile
 	[X] Deflect / anti damage in area for props
-	[#] Anti-spawning and moving for core area
+	[X] Anti-spawning and moving for core area
 	[X] Core ownership
 
 Tues: Done
@@ -70,13 +72,18 @@ Fri: Done
 	[X] Raid system backend
 	[X] Cores dont transmit area when rejoining
 
-Sat:
+
+Friday:
+	[ ] Buildmode + encompassed indicators
+	[ ] Basic purchasing / core spawner / we
+
+Saturday:
 	[ ] Raid system frontend
 
 [ ] Faction system
 [ ] Entity purchasing system
 [ ] Chat / Command system
-[ ] Add some basic entity which CONSUMES power and test if its :isPowered method is right
+[X] Add some basic entity which CONSUMES power and test if its :isPowered method is right
 [ ] Language system
 [#] Config system which allows overrides but doesn't force everything into 1 massive file
 	- Allows for people to change entity variables without breaking forward compat

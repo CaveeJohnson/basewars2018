@@ -143,6 +143,7 @@ end
 
 function PLAYER:SetupDataTables()
 	hook.Run("SetupPlayerDataTables", self)
+	hook.Run("PostSetupPlayerDataTables", self.Player)
 end
 
 player_manager.RegisterClass("player_extended", PLAYER, "player_sandbox")

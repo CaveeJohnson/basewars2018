@@ -35,7 +35,9 @@ end
 
 function ext:PostPlayerInitialSpawn(ply)
 	player_manager.SetPlayerClass(ply, "player_extended")
+end
 
+function ext:PostSetupPlayerDataTables(ply)
 	if not useSQL then
 		timer.Simple(0, function()
 			if IsValid(ply) then

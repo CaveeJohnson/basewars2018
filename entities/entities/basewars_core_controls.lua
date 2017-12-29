@@ -107,6 +107,7 @@ function ext.readNetwork(_, ply)
 	end
 
 	if not panel:validCore() then return false, "No core connected!" end
+	local core = panel:getCore()
 
 	ext._rateLimitPlayers[ply] = ext._rateLimitPlayers[ply] or CurTime()
 
@@ -114,36 +115,27 @@ function ext.readNetwork(_, ply)
 	ext._rateLimitPlayers[ply] = CurTime() + ext.rateLimitTime
 
 	local method = net.ReadUInt(4)
-
-	if method == 0 then
-		local ent = net.ReadEntity()
-		if
-			not IsValid(ent) or
-			not panel.isPoweredEntity
-		then
-			return ext:respond(panel, ply, false, "Invalid entity!")
-		end
-
-		method = net.ReadUInt(8)
-
-		local op = ent.coreControlOperations and ent.coreControlOperations[method]
-		if not op then return ext:respond(panel, ply, false, "Invalid custom method!") end
-
-		return ext:respond(panel, ply, op.func(panel, ent, ply))
-	end
-
 	local op = ext.operations[method]
-	if not op then return ext:respond(panel, ply, false, "Invalid method!") end
 
 	local ent
-	if op.ent then
+	if (op and op.ent) or method == 0 then
 		ent = net.ReadEntity()
 		if
 			not IsValid(ent) or
-			not panel.isPoweredEntity
+			not ent.isPoweredEntity or
+			not core:encompassesEntity(ent)
 		then
 			return ext:respond(panel, ply, false, "Invalid entity!")
 		end
+	end
+
+	if method == 0 then
+		method = net.ReadUInt(8)
+
+		op = ent.coreControlOperations and ent.coreControlOperations[method]
+		if not op then return ext:respond(panel, ply, false, "Invalid custom method!") end
+	elseif not op then
+		return ext:respond(panel, ply, false, "Invalid method!")
 	end
 
 	return ext:respond(panel, ply, op.func(panel, ent, ply))

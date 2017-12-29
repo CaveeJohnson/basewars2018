@@ -20,9 +20,9 @@ ENTITIES:
 Fixes:
 	[X] Cores dont handle players disconnecting, nothing does really
 	[ ] Area tolerence causes overlaps, currently disabled
-	[ ] Hands dont autoselect, maybe needs a 1 tick delay
+	[X] Hands dont autoselect, maybe needs a 1 tick delay
 	[ ] Playervars need support for Doubles / string numbers
-	[ ] Control panel works on literaly any entity, check if the entitiy is encompassed
+	[X] Control panel works on literaly any entity, check if the entitiy is encompassed
 
 
 Weekend: Done

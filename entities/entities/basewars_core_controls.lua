@@ -129,7 +129,7 @@ function ext.readNetwork(_, ply)
 		local op = ent.coreControlOperations and ent.coreControlOperations[method]
 		if not op then return ext:respond(panel, ply, false, "Invalid custom method!") end
 
-		return ext:respond(panel, ply, op.func(panel, ent))
+		return ext:respond(panel, ply, op.func(panel, ent, ply))
 	end
 
 	local op = ext.operations[method]
@@ -146,7 +146,7 @@ function ext.readNetwork(_, ply)
 		end
 	end
 
-	return ext:respond(panel, ply, op.func(panel, ent))
+	return ext:respond(panel, ply, op.func(panel, ent, ply))
 end
 
 else
@@ -212,7 +212,7 @@ if SERVER then
 function ENT:Initialize()
 	BaseClass.Initialize(self)
 
-	self:SetSubMaterial(1, "!bw2018_matgencc_" .. self:EntIndex())
+	self:SetSubMaterial(1, string.format("!bw2018_matgencc_%d_%d", self:EntIndex(), math.ceil(self:GetCreationTime())))
 end
 
 else
@@ -541,8 +541,9 @@ else
 
 		-- Create material for rendering the main panel
 		local tex = GetRenderTargetEx(string.format("bw2018_rtcc_%f", SysTime()), 1200, 600, RT_SIZE_DEFAULT, MATERIAL_RT_DEPTH_NONE, 2, 0, IMAGE_FORMAT_RGBA8888)
-		local mat = CreateMaterial(string.format("bw2018_matgencc_%d", self:EntIndex()), "VertexLitGeneric", {
-			["$basetexture"] = tex
+		local mat = CreateMaterial(string.format("bw2018_matgencc_%d_%d", self:EntIndex(), math.ceil(self:GetCreationTime())), "UnlitGeneric", {
+			["$basetexture"] = tex,
+			["$model"] = "1"
 		})
 
 		self.tex, self.mat = tex, mat

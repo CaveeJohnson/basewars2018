@@ -23,7 +23,7 @@ If this content is not installed, the Gamemode will %s!]]
 			content = content .. "You can aquire TF2 content by downloading the game on steam, it is free, after all.\n"
 		end
 
-		local howBad = not css and "not work correctly" or "be missing some effects"
+		local howBad = not css and "not work correctly" or "be missing some sounds and effects"
 		local txt = string.format(msg,
 			css and "Mounted" or "Missing!",
 			tf2 and "Mounted" or "Missing!",

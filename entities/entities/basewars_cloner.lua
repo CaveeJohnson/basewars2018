@@ -71,6 +71,7 @@ function ENT:Think()
 			if not self.hasOpened then
 				self.hasOpened = true
 				self:animate("open", 1.3333)
+				self:EmitSound("doors/doormove2.wav")
 			end
 
 			return true
@@ -80,6 +81,7 @@ function ENT:Think()
 	if self.hasOpened then
 		self.hasOpened = false
 		self:animate("close", 1.3333)
+		self:EmitSound("doors/doormove2.wav")
 	end
 
 	return true

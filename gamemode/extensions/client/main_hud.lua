@@ -53,6 +53,7 @@ end
 local shade = Color(20, 20, 20, 200)
 local off_white = Color(240, 240, 240, 255)
 local off_white_t = Color(240, 240, 240, 180)
+local off_white_t2 = Color(240, 240, 240, 120)
 local over_load = Color(182, 17, 244, 255)
 local over_load_t = Color(182, 17, 244, 90)
 
@@ -91,7 +92,7 @@ local col1 = Color(204,50,48,90)
 
 local pure_red = Color(255, 0, 0, 255)
 
-local core
+local core, validCorePast
 local core_data = {}
 
 local time_string = string.format("Current Time:  %s", os.date("%H:%M"))
@@ -103,6 +104,7 @@ timer.Create(ext:getTag(), 1, 0, function()
 	core = basewars.getCore(ply)
 
 	if IsValid(core) then
+		validCorePast = CurTime()
 		core_data = {
 			off_white_t,
 			"Core online!",
@@ -182,7 +184,7 @@ function ext:HUDPaint()
 					cury = cury + drawString(tostring(v), curx, cury, col, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 				end
 			end
-		else
+		elseif validCorePast and validCorePast + 20 > CurTime() then
 			local failure = "WARNING:  Core did not respond to ping after 1000ms"
 			local w, h = surface.GetTextSize(failure)
 
@@ -191,6 +193,8 @@ function ext:HUDPaint()
 
 			curx, cury = curx + 4, cury + 4
 			cury = cury + drawString(failure, curx, cury, off_white_t, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+		else
+			cury = cury + drawString("Neural Interface:  Offline", curx, cury, off_white_t2, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 		end
 	HUD3DEX()
 

@@ -71,7 +71,6 @@ if CLIENT then
 	})
 
 	function SWEP:DrawWeaponSelection(x, y, w, h, a)
-		print(self, "\n", debug.traceback())
 		if self.weaponSelectionLetter then
 			draw.SimpleText(self.weaponSelectionLetter, self.weaponSelectionFontBlur or "bw18_ck_base_weapon_selection_blur", x + w / 2, y + h / 2, Color(255, 235, 20, math.max(a - 8, 0)), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 			draw.SimpleText(self.weaponSelectionLetter, self.weaponSelectionFont     or "bw18_ck_base_weapon_selection",      x + w / 2, y + h / 2, Color(255, 235, 20, a), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)

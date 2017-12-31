@@ -118,3 +118,46 @@ function basewars.sameOwner(e1, e2, orWorldDisconnected)
 	return false
 end
 
+function basewars.destructWithEffect(ent, time, money)
+	if ent.beingDestructed then return end
+	time = time or 1
+
+	local ed = EffectData()
+		ed:SetOrigin(ent:GetPos())
+		ed:SetEntity(ent)
+
+		ed:SetFlags(time)
+	util.Effect("basewars_destruct", ed, true, true)
+
+	ent:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
+	ent:EmitSound(string.format("weapons/physcannon/energy_disintegrate%d.wav", math.random(4, 5)))
+
+	if money then
+		local ed = EffectData()
+			ed:SetOrigin(ent:LocalToWorld(ent:OBBCenter()))
+			ed:SetEntity(ent)
+
+			ed:SetRadius(ent:BoundingRadius() + 10)
+			ed:SetScale(money)
+		util.Effect("basewars_money_popout", ed, true, true)
+	end
+
+	ent.beingDestructed = true
+	if SERVER then
+		ent:SetHealth(1e9)
+		SafeRemoveEntityDelayed(ent, time)
+	end
+end
+
+function basewars.onEntitySale(ply, ent)
+	if ent.isBaseWarsEntity then
+		hook.Run("BW_OnEntityDestroyed", ent, ply, ply, false)
+	else
+		hook.Run("BW_OnNonBaseWarsEntityDestroyed", ent, ply, ply, false)
+	end
+end
+
+concommand.Add("gamemode_reload", function(p)
+	if SERVER and IsValid(p) and not p:IsAdmin() then return end
+	hook.Run("OnReloaded")
+end)

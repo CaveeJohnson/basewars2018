@@ -137,7 +137,7 @@ function ext:BW_ShouldCoreOwnEntity(core, ent)
 	if basewars.getCore(owner) ~= core then return false end
 end
 
-function ext:BW_PreEntityExplode(ent, dmginfo)
+function ext:BW_PreEntityDestroyed(ent, dmginfo)
 	if ent.isCore then
 		ent:selfDestruct(dmginfo)
 

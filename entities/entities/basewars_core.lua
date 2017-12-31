@@ -363,7 +363,7 @@ function ENT:updateAreaCost()
 	local cost = 2
 	cost = cost + math.max(0, math.floor(((self:getProtectionRadius() - self.DefaultRadius) / 10) ^ 1.3)) -- TODO:
 
-	self:setPassiveRate(-cost)
+	self:setActiveRate(-cost)
 end
 
 ENT.activateSounds = {

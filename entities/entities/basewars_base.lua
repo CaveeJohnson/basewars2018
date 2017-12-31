@@ -248,6 +248,8 @@ function ENT:explode(soft, mag)
 end
 
 function ENT:OnTakeDamage(dmginfo)
+	if self.beingDestructed then return end
+
 	local dmg = dmginfo:GetDamage()
 	if dmg <= 0.0001 then
 		return
@@ -261,11 +263,13 @@ function ENT:OnTakeDamage(dmginfo)
 	if self:Health() <= 0 and not self.exploded then
 		self.exploded = true
 
-		local res = hook.Run("BW_PreEntityExplode", self, dmginfo) -- DOCUMENT:
+		local res = hook.Run("BW_PreEntityDestroyed", self, dmginfo) -- DOCUMENT:
 
 		if res ~= false then
 			self:explode(dmginfo:IsExplosionDamage())
 		end
-		hook.Run("BW_OnEntityExplode", self, dmginfo) -- DOCUMENT:
+
+		-- self, attack, inflic, agression
+		hook.Run("BW_OnEntityDestroyed", self, dmginfo:GetAttacker(), dmginfo:GetInflictor(), true) -- DOCUMENT:
 	end
 end

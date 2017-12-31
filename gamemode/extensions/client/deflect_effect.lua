@@ -29,6 +29,8 @@ function ext:EntityRemoved(ent)
 		if v ~= ent then
 			count = count + 1
 			new[count] = v
+
+			v.__deflectEntID = count
 		end
 	end
 
@@ -66,6 +68,8 @@ do
 	local col = Color(120, 100, 170)
 
 	function ext:PostDrawTranslucentRenderables(depth, sky)
+		if sky then return end
+
 		local rem = FrameTime() * 200 * (1 / self.timeShown)
 
 		local ent = self.knownEntities
@@ -78,6 +82,8 @@ do
 				col.a = v.__damageDeflectedAlpha
 
 				render.SetColorMaterial()
+
+				v.__deflectRadius = v.__deflectRadius or v:GetModelRadius() * 1.25 -- why does this happen
 				render.DrawSphere(v:GetPos(), v.__deflectRadius, 25, 25, col)
 			end
 		end

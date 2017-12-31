@@ -1,6 +1,6 @@
 local ext = basewars.createExtension"mainHUD"
 
-ext.mainFont  = ext:getTag()
+ext.mainFont = ext:getTag()
 
 surface.CreateFont(ext.mainFont, {
 	font = "Roboto",
@@ -8,81 +8,88 @@ surface.CreateFont(ext.mainFont, {
 	weight = 800,
 })
 
-local enabled
-local pos, ang, eye_ang = Vector(), Angle(), Angle()
+ext.is3d = true
 
-local is3d = true
+do
+	local enabled
+	local pos, ang, eye_ang = Vector(), Angle(), Angle()
 
-local function hud_update_parameters()
-	eye_ang = EyeAngles()
-	eye_ang.r = 0
-	
-	ang = eye_ang * 1
-	ang:RotateAroundAxis(ang:Forward(), 90)
-	ang:RotateAroundAxis(ang:Right(), 90)
-	
-	local forward = ScrW() / 162.2
-	local right   = ScrW() / 192.72
-	local up      = ScrH() / 200
+	function ext:updateParams()
+		eye_ang = EyeAngles()
+		eye_ang.r = 0
+		
+		ang = eye_ang * 1
+		ang:RotateAroundAxis(ang:Forward(), 90)
+		ang:RotateAroundAxis(ang:Right(), 90)
+		
+		local forward = ScrW() / 162.2
+		local right   = ScrW() / 192.72
+		local up      = ScrH() / 200
 
-	pos = EyePos() + (eye_ang:Forward() * forward) - (eye_ang:Right() * right) + (eye_ang:Up() * up)
+		pos = EyePos() + (eye_ang:Forward() * forward) - (eye_ang:Right() * right) + (eye_ang:Up() * up)
+	end
+
+	function ext:en(yaw)
+		if not self.is3d then return end
+		if enabled then return end
+			enabled = true
+		
+		local ang = ang * 1 -- copies
+			ang:RotateAroundAxis(ang:Right(), yaw)
+
+		local ratio = ScrW() * 0.000088
+		cam.Start3D(EyePos(), eye_ang, 90)
+		cam.Start3D2D(pos - (ang:Up() * yaw * ratio), ang, 0.01)
+	end
+
+	function ext:ex()
+		if not self.is3d then return end
+		if not enabled then return end
+			enabled = false
+		
+		cam.End3D2D()
+		cam.End3D()
+	end
 end
 
-local function HUD3DEN(yaw)
-	if not is3d then return end
-	if enabled then return end
-		enabled = true
-	
-	local ang = ang * 1 -- copies
-		ang:RotateAroundAxis(ang:Right(), yaw)
-
-	local ratio = ScrW() * 0.000088
-	cam.Start3D(EyePos(), eye_ang, 90)
-	cam.Start3D2D(pos - (ang:Up() * yaw * ratio), ang, 0.01)
-end
-
-local function HUD3DEX()
-	if not is3d then return end
-	if not enabled then return end
-		enabled = false
-	
-	cam.End3D2D()
-	cam.End3D()
-end
-
-local shade = Color(20, 20, 20, 200)
 local off_white = Color(240, 240, 240, 255)
 local off_white_t = Color(240, 240, 240, 180)
 local off_white_t2 = Color(240, 240, 240, 120)
 local over_load = Color(182, 17, 244, 255)
 local over_load_t = Color(182, 17, 244, 90)
 
-local function drawString(str, x, y, col, a1, a2)
-	draw.SimpleTextOutlined(str, ext.mainFont, x, y, col, a1, a2, 1, shade)
+local drawString, drawBar
+do
+	local shade = Color(20, 20, 20, 200)
+	local max, min = math.max, math.min
 
-	local w, h = surface.GetTextSize(str)
-	return h
-end
+	function drawString(str, x, y, col, a1, a2)
+		draw.SimpleTextOutlined(str, ext.mainFont, x, y, col, a1, a2, 1, shade)
 
-local function drawBar(x, y, w, h, col1, col2, frac)
-	frac = math.max(frac, 0)
-
-	surface.SetDrawColor(col1)
-	surface.DrawRect(x, y, w, h)
-
-	local over = false
-	local iter = 0
-	while frac > 0.01 and iter < 5 do
-		local rem = math.min(frac, 1)
-		surface.SetDrawColor(over and over_load_t or col2)
-		surface.DrawRect(x, y, w * rem, h)
-
-		frac = frac - rem
-		over = true
-		iter = iter + 1
+		local w, h = surface.GetTextSize(str)
+		return h
 	end
 
-	return h
+	function drawBar(x, y, w, h, col1, col2, frac)
+		frac = max(frac, 0)
+
+		surface.SetDrawColor(col1)
+		surface.DrawRect(x, y, w, h)
+
+		local over = false
+		local iter = 0
+		while frac > 0.01 and iter < 5 do
+			local rem = min(frac, 1)
+			surface.SetDrawColor(over and over_load_t or col2)
+			surface.DrawRect(x, y, w * rem, h)
+
+			frac = frac - rem
+			over = true
+			iter = iter + 1
+		end
+
+		return h
+	end
 end
 
 local stupid1 = Color(19, 209, 245,90)
@@ -101,6 +108,8 @@ timer.Create(ext:getTag(), 1, 0, function()
 	time_string = string.format("Current Time:  %s", os.date("%H:%M"))
 
 	local ply = LocalPlayer()
+	if not IsValid(ply) then return end
+
 	core = basewars.getCore(ply)
 	encompassing_core = basewars.getEncompassingCoreForPos(ply)
 
@@ -121,8 +130,9 @@ timer.Create(ext:getTag(), 1, 0, function()
 end)
 
 function ext:HUDPaint()
-	hud_update_parameters()
+	self:updateParams()
 	local ply = LocalPlayer()
+	if not IsValid(ply) then return end
 
 	local scrW = ScrW()
 	local scrH = ScrH()
@@ -135,7 +145,7 @@ function ext:HUDPaint()
 	local curx, cury = xindent, scrH - yindent
 	local bar_width, bar_height = 256, 6
 
-	HUD3DEN(-rot_y)
+	self:en(-rot_y)
 		if ply:Alive() then
 			local armor = ply:Armor()
 			local max_armor = 100
@@ -197,16 +207,16 @@ function ext:HUDPaint()
 		else
 			cury = cury + drawString("Neural Interface:  Offline", curx, cury, off_white_t2, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 		end
-	HUD3DEX()
+	self:ex()
 
 	curx, cury = scrW - xindent, yindent
-	HUD3DEN(rot_y)
+	self:en(rot_y)
 		if encompassing_core then
 			local own = encompassing_core == core
 			cury = cury + drawString("In range of core", curx, cury, off_white_t, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
 			cury = cury + drawString(own and "Friendly" or "Hostile", curx, cury, own and off_white_t2 or pure_red, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
 		end
-	HUD3DEX()
+	self:ex()
 end
 
 ext.hudNoDraw = {

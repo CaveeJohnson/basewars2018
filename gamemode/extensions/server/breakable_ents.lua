@@ -12,17 +12,16 @@ function ext:PostEntityCreated(ent)
 	end
 end
 
-function ext:SharedEntityTakeDamage(ent, info)
-	if ent.__healthOverride then
-		local newHealth = ent:Health() - info:GetDamage()
+function ext:SharedEntityTakeDamage(ent, dmginfo)
+	if ent.__healthOverride and not ent.beingDestructed then
+		local newHealth = ent:Health() - dmginfo:GetDamage()
 
 		if newHealth <= 0 then
-			hook.Run("BW_NonBaseWarsEntityDestroyed", ent) -- DOCUMENT:
+			hook.Run("BW_OnNonBaseWarsEntityDestroyed", ent, dmginfo:GetAttacker(), dmginfo:GetInflictor(), true) -- DOCUMENT:
 			SafeRemoveEntity(ent)
 		else
 			ent:SetHealth(newHealth)
 			local percent = math.Clamp(newHealth / ent:GetMaxHealth(), 0, 0.9) + 0.1
-
 
 			local now = ent:GetColor()
 			local orig = ent.originalColor or now

@@ -74,22 +74,23 @@ Fri: Done
 
 
 Friday:
-	[ ] Buildmode + encompassed indicators
+	[X] Buildmode + encompassed indicators
 	[ ] Basic purchasing / core spawner / we
 
 Saturday:
 	[ ] Raid system frontend
 
+[X] Entity destruct effect (explosion for damage is done, but selling / packing should have its own method)
+[X] Add cam protection system, and console commands for gui\_cleanup and cam\_reset
+
 [ ] Faction system
-[ ] Entity purchasing system
 [ ] Chat / Command system
-[X] Add some basic entity which CONSUMES power and test if its :isPowered method is right
+
 [ ] Language system
 [#] Config system which allows overrides but doesn't force everything into 1 massive file
 	- Allows for people to change entity variables without breaking forward compat
+
 [ ] Finish every -- TODO: flag not covered in another point
 [ ] Finish every -- DOCUMENT: flag and create a small documentation file for hooks
 
 [ ] Packing system
-[ ] Entity destruct effect (explosion for damage is done, but selling / packing should have its own method)
-[ ] Add cam protection system, and console commands for gui\_cleanup and cam\_reset

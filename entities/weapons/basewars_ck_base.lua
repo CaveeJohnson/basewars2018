@@ -1,6 +1,8 @@
 AddCSLuaFile()
 
-SWEP.Base          = "weapon_base"
+SWEP.Base = "weapon_base"
+DEFINE_BASECLASS "weapon_base"
+
 SWEP.PrintName     = "Basewars Construction Kit Base"
 
 SWEP.Author        = "Clavus, " .. GAMEMODE.Author
@@ -21,7 +23,6 @@ SWEP.Instructions  = ""
 function SWEP:getElementColor(name)
 
 end
-
 
 function SWEP:Initialize()
 	if self.SetHoldType then
@@ -44,7 +45,7 @@ function SWEP:Holster()
 			self:ckResetBonePositions(vm)
 		end
 	end
-	
+
 	return true
 end
 
@@ -70,18 +71,19 @@ if CLIENT then
 	})
 
 	function SWEP:DrawWeaponSelection(x, y, w, h, a)
+		print(self, "\n", debug.traceback())
 		if self.weaponSelectionLetter then
 			draw.SimpleText(self.weaponSelectionLetter, self.weaponSelectionFontBlur or "bw18_ck_base_weapon_selection_blur", x + w / 2, y + h / 2, Color(255, 235, 20, math.max(a - 8, 0)), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 			draw.SimpleText(self.weaponSelectionLetter, self.weaponSelectionFont     or "bw18_ck_base_weapon_selection",      x + w / 2, y + h / 2, Color(255, 235, 20, a), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 		else
-			self.BaseClass.DrawWeaponSelection(x, y, w, h, a)
+			BaseClass.DrawWeaponSelection(self, x, y, w, h, a)
 		end
 	end
 
 	local fullCopy
 	function fullCopy(tab)
 		if not tab then return nil end
-		
+
 		local res = {}
 		for k, v in pairs(tab) do
 			if type(v) == "table" then
@@ -94,7 +96,7 @@ if CLIENT then
 				res[k] = v
 			end
 		end
-		
+
 		return res
 	end
 
@@ -107,14 +109,14 @@ if CLIENT then
 		self.ViewModelBoneMods = fullCopy(self.ViewModelBoneMods)
 		self:ckCreateModels(self.VElements)
 		self:ckCreateModels(self.WElements)
-		
+
 		local owner = self:GetOwner()
 		if IsValid(owner) then
 			local vm = owner:GetViewModel()
 
 			if IsValid(vm) then
 				self:ckResetBonePositions(vm)
-				
+
 				if self.ShowViewModel ~= false then
 					vm:SetColor(white)
 				else
@@ -128,7 +130,7 @@ if CLIENT then
 	function SWEP:ckRenderElement(name, v, pos, ang)
 		local model  = v.modelEnt
 		local sprite = v.spriteMaterial
-		
+
 		if v.type == "Model" and IsValid(model) then
 			model:SetPos(pos + ang:Forward() * v.pos.x + ang:Right() * v.pos.y + ang:Up() * v.pos.z)
 
@@ -141,17 +143,17 @@ if CLIENT then
 			local matrix = Matrix()
 				matrix:Scale(v.size)
 			model:EnableMatrix("RenderMultiply", matrix)
-			
+
 			if v.material == "" then
 				model:SetMaterial("")
 			elseif model:GetMaterial() ~= v.material then
 				model:SetMaterial(v.material)
 			end
-			
+
 			if v.skin and v.skin ~= model:GetSkin() then
 				model:SetSkin(v.skin)
 			end
-			
+
 			if v.bodygroup then
 				for g, b in pairs(v.bodygroup) do
 					if model:GetBodygroup(g) ~= b then
@@ -171,7 +173,7 @@ if CLIENT then
 			if v.surpresslightning then
 				render.SuppressEngineLighting(true)
 			end
-				
+
 				local color = self:getElementColor(name) or v.color
 				render.SetColorModulation(color.r/255, color.g/255, color.b/255)
 				render.SetBlend(color.a/255)
@@ -180,7 +182,7 @@ if CLIENT then
 
 				render.SetBlend(1)
 				render.SetColorModulation(1, 1, 1)
-				
+
 			if v.surpresslightning then
 				render.SuppressEngineLighting(false)
 			end
@@ -197,7 +199,7 @@ if CLIENT then
 			ang:RotateAroundAxis(ang:Up(), v.angle.y)
 			ang:RotateAroundAxis(ang:Right(), v.angle.p)
 			ang:RotateAroundAxis(ang:Forward(), v.angle.r)
-			
+
 			cam.Start3D2D(drawpos, ang, v.size)
 				v.draw_func(self)
 			cam.End3D2D()
@@ -219,9 +221,9 @@ if CLIENT then
 		local owner = self:GetOwner()
 		local vm = owner:GetViewModel()
 		if not IsValid(vm) then return end
-		
+
 		if not self.VElements then return end
-		
+
 		self:ckUpdateBonePositions(vm)
 		if not self.vRenderOrder then
 			self.vRenderOrder = {}
@@ -234,7 +236,7 @@ if CLIENT then
 			if not v then self.vRenderOrder = nil break end
 			if v.hide then continue end
 			if not v.bone then continue end
-			
+
 			local pos, ang = self:ckGetBoneOrientation(self.VElements, v, vm)
 			if not pos then continue end
 
@@ -249,7 +251,7 @@ if CLIENT then
 		end
 
 		if not self.WElements then return end
-		
+
 		if not self.wRenderOrder then
 			self.wRenderOrder = {}
 			self:ckGenerateRenderOrder(self.WElements, self.wRenderOrder)
@@ -285,10 +287,10 @@ if CLIENT then
 		if tab.rel and tab.rel ~= "" then
 			local v = basetab[tab.rel]
 			if not v then return end
-			
+
 			pos, ang = self:ckGetBoneOrientation(basetab, v, ent)
 			if not pos then return end
-			
+
 			pos = pos + ang:Forward() * v.pos.x + ang:Right() * v.pos.y + ang:Up() * v.pos.z
 			ang:RotateAroundAxis(ang:Up(), v.angle.y)
 			ang:RotateAroundAxis(ang:Right(), v.angle.p)
@@ -296,22 +298,22 @@ if CLIENT then
 		else
 			bone = ent:LookupBone(bone_override or tab.bone)
 			if not bone then return end
-			
+
 			local m = ent:GetBoneMatrix(bone)
 			if m then
 				pos, ang = m:GetTranslation(), m:GetAngles()
 			end
-			
+
 			local owner = self:GetOwner()
 			if
-				IsValid(owner) and owner:IsPlayer() and 
+				IsValid(owner) and owner:IsPlayer() and
 				ent == owner:GetViewModel() and
 				self.ViewModelFlip
 			then
 				ang.r = -ang.r
 			end
 		end
-		
+
 		return pos, ang
 	end
 
@@ -325,7 +327,7 @@ if CLIENT then
 
 			if v.type == "Model" and model and model ~= "" then
 				if
-					(not IsValid(v.modelEnt) or v.createdModel ~= model) and 
+					(not IsValid(v.modelEnt) or v.createdModel ~= model) and
 					string.find(model, ".mdl", 1, true) and file.Exists(model, "GAME")
 				then
 					v.modelEnt = ClientsideModel(model, RENDER_GROUP_VIEW_MODEL_OPAQUE)
@@ -342,7 +344,7 @@ if CLIENT then
 				end
 			elseif v.type == "Sprite" and sprite and sprite ~= "" then
 				if
-					(not v.spriteMaterial or v.createdSprite ~= sprite) 
+					(not v.spriteMaterial or v.createdSprite ~= sprite)
 					and file.Exists("materials/" .. sprite .. ".vmt", "GAME")
 				then
 					local name = sprite .. "-"
@@ -367,7 +369,7 @@ if CLIENT then
 			end
 		end
 	end
-	
+
 	local hasGarryFixedBoneScalingYet = false
 
 	local vec1 = Vector(1, 1, 1)
@@ -388,7 +390,7 @@ if CLIENT then
 
 		local count = vm:GetBoneCount()
 		if not count or count == 0 then return end
-		
+
 		-- workaround
 		if not hasGarryFixedBoneScalingYet then
 			for i = 0, count do
@@ -399,11 +401,11 @@ if CLIENT then
 				end
 			end
 		end
-		
+
 		for name, v in pairs(bone_mods) do
 			local bone = vm:LookupBone(name)
 			if not bone then continue end
-			
+
 			local scale = Vector(v.scale.x, v.scale.y, v.scale.z)
 
 			-- workaround
@@ -420,7 +422,7 @@ if CLIENT then
 
 				scale = scale * total_scale
 			end
-			
+
 			if vm:GetManipulateBoneScale(bone) ~= scale then
 				vm:ManipulateBoneScale(bone, scale)
 			end

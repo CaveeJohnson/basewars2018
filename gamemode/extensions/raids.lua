@@ -178,10 +178,212 @@ function ext.readNetworkStartEnd()
 end
 net.Receive(ext:getTag() .. "startEnd", ext.readNetworkStartEnd)
 
+local error_message_color = Color(255, 0, 0)
+function ext.readNetworkInteraction()
+	local bit = net.ReadBit()
+	if not tobool(bit) then
+		local err = net.ReadString()
+		chat.AddText(error_message_color, "GAMEMODE ERROR!!! Raid verification passed on client but failed on server: " .. err)
+	end
+end
+net.Receive(ext:getTag() .. "interaction", ext.readNetworkInteraction)
+
+if CLIENT then -- GUI (temp)
+	local PANEL = {}
+
+	DEFINE_BASECLASS "DFrame"
+
+	function PANEL:Init()
+		self:SetTitle("basewars - raids")
+		self:SetDraggable(false)
+
+		self.list   = vgui.Create("DListView", self)
+		self.list:Dock(FILL)
+		self.list:SetHideHeaders(true)
+
+		function self.list.OnRowSelected(list, i, line)
+			self:handleStartButtonState(line)
+		end
+
+		self.column = self.list:AddColumn("")
+
+		local c = vgui.Create("EditablePanel", self)
+		c:Dock(BOTTOM)
+		c:SetTall(32)
+
+		self.rbutton = vgui.Create("DButton", c)
+		self.rbutton:SetText("Start raid")
+		self.rbutton:SetEnabled(false)
+		self.rbutton:Dock(LEFT)
+
+		self.ebutton = vgui.Create("DButton", c)
+		self.ebutton:SetText("Disband raid")
+		self.ebutton:SetEnabled(false)
+		self.ebutton:Dock(LEFT)
+
+		function self.rbutton.DoClick()
+			self:handleStartButtonClick()
+		end
+
+		function self.ebutton.DoClick()
+			self:handleEndButtonClick()
+		end
+
+		self:populateList()
+		self:resize()
+	end
+
+	function PANEL:PerformLayout()
+		BaseClass.PerformLayout(self)
+		self.rbutton:SetWide(self:GetWide() / 2)
+		self.ebutton:SetWide(self:GetWide() / 2)
+	end
+
+	function PANEL:Think()
+		self:populateList()
+	end
+
+	function PANEL:populateList()
+		local cores, l = basewars.getCores()
+		local list = self.list
+
+		local sel_i    = list:GetSelectedLine()
+		local sel_line = sel_i and list:GetLine(sel_i)
+		local sel_core = sel_line and sel_line.ent
+
+		for i = 1, math.max(#list:GetLines(), l) do
+			local core = cores[i]
+			local line = list:GetLine(i)
+
+			if not core then
+				print("[rg] dbg: remove i:" .. i)
+				list:RemoveLine(i)
+				if sel_i == i then list:ClearSelection() end
+			else
+				if not line then
+					print("[rg] dbg: add i:" .. i .. " c:" .. tostring(core))
+					list:AddLine(self:lineText(core)).ent = core
+				elseif not line.ent:IsValid() or line.ent:getAbsoluteOwner() ~= core:getAbsoluteOwner() then
+					print("[rg] dbg: update i:" .. i .. " n:" .. tostring(core))
+
+					if sel_line and (sel_line ~= line and core == sel_core) then
+						print("[rg] dbg: selupdate i:" .. i .. " o:" .. tostring(self_core) .. " n:" .. tostring(core))
+						list:SelectItem(i)
+					end
+
+					line.ent = core
+					line:SetColumnText(1, self:lineText(core))
+				end
+			end
+		end
+
+		list:SortByColumn(1)
+		self:handleButtonStates()
+	end
+
+	function PANEL:lineText(core)
+		if not core then return "<this should not possible>" end
+		local o = core:CPPIGetOwner()
+		if not (o and o:IsValid()) then return "<disowned core>" end
+		return o:GetName()
+	end
+
+	function PANEL:resize()
+		self:SetSize(ScrW() / 2, ScrH() / 2)
+		self:Center()
+	end
+
+	function PANEL:checkLineValidity(line)
+		local ent = line.ent
+		if not (ent and ent:IsValid()) then return false end
+		if not (ent:CPPIGetOwner() and ent:CPPIGetOwner():IsValid()) then return false end
+		if ent:CPPIGetOwner() == LocalPlayer() then return false end
+		return true
+	end
+
+	function PANEL:handleButtonStates()
+		self:handleStartButtonState()
+		self:handleEndButtonState()
+	end
+
+	function PANEL:handleStartButtonState(line)
+		local button = self.rbutton
+
+		local ourCore = basewars.getCore(LocalPlayer())
+		if not ourCore and ourCore:IsValid() then button:SetEnabled(false) return end
+		if ext.ongoingRaids[ourCore] then button:SetEnabled(false) return end
+
+		if not line then
+			local list   = self.list
+			local sel_i  = list:GetSelectedLine()
+			if not sel_i then
+				button:SetEnabled(false)
+				return
+			end
+
+			line = list:GetLine(sel_i)
+		end
+
+		button:SetEnabled(self:checkLineValidity(line))
+	end
+
+	function PANEL:handleEndButtonState()
+		local button = self.ebutton
+		button:SetEnabled(ext.ongoingRaids[core] ~= nil)
+	end
+
+	function PANEL:handleStartButtonClick()
+		local list     = self.list
+		local sel_i    = list:GetSelectedLine()
+		if not sel_i then self:displayError("Something has gone horribly wrong! (sel_i == nil)") return end
+
+		local sel_line = list:GetLine(sel_i)
+		if not sel_line then self:displayError("Something has gone horribly wrong! (sel_line == nil)") return end
+
+		local sel_core = sel_line.ent
+		if not sel_core and sel_core:IsValid() then self:displayError("Something has gone horribly wrong! (invalid core??)") return end
+
+		local ok, why = ext:canStartRaid(LocalPlayer(), sel_core)
+		if not ok then self:displayError(why) return end
+
+		net.Start(ext:getTag() .. "interaction")
+			net.WriteBit(0)
+			net.WriteEntity(sel_core)
+		net.SendToServer()
+	end
+
+	function PANEL:handleEndButtonClick()
+		self:displayError("This is not allowed yet!")
+
+		-- net.Start(ext:getTag() .. "interaction")
+		-- 	net.WriteBit(1)
+		-- 	net.WriteEntity(sel_core)
+		-- net.SendToServer()
+	end
+
+	function PANEL:displayError(msg)
+		Derma_Message(msg, "Error", "OK")
+	end
+
+	vgui.Register("BW_Raids_MainPanel", PANEL, "DFrame")
+
+	function ext:openRaidGUI()
+		if self.raidPanel and self.raidPanel:IsValid() then
+			self.raidPanel:Remove()
+		end
+
+		self.raidPanel = vgui.Create("BW_Raids_MainPanel")
+		self.raidPanel:MakePopup()
+	end
+
+	concommand.Add("bw18_raid_gui", function() ext:openRaidGUI() end)
+end
+
 if CLIENT then return end
 
 util.AddNetworkString(ext:getTag())
 util.AddNetworkString(ext:getTag() .. "startEnd")
+util.AddNetworkString(ext:getTag() .. "interaction")
 
 function ext:transmitRaidStartEnd(ended, own, vs)
 	net.Start(self:getTag() .. "startEnd")
@@ -286,3 +488,29 @@ function ext:startRaid(ply, core)
 		raidOver
 	)
 end
+
+function ext.readNetworkInteraction(_, ply)
+	local kind = net.ReadBit()
+	local core = net.ReadEntity()
+	if not core:IsValid() then return end
+
+	if kind == 0 then -- Start
+		local t
+		local ok, why = ext:startRaid(ply, core)
+		if ok == false then
+			print("GAMEMODE ERROR!!! Raid verification passed on client but failed on server: " .. why)
+			t = true
+		end
+
+		net.Start(ext:getTag() .. "interaction")
+			net.WriteBit(t and 0 or 1)
+			if t then
+				net.WriteString(why)
+			end
+		net.Send(ply)
+	else
+		-- TODO:
+	end
+end
+
+net.Receive(ext:getTag() .. "interaction", ext.readNetworkInteraction)

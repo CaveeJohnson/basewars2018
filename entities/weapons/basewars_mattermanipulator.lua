@@ -1,6 +1,7 @@
 AddCSLuaFile()
 
 SWEP.Base          = "basewars_ck_base"
+DEFINE_BASECLASS     "basewars_ck_base"
 SWEP.PrintName     = "MATTER MANIPULATOR"
 
 -- Contact and author are same as base
@@ -112,7 +113,7 @@ if CLIENT then
 			end
 		end
 
-		return self.BaseClass.Think(self)
+		return BaseClass.Think(self)
 	end
 
 	function ext:PostItemsLoaded()
@@ -158,7 +159,7 @@ if CLIENT then
 	function SWEP:Holster()
 		self:cleanupGhostEntity()
 
-		return self.BaseClass.Holster(self)
+		return BaseClass.Holster(self)
 	end
 
 	local function DropToFloor(ent)

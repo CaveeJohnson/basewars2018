@@ -78,6 +78,40 @@ function ext:PostReloaded()
 end
 ext.InitPostEntity = ext.PostReloaded
 
+function basewars.canSpawnCore(ply, pos, class)
+	if not IsValid(ply) then return false, "Invalid player!" end
+	if not pos then return false, "Invalid position!" end
+	if basewars.hasCore(ply) then return false, "You already have a core!" end
+
+	class = class or "basewars_core"
+
+	local sent = scripted_ents.Get(class)
+	if not (sent and sent.isCore) then return false, "Invalid core class!" end
+
+	local rad = sent.DefaultRadius
+	if not rad then return false, "Invalid core class!" end
+
+	--[[local a = basewars.getExtension"areas"
+	if a then
+		a = a:new("coreSpawnTestRegion", pos, rad, stepTol)
+
+		if not a then return false, "This area is not on the navigation mesh!" end
+	end]]
+
+	for i = 1, ext.knownEntCount do
+		local v = ext.knownEntities[i]
+
+		local combined_rad = v:getProtectionRadius() + rad
+		if v:encompassesPos(pos) or v:GetPos():DistToSqr(pos) <= combined_rad*combined_rad then
+			return false, "Core conflicts with another core's claim!"
+		elseif a and v.area and a:intersects(v.area) then
+			return false, "Core conflicts with another core's claim!"
+		end
+	end
+
+	return true, rad
+end
+
 if CLIENT then
 	local prot   = Color(120, 100, 170, 2)
 	local prot2  = Color(120, 100, 170, 4)
@@ -161,35 +195,11 @@ function ext:PlayerInitialSpawn(ply)
 end
 
 function basewars.spawnCore(ply, pos, ang, class)
-	if not IsValid(ply) then return false, "Invalid player!" end
-	if basewars.hasCore(ply) then return false, "You already have a core!" end
-
 	class = class or "basewars_core"
 	ang = ang or Angle()
 
-	local sent = scripted_ents.Get(class)
-	if not (sent and sent.isCore) then return false, "Invalid core class!" end
-
-	local rad = sent.DefaultRadius
-	if not rad then return false, "Invalid core class!" end
-
-	local a = basewars.getExtension"areas"
-	if a then
-		a = a:new("coreSpawnTestRegion", pos, rad, stepTol)
-
-		if not a then return false, "This area is not on the navigation mesh!" end
-	end
-
-	for i = 1, ext.knownEntCount do
-		local v = ext.knownEntities[i]
-
-		local combined_rad = v:getProtectionRadius() + rad
-		if v:encompassesPos(pos) or v:GetPos():DistToSqr(pos) <= combined_rad*combined_rad then
-			return false, "Core conflicts with another core's claim!"
-		elseif a and v.area and a:intersects(v.area) then
-			return false, "Core conflicts with another core's claim!"
-		end
-	end
+	local res, err = basewars.canSpawnCore(ply, pos, class)
+	if not res then return res, err end
 
 	local core = ents.Create(class)
 	if not IsValid(core) then return false, "Failed to create core!" end

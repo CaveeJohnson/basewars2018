@@ -115,16 +115,6 @@ function basewars.canSpawnItem(id, ply, pos, ang)
 		return false, "Incorrect rank!"
 	end
 
-	local res, err
-
-	if item.checkBuyable then
-		res, err = item:checkBuyable(ply)
-
-		if res == false then
-			return false, err
-		end
-	end
-
 	if SERVER then
 		local ent_count = ext.limiter[ply:SteamID64()]
 
@@ -134,6 +124,16 @@ function basewars.canSpawnItem(id, ply, pos, ang)
 	else
 		if ply:GetNW2Int("bw18_limit_" .. item.class, 0) >= item.limit then
 			return false, "You have too many of this item!"
+		end
+	end
+
+	local res, err
+
+	if item.checkBuyable then
+		res, err = item:checkBuyable(ply)
+
+		if res == false then
+			return false, err
 		end
 	end
 

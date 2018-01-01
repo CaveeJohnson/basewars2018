@@ -4,10 +4,15 @@
 		{
 			"folder_exclude_patterns":
 			[
-				"config"
+				"config",
+				"items"
 			],
 			"name": "Gamemode",
 			"path": "gamemode"
+		},
+		{
+			"name": "Items",
+			"path": "gamemode/items"
 		},
 		{
 			"name": "Entities",

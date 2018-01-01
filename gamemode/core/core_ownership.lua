@@ -66,14 +66,17 @@ function ext:PostReloaded()
 	local i = 0
 
 	for _, v in ipairs(ents.GetAll()) do
-		if v.__coreOwnershipID then
+		if v.isCore then
 			i = i + 1
 			self.knownEntities[i] = v
+
+			v.__coreOwnershipID = i
 		end
 	end
 
 	self.knownEntCount = i
 end
+ext.InitPostEntity = ext.PostReloaded
 
 if CLIENT then
 	local prot   = Color(120, 100, 170, 2)

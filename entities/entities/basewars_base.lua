@@ -42,23 +42,23 @@ do
 
 		self[getType .. name] = function(self)
 			if numberString then
-				return tonumber(self:GetNW2String(name)) or 0
-				--return tonumber(self.dt[name]) or 0
+				--return tonumber(self:GetNW2String(name)) or 0
+				return tonumber(self.dt[name]) or 0
 			end
 
-			return getter(self, name)
-			--return self.dt[name]
+			--return getter(self, name)
+			return self.dt[name]
 		end
 
 		if numberString then
 			self["set" .. name] = function(self, var)
-				self:SetNW2String(name, var)
-				--self.dt[name] = tostring(var)
+				--self:SetNW2String(name, var)
+				self.dt[name] = tostring(var)
 			end
 		else
 			self["set" .. name] = function(self, var)
-				setter(self, name, var)
-				--self.dt[name] = var
+				--setter(self, name, var)
+				self.dt[name] = var
 			end
 		end
 
@@ -127,7 +127,7 @@ do
 			error(string.format("entity networking failed: Index out of range for '%s' of type '%s'", name, type), 2)
 		end
 
-		--self:NetworkVar(indexType, index, name)
+		self:NetworkVar(indexType, index, name)
 		self:makeGSAT(type, name, max, min)
 	end
 
@@ -140,6 +140,7 @@ do
 		self:netVar("Int", "UpgradeLevel")
 
 		self:netVar("String", "AbsoluteOwner")
+		self:netVar("Double", "CurrentValue")
 	end
 end
 
@@ -163,7 +164,7 @@ function ENT:ownershipCheck(ent)
 
 	local abs_owner = self:getAbsoluteOwner()
 
-	if isentity(ent) then 
+	if isentity(ent) then
 		if ent:IsPlayer() and abs_owner == ent:SteamID64() then return true end
 	else
 		if abs_owner == ent then return true end

@@ -1,10 +1,26 @@
-function GM:OnEntityCreated(ent, ...)
-	local a = {...}
-	timer.Simple(0, function()
-		if IsValid(ent) then hook.Run("PostEntityCreated", ent, unpack(a)) end
-	end)
+do
+	local null_timer_id = 0
 
-	return self.BaseClass.OnEntityCreated(self, ent, ...)
+	function GM:OnEntityCreated(ent, ...)
+		local a = {...}
+		timer.Simple(0, function()
+			print(IsValid(ent), ent:EntIndex())
+			if IsValid(ent) then
+				hook.Run("PostEntityCreated", ent, unpack(a))
+			--[[elseif CLIENT then -- PVS gives us NULL entities, lets wait 10 seconds for a full syncronization
+				local timer_id = string.format("entity_created_null_client_%d", null_timer_id)
+
+				timer.Create(timer_id, 10, 6 function() -- if nothing 1 min later give up
+					if IsValid(ent) then
+						timer.Destroy(timer_id)
+						hook.Run("PostEntityCreated", ent, unpack(a))
+					end
+				end)]]
+			end
+		end)
+
+		return self.BaseClass.OnEntityCreated(self, ent, ...)
+	end
 end
 
 function GM:PlayerInitialSpawn(ply, ...)

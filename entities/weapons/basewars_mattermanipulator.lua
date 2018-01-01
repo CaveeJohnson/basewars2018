@@ -39,34 +39,55 @@ SWEP.shootSound    = "weapons/airboat/airboat_gun_energy%d.wav"
 
 local ext = basewars.createExtension"matter-manipulator"
 
-function ext:sellEntity(ply, ent, pos)
-	if not IsValid(ent) then return false end
-	if ent.beingDestructed then return false end
-	if ent:CPPIGetOwner() ~= ply then return false end
-	if ent.isCore then return false end
-
-	local should_sell = hook.Run("BW_ShouldSell", ply, ent)
-	if should_sell == false then return false end
-
-	if CLIENT then
-		ent.beingDestructed = true
-		return true
-	end
-
-	basewars.destructWithEffect(ent, 1, math.random(1, 100000))
-	basewars.onEntitySale(ply, ent)
-
-	return true
-end
-
-function ext:buyEntity(ply, ent, pos)
-	return true
+function ext:PlayerLoadout(ply)
+	ply:Give("basewars_mattermanipulator")
 end
 
 ext.rtName = "bw18_matter_manipulator_rt"
 ext.rtMatName = "!" .. ext.rtName .. "_mat"
 
+function ext:buyItem(ply, res)
+	local id = ply:GetInfo("bw18_mm_creation_item", "error") or "error"
+	if id == "error" then return false end
+
+	local yaw = ply:GetInfo("bw18_mm_creation_yaw", 0) or 0
+	local ang = Angle()--res.HitNormal:Angle()
+		ang.y = ang.y + yaw
+	ang:Normalize()
+
+	return basewars.spawnItem(id, ply, res.HitPos, ang)
+end
+
 if CLIENT then
+	ext.creationItemCVar = CreateClientConVar("bw18_mm_creation_item", "error", true, true, "The unique identifier for the selected item you are creating.")
+	ext.yawCVar = CreateClientConVar("bw18_mm_creation_yaw", "0", true, true, "The yaw offset of the entity.")
+	ext.creationItemId = ext.creationItemCVar:GetString()
+
+	function ext:setCreationItem(id, dontSwap)
+		if not dontSwap then
+			local wep = LocalPlayer():GetWeapon("basewars_mattermanipulator")
+
+			if IsValid(wep) then
+				input.SelectWeapon(wep)
+			end
+		end
+
+		self.creationItemId = id
+		self.creationItem = basewars.getItem(id)
+
+		RunConsoleCommand("bw18_mm_creation_item", id)
+	end
+
+	cvars.AddChangeCallback("bw18_mm_creation_item", function(_, old, new)
+		if ext.creationItemId == new then return end
+
+		ext:setCreationItem(new, true)
+	end, ext:getTag())
+
+	function ext:BW_SelectedEntityForPurchase(id)
+		self:setCreationItem(id, false)
+	end
+
 	local rtTex = GetRenderTargetEx(ext.rtName, 1024, 576, RT_SIZE_DEFAULT, MATERIAL_RT_DEPTH_NONE, 2, 0, IMAGE_FORMAT_RGBA8888)
 	ext.rtMat = CreateMaterial(ext.rtName .. "_mat", "UnlitGeneric", { -- no ! needed
 		["$basetexture"] = rtTex,
@@ -84,7 +105,7 @@ if CLIENT then
 
 	surface.CreateFont(smallFont, {
 		font = "DejaVu Sans Bold",
-		size = 80,
+		size = 60,
 	})
 
 	function SWEP:RenderScreen()
@@ -93,8 +114,14 @@ if CLIENT then
 			render.Clear(100, 100, 100, 255)
 
 			cam.Start2D()
-				draw.SimpleText("TEST", largeFont, 2, 2)
-				draw.SimpleText("TEST", smallFont, 2, 130)
+				local item = ext.creationItem
+				if not item then
+					draw.SimpleText("No item selected", largeFont, 2, 2)
+					draw.SimpleText("HOLD " .. input.LookupBinding("+menu"):upper() .. " AND SELECT AN ITEM", smallFont, 2, 130)
+				else
+					draw.SimpleText(item.name, largeFont, 2, 2)
+					-- model
+				end
 			cam.End2D()
 
 		render.PopRenderTarget()
@@ -164,7 +191,7 @@ do
 		local ply = self:GetOwner()
 
 		tr.start  = ply:GetShootPos()
-		tr.endpos = tr.start + ply:GetAimVector() * 1024
+		tr.endpos = tr.start + ply:GetAimVector() * 512
 		tr.filter = ply
 
 		util.TraceLine(tr)
@@ -172,7 +199,7 @@ do
 		if not trace_res.Hit then return false end
 		if trace_res.Entity and trace_res.Entity:IsPlayer() then return false end
 
-		return true
+		return trace_res
 	end
 end
 
@@ -200,23 +227,32 @@ function SWEP:DoShootEffect(hitpos, hitnormal, entity, physbone, firstTimePredic
 end
 
 function SWEP:PrimaryAttack()
-	if not self:trace() then return end
-	local target, pos = trace_res.Entity, trace_res.HitPos
+	local tr_res = self:trace()
+	if not tr_res then return end
 
 	local res
 	if self:GetFireMode() then
-		res = self:Attack2(target, pos)
+		res = self:Attack2(tr_res)
 	else
-		res = self:Attack1(target, pos)
+		res = self:Attack1(tr_res)
 	end
-	if res then self:DoShootEffect(pos, trace_res.HitNormal, target, trace_res.PhysicsBone, IsFirstTimePredicted()) end
+	if res then self:DoShootEffect(trace_res.HitPos, trace_res.HitNormal, trace_res.Entity, trace_res.PhysicsBone, IsFirstTimePredicted()) end
 end
 
-function SWEP:Attack1(target, pos)
-	return ext:buyEntity (self:GetOwner(), target, pos)
+function SWEP:Attack1(tr_res)
+	if tr_res.HitWorld then
+		return ext:buyItem(self:GetOwner(), tr_res)
+	else
+		return false
+	end
 end
-function SWEP:Attack2(target, pos)
-	return ext:sellEntity(self:GetOwner(), target, pos)
+
+function SWEP:Attack2(tr_res)
+	if IsValid(tr_res.Entity) then
+		return basewars.sellEntity(tr_res.Entity, self:GetOwner())
+	else
+		return false
+	end
 end
 
 function SWEP:SecondaryAttack()

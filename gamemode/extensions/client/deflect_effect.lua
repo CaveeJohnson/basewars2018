@@ -42,14 +42,17 @@ function ext:PostReloaded()
 	local i = 0
 
 	for _, v in ipairs(ents.GetAll()) do
-		if v.__deflectEntID then
+		if not (v:EntIndex() <= 0 or v:IsPlayer() or not v:GetModelRadius()) then
 			i = i + 1
 			self.knownEntities[i] = v
+
+			v.__deflectEntID = i
 		end
 	end
 
 	self.knownEntCount = i
 end
+ext.InitPostEntity = ext.PostReloaded
 
 function ext:SharedEntityTakeDamage(ent, info)
 	if not ent.__deflectEntID then return end

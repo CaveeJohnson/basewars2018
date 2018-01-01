@@ -4,23 +4,22 @@ AddCSLuaFile()
 -- Able to shoot 9 times before reloading (shoots laser projectiles), alternate attack must be held to charge and if fully charged, releases and deals base damage times the rounds left in clip then player must reload
 -- 10% chance of ignition on human hit and lasts for 5 seconds, maximum firerate is 5 rounds per second, base damage is 18
 
-SWEP.Base          = "basewars_ck_base"
-DEFINE_BASECLASS     "basewars_ck_base"
-SWEP.PrintName     = "GAUSS PISTOL"
+SWEP.Base         = "basewars_ck_base"
+DEFINE_BASECLASS    "basewars_ck_base"
+SWEP.PrintName    = "GAUSS PISTOL"
 
-SWEP.Purpose       = "A small self-recharching energy weapon with a powerful alternate fire mode."
-
+SWEP.Purpose      = "A small self-recharching energy weapon with a powerful alternate fire mode."
 local reload       = SERVER and "R" or input.LookupBinding("reload"):upper()
 SWEP.Instructions  = ([=[
   <color=192,192,192>LMB</color>\tPrimary attack
   <color=192,192,192>RMB</color>\t(hold) Charged attack
   <color=192,192,192>]=] .. reload .. [=[</color>\tReload]=]):gsub("\\t", "\t")
 
-SWEP.Slot          = 1
-SWEP.SlotPos       = 2
+SWEP.Slot         = 1
+SWEP.SlotPos      = 2
 
-SWEP.Category      = "BaseWars"
-SWEP.Spawnable     = true
+SWEP.Category     = "BaseWars"
+SWEP.Spawnable    = true
 
 SWEP.weaponSelectionLetter = "e"
 
@@ -184,17 +183,6 @@ function SWEP:isCharging()
 	return self:GetNW2Bool("chargingSecondary")
 end
 
-function SWEP:sharedInit()
-	local r
-	if SERVER then
-		r = RecipientFilter()
-		r:AddAllPlayers()
-	end
-
-	self.reloadNoise = CreateSound(self, self.reloadNoiseSound, r)
-	self.chargeNoise = CreateSound(self, self.secondaryChargeSound, r)
-end
-
 function SWEP:handlePrimary()
 	self:ShootEffects()
 	self:GetOwner():ViewPunch(self.punchAngle)
@@ -315,12 +303,25 @@ if CLIENT then
 
 		self.glow = self.VElements.Glow
 		self.pa   = self.VElements.PowerAmmo
-		self.__target = Angle(180, 0, 0)
+		self.angle       = 0
+		self.targetAngle = 0
+		self.baseAngle   = Angle(self.pa.angle)
+	end
 
-		self:sharedInit()
+	local function lf(factor, from, to)
+		if to < from then to = to + 360 end
+		return (from + (to - from) * factor) % 360
+	end
+
+	local function angle_rotated(ang, amount)
+		local ang = Angle(ang)
+		ang:RotateAroundAxis(ang:Up(), amount)
+		return ang
 	end
 
 	function SWEP:Think()
+		BaseClass.Think(self)
+
 		local c  = self.glow.color
 		local pa = self.pa
 
@@ -342,11 +343,12 @@ if CLIENT then
 			c.r, c.g, c.b, c.a = 255, 0, 0, 255
 		end
 
-		pa.angle = LerpAngle(0.04, pa.angle, self.__target or Angle(180, 0, 0))
+		self.angle = lf(0.035, self.angle, self.targetAngle)
+		pa.angle = angle_rotated(self.baseAngle, self.angle)
 	end
 
-	function SWEP:spin(spin)
-		self.__target:RotateAroundAxis(self.__target:Up(), spin)
+	function SWEP:spin(amount)
+		self.targetAngle = (self.targetAngle + amount) % 360
 	end
 
 	function SWEP:doReloadSpin()
@@ -366,7 +368,11 @@ if CLIENT then
 else
 	function SWEP:Initialize()
 		BaseClass.Initialize(self)
-		self:sharedInit()
+
+		local rf = RecipientFilter()
+		rf:AddAllPlayers()
+		self.reloadNoise = CreateSound(self, self.reloadNoiseSound, rf)
+		self.chargeNoise = CreateSound(self, self.secondaryChargeSound, rf)
 	end
 
 	function SWEP:Think()

@@ -266,6 +266,11 @@ if CLIENT then
 		if not item then
 			y = y + drawString("No item selected", largeFont, x, y)
 			y = y + drawString("HOLD " .. input.LookupBinding("+menu"):upper() .. " AND SELECT AN ITEM", smallFont, x, y)
+			y = y + drawString("FROM THE BASEWARS CATEGORY", xsmallFont, x, y)
+
+			y = h - 2
+
+			y = y - drawString("Reload to toggle mode!", smallFont, x, y, nil, nil, TEXT_ALIGN_BOTTOM)
 		else
 			self.icon:PaintManual()
 
@@ -288,7 +293,12 @@ if CLIENT then
 		local ent = trace and trace.Entity or nil
 		if not IsValid(ent) then
 			y = y + drawString("Deconstructor", largeFont, x, y)
-			y = y + drawString("AIM AT AN ENTITY", smallFont, x, y)
+			y = y + drawString("AIM AT AN ENTITY TO SEE MORE", smallFont, x, y)
+			y = y + drawString("INFORMATION AND DESTROY IT", xsmallFont, x, y)
+
+			y = h - 2
+
+			y = y - drawString("Reload to toggle mode!", smallFont, x, y, nil, nil, TEXT_ALIGN_BOTTOM)
 		else
 			local value    = basewars.getEntitySaleValue(ent, self:GetOwner(), false)
 			local res, err = basewars.sellEntity(ent, self:GetOwner())

@@ -12,7 +12,7 @@ ENT.Model = "models/props_interiors/pot02a.mdl"
 ENT.Skin = 0
 ENT.BaseHealth = 100
 
-ENT.isBaseWarsEntity = true
+ENT.isBasewarsEntity = true
 
 ENT.criticalDamagePercent = 0.09
 

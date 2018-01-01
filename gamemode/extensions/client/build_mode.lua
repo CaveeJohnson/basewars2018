@@ -49,7 +49,7 @@ ext.knownEnts = {}
 ext.knownEntCount = 0
 
 function ext:PostEntityCreated(ent)
-	if ent.isBaseWarsEntity then
+	if ent.isBasewarsEntity then
 		self.knownEntCount = self.knownEntCount + 1
 		self.knownEnts[self.knownEntCount] = ent
 
@@ -104,7 +104,7 @@ function ext:PostReloaded()
 	local i, i2 = 0, 0
 
 	for _, v in ipairs(ents.GetAll()) do
-		if v.isBaseWarsEntity then
+		if v.isBasewarsEntity then
 			i = i + 1
 			self.knownEnts[i] = v
 

@@ -1,7 +1,7 @@
 local ext = basewars.createExtension"breakableEnts"
 
 function ext:PostEntityCreated(ent)
-	if IsValid(ent:CPPIGetOwner()) and not (ent.isBaseWarsEntity or ent.indestructible) and hook.Run("BW_ShouldEntityBeBreakable", ent) ~= false then
+	if IsValid(ent:CPPIGetOwner()) and not (ent.isBasewarsEntity or ent.indestructible) and hook.Run("BW_ShouldEntityBeBreakable", ent) ~= false then
 		ent.__healthOverride = true
 
 		local phys = ent:GetPhysicsObject()

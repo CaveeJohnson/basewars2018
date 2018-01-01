@@ -290,10 +290,10 @@ if CLIENT then
 			y = y + drawString("Deconstructor", largeFont, x, y)
 			y = y + drawString("AIM AT AN ENTITY", smallFont, x, y)
 		else
-			local value = basewars.getEntitySaleValue(ent, self:GetOwner(), false)
-			local res   = basewars.sellEntity(ent, self:GetOwner())
+			local value    = basewars.getEntitySaleValue(ent, self:GetOwner(), false)
+			local res, err = basewars.sellEntity(ent, self:GetOwner())
 
-			if value or res then
+			if value or res or ent.isBasewarsEntity then
 				value = value or 0
 
 				y = y + drawString(basewars.getEntPrintName(ent), mediumFont, x, y)
@@ -301,9 +301,16 @@ if CLIENT then
 
 				y = h - 2
 
-				local err = res and "Deconstruction OK!" or "Access denied!"
+				err = res and "Deconstruction OK!" or err or "Access denied!"
 				local col = res and Color(0, 200, 0) or Color(200, 0, 0)
 				y = y - drawString(err, xsmallFont, x, y, col, nil, TEXT_ALIGN_BOTTOM)
+
+				local spawned_time = CurTime() - ent:GetNW2Int("boughtAt", 0)
+				res = spawned_time < 10 -- TODO: config, see items.lua
+
+				if res then
+					y = y - drawString(string.format("Refundable for %.1f more seconds.", 10 - spawned_time), xsmallFont, x, y, Color(200, 240, 200), nil, TEXT_ALIGN_BOTTOM)
+				end
 			else
 				y = y + drawString("Deconstructor", largeFont, x, y)
 				y = y + drawString("AIM AT AN ENTITY", smallFont, x, y)

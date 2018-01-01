@@ -225,9 +225,6 @@ function ext:BW_OnEntityDestroyed(ent, attack, inflic, violent)
 		return
 	end
 
-	local should_sell = hook.Run("BW_ShouldSell", ply, ent)
-	if should_sell == false then return false end
-
 	hook.Run("BW_EntitySold", ent, ply, violent or false)
 end
 ext.BW_OnNonBaseWarsEntityDestroyed = ext.BW_OnEntityDestroyed
@@ -236,7 +233,7 @@ function basewars.onEntitySale(ent, ply, violent)
 	if entmarkedAsDestroyed then return end
 	ent.markedAsDestroyed = true
 
-	if ent.isBaseWarsEntity then
+	if ent.isBasewarsEntity then
 		hook.Run("BW_OnEntityDestroyed", ent, ply, ply, violent or false)
 	else
 		hook.Run("BW_OnNonBaseWarsEntityDestroyed", ent, ply, ply, violent or false)
@@ -244,10 +241,13 @@ function basewars.onEntitySale(ent, ply, violent)
 end
 
 function basewars.sellEntity(ent, ply)
-	if not IsValid(ent) then return false end
-	if ent.beingDestructed then return false end
-	if ent:CPPIGetOwner() ~= ply then return false end
-	if ent.isCore then return false end
+	if not IsValid(ent)          then return false, "Invalid entity!" end
+	if ent.beingDestructed       then return false, "Destruction in progress!" end
+	if ent:CPPIGetOwner() ~= ply then return false, "You do not own this!" end
+	if ent.isCore                then return false, "Cores cannot be deconstructed!" end
+
+	local res, err = hook.Run("BW_ShouldSell", ply, ent)
+	if res == false then return false, err end
 
 	if CLIENT then
 		return true

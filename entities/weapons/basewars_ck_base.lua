@@ -141,6 +141,7 @@ if CLIENT then
 
 			if IsValid(vm) then
 				self:ckResetBonePositions(vm)
+				self:ckSetupViewModel(vm, false)
 			end
 		end
 	end

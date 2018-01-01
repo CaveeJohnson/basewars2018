@@ -175,22 +175,22 @@ if CLIENT then
 
 		if res.Hit and res.HitTexture ~= "**empty**" then -- .hit is always true :v
 			ent:SetPos(res.HitPos)
+
+			return res.HitPos
 		end
 	end
 
-	function SWEP:updateGhostEntity(res)
-		self:createGhostEntity()
-
+	function SWEP:updateGhostEntity(res, item)
 		if self:GetFireMode() or not res then
 			self.csEnt:SetNoDraw(true)
 			return
 		end
 
-		if ext.creationItem then
+		if item then
 			self.csEnt:SetNoDraw(false)
-			self.csEnt:SetModel(ext.creationItem.model or "models/error.mdl")
+			self.csEnt:SetModel(item.model or "models/error.mdl")
 
-			local col = ext.creationItem.color or Color(255, 255, 255)
+			local col = item.color or Color(255, 255, 255)
 			self.csEnt:SetColor(Color(col.r, col.g, col.b, 150))
 
 			local dot_maxs = res.HitNormal:Dot(self.csEnt:OBBMaxs())
@@ -199,10 +199,11 @@ if CLIENT then
 
 			local pos = res.HitPos + off
 			self.csEnt:SetPos(pos)
-			DropToFloor(self.csEnt)
+			self.ghostPos = DropToFloor(self.csEnt) or pos
 
 			local ang = ext:getAngles(self:GetOwner())
 			self.csEnt:SetAngles(ang)
+			self.ghostAngs = ang
 		else
 			self.csEnt:SetNoDraw(true)
 		end
@@ -224,12 +225,20 @@ if CLIENT then
 		["$model"] = "1"
 	})
 
-	local largeFont = ext:getTag() .. "_large"
-	local smallFont = ext:getTag() .. "_small"
+	local largeFont  = ext:getTag() .. "_large"
+	local mediumFont = ext:getTag() .. "_med"
+	local smallFont  = ext:getTag() .. "_small"
+	local xsmallFont = ext:getTag() .. "_xsmall"
 
 	surface.CreateFont(largeFont, {
 		font = "DejaVu Sans",
 		size = 128,
+		weight = 1,
+	})
+
+	surface.CreateFont(mediumFont, {
+		font = "DejaVu Sans",
+		size = 92,
 		weight = 1,
 	})
 
@@ -238,20 +247,96 @@ if CLIENT then
 		size = 60,
 	})
 
+	surface.CreateFont(xsmallFont, {
+		font = "DejaVu Sans Bold",
+		size = 52,
+	})
+
+	local function drawString(str, font, x, y, col, a, b)
+		draw.SimpleText(str, font, x, y, col, a, b)
+
+		local w, h = surface.GetTextSize(str)
+		return h
+	end
+
+	function SWEP:renderCreate(trace, item, w, h)
+		local x, y = 2, 2
+
+		if not item then
+			y = y + drawString("No item selected", largeFont, x, y)
+			y = y + drawString("HOLD " .. input.LookupBinding("+menu"):upper() .. " AND SELECT AN ITEM", smallFont, x, y)
+		else
+			self.icon:PaintManual()
+
+			y = y + drawString(item.name, mediumFont, x, y)
+			y = y + drawString(item.cost > 0 and string.format("Cost: £%s", basewars.nformat(item.cost)) or "Cost: FREE", smallFont, x, y)
+
+			y = h - 2
+
+			local res, err = basewars.canSpawnItem(item.item_id, self:GetOwner(), self.ghostPos, self.ghostAngs)
+			err = err or "Spawn OK!"
+
+			local col = res and Color(0, 200, 0) or Color(200, 0, 0)
+			y = y - drawString(err, xsmallFont, x, y, col, nil, TEXT_ALIGN_BOTTOM)
+		end
+	end
+
+	function SWEP:renderDestroy(trace, item, w, h)
+		local x, y = 2, 2
+
+		local ent = trace and trace.Entity or nil
+		if not IsValid(ent) then
+			y = y + drawString("Deconstructor", largeFont, x, y)
+			y = y + drawString("AIM AT AN ENTITY", smallFont, x, y)
+		else
+			local value = basewars.getEntitySaleValue(ent, self:GetOwner(), false)
+			local res   = basewars.sellEntity(ent, self:GetOwner())
+
+			if value or res then
+				value = value or 0
+
+				y = y + drawString(basewars.getEntPrintName(ent), mediumFont, x, y)
+				y = y + drawString(value > 0 and string.format("Return: £%s", basewars.nformat(value)) or "Return: NONE", smallFont, x, y)
+
+				y = h - 2
+
+				local err = res and "Deconstruction OK!" or "Access denied!"
+				local col = res and Color(0, 200, 0) or Color(200, 0, 0)
+				y = y - drawString(err, xsmallFont, x, y, col, nil, TEXT_ALIGN_BOTTOM)
+			else
+				y = y + drawString("Deconstructor", largeFont, x, y)
+				y = y + drawString("AIM AT AN ENTITY", smallFont, x, y)
+			end
+		end
+	end
+
 	function SWEP:RenderScreen()
+		local trace = self:trace()
+		local item = ext.creationItem
+
+		self:createGhostEntity()
+		self:updateGhostEntity(trace, item)
+
+		local w, h = 1024, 576
+
+		if item and self.lastModelUpdate ~= item.model then
+			if not self.icon then
+				self.icon = vgui.Create("SpawnIcon")
+			end
+				self.icon:SetSize(h/2, h/2)
+				self.icon:SetPos (w - h/2 - 2, h/4)
+				self.icon:SetPaintedManually(true)
+				self.icon:SetModel(item.model)
+				self.icon:SetMouseInputEnabled(false)
+			self.lastModelUpdate = item.model
+		end
+
 		render.PushRenderTarget(rtTex)
 			render.ClearDepth()
-			render.Clear(100, 100, 100, 255)
+			render.Clear(50, 50, 50, 255)
 
 			cam.Start2D()
-				local item = ext.creationItem
-				if not item then
-					draw.SimpleText("No item selected", largeFont, 2, 2)
-					draw.SimpleText("HOLD " .. input.LookupBinding("+menu"):upper() .. " AND SELECT AN ITEM", smallFont, 2, 130)
-				else
-					draw.SimpleText(item.name, largeFont, 2, 2)
-					-- model
-				end
+				if self:GetFireMode() then self:renderDestroy(trace, item, w, h) else self:renderCreate(trace, item, w, h) end
 			cam.End2D()
 
 		render.PopRenderTarget()
@@ -273,8 +358,6 @@ if CLIENT then
 
 		surface.DrawTexturedRectRotated(x, y, 32, 32, 90)
 		surface.DrawTexturedRectRotated(x, y, 32, 32, 0)
-
-		self:updateGhostEntity(self:trace())
 	end
 
 	function SWEP:getElementColor(name)
@@ -288,7 +371,7 @@ SWEP.VElements = {
 	["energy_cell1"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "Base", rel = "", pos = Vector(-0.101, -1.558, 1), angle = Angle(73.636, -26.883, 0), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
 	["energy_cell2"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "Base", rel = "", pos = Vector(0, -1.558, -0.519), angle = Angle(73.636, -26.883, 0), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
 	["energy_cell3"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "Base", rel = "", pos = Vector(0.09, -1.558, -1.759), angle = Angle(73.636, -26.883, 0), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
-	["screen"]       = { type = "Model", model = "models/props_phx/rt_screen.mdl", bone = "Base", rel = "", pos = Vector(1.299, 0.4, 6.752), angle = Angle(-90, 90, 0), size = Vector(0.05, 0.05, 0.05), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {}, submaterial = { [1] = ext.rtMatName } },
+	["screen"]       = { type = "Model", model = "models/props_phx/rt_screen.mdl", bone = "Base", rel = "", pos = Vector(2.7, 2.2, 7.792), angle = Angle(-90, 90, 0), size = Vector(0.08, 0.08, 0.08), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {}, submaterial = { [1] = ext.rtMatName } },
 }
 
 SWEP.WElements = {

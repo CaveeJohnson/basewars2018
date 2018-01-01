@@ -10,7 +10,7 @@ function ext:buildCategory(layout, data)
 		local icon = layout:Add("SpawnIcon")
 			icon:SetModel(tbl.model)
 			icon:SetTooltip(tbl.name .. (cost > 0 and " (" .. cost_text .. ")" or ""))
-			icon:SetSize(64, 64)
+			icon:SetSize(72, 72)
 
 			local SpawnIcon = vgui.GetControlTable"SpawnIcon"
 

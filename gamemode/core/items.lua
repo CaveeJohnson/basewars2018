@@ -100,7 +100,7 @@ function basewars.canSpawnItem(id, ply, pos, ang)
 	end
 
 	if item.requiresCore and not basewars.hasCore(ply) then
-		return false, "Insufficent money!"
+		return false, "Item requires core!"
 	end
 
 	if item.cost > 0 and not ply:hasMoney(item.cost) then
@@ -124,6 +124,19 @@ function basewars.canSpawnItem(id, ply, pos, ang)
 			return false, err
 		end
 	end
+
+	if SERVER then
+		local ent_count = ext.limiter[ply:SteamID64()]
+
+		if ent_count and ent_count[item.class] and ent_count[item.class] >= item.limit then
+			return false, "You have too many of this item!"
+		end
+	else
+		if ply:GetNW2Int("bw18_limit_" .. item.class, 0) >= item.limit then
+			return false, "You have too many of this item!"
+		end
+	end
+
 	if not pos then return true end
 
 	if item.checkSpawnable then
@@ -137,18 +150,6 @@ function basewars.canSpawnItem(id, ply, pos, ang)
 	local core = basewars.getCore(ply)
 	if item.requiresCore and not core:encompassesPos(pos) then
 		return false, "Out of range of core!"
-	end
-
-	if SERVER then
-		local ent_count = ext.limiter[ply:SteamID64()]
-
-		if ent_count and ent_count[item.class] and ent_count[item.class] >= item.limit then
-			return false, "You how too many of this item!"
-		end
-	else
-		if ply:GetNW2Int("bw18_limit_" .. item.class, 0) >= item.limit then
-			return false, "You how too many of this item!"
-		end
 	end
 
 	return true
@@ -185,7 +186,7 @@ function basewars.destructWithEffect(ent, time, money)
 	end
 end
 
-function ext:BW_EntitySold(ent, ply, violent)
+function basewars.getEntitySaleValue(ent, ply, violent)
 	local val = ent.getCurrentValue and ent:getCurrentValue()
 	if not val or val <= 0 then return end
 
@@ -195,7 +196,12 @@ function ext:BW_EntitySold(ent, ply, violent)
 	end
 	mult = hook.Run("BW_GetSaleMult", ent, ply, violent, mult) or mult -- DOCUMENT:
 
-	local final_val = val * mult
+	return val * mult
+end
+
+function ext:BW_EntitySold(ent, ply, violent)
+	local final_val = basewars.getEntitySaleValue(ent, ply, violent)
+	if not final_val or final_val < 1 then return end
 
 	-- TODO: Faction share?
 	ply:giveMoney(final_val)
@@ -244,12 +250,10 @@ function basewars.sellEntity(ent, ply)
 	if ent.isCore then return false end
 
 	if CLIENT then
-		ent.beingDestructed = true
 		return true
 	end
 
 	basewars.destructWithEffect(ent, 1, ent.getCurrentValue and ent:getCurrentValue())
-
 	return true
 end
 
@@ -341,7 +345,9 @@ if SERVER then
 		-- more to come probably
 
 		self:doSpawnEffect(ent, item.cost)
-		ent:setCurrentValue(item.cost)
+
+		if ent.setCurrentValue then ent:setCurrentValue(item.cost) end
+		ent:SetNW2Int("boughtAt", CurTime())
 
 		return ent
 	end

@@ -118,6 +118,28 @@ function basewars.sameOwner(e1, e2, orWorldDisconnected)
 	return false
 end
 
+do
+	local cache = {}
+
+	function basewars.getEntPrintName(ent)
+		if ent.PrintName then
+			return ent.PrintName
+		end
+
+		if isfunction(ent.Nick) then
+			return ent:Nick()
+		end
+
+		local class = ent:GetClass()
+		if cache[class] then return cache[class] end
+
+		local name = class:gsub("^(%l)", string.upper):gsub("_(%l)", function(a) return " " .. string.upper(a) end):Trim()
+		cache[class] = name
+
+		return name
+	end
+end
+
 concommand.Add("gamemode_reload", function(p)
 	if SERVER and IsValid(p) and not p:IsAdmin() then return end
 	hook.Run("OnReloaded")

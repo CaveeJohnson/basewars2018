@@ -150,9 +150,18 @@ function ext:mmRender(ply)
 		render.SetColorMaterial()
 
 		for _, v in ipairs(self.knownEnts) do
-			if v:CPPIGetOwner() == ply and (invalid or not core:encompassesEntity(v)) then
+			local owned = v:CPPIGetOwner() == ply
+			local spawned_time = CurTime() - v:GetNW2Int("boughtAt", 0)
+
+			if owned and (invalid or not core:encompassesEntity(v)) then
 				render.SetColorModulation(1, 0, 0, 1)
 				v:DrawModel()
+			elseif owned and spawned_time < 10 then -- TODO: config, see items.lua
+				local alpha = (10 - spawned_time)/10
+				render.SetColorModulation(0, 1, 0, alpha)
+				render.SetBlend(alpha)
+				v:DrawModel()
+				render.SetBlend(1)
 			end
 		end
 

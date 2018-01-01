@@ -43,10 +43,24 @@ function SWEP:Holster()
 
 		if IsValid(vm) then
 			self:ckResetBonePositions(vm)
+			self:ckSetupViewModel(vm, true)
 		end
 	end
 
 	return true
+end
+
+function SWEP:Deploy()
+	local owner = self:GetOwner()
+
+	if CLIENT and IsValid(owner) then
+		local vm = owner:GetViewModel()
+
+		if IsValid(vm) then
+			self:ckResetBonePositions(vm)
+			self:ckSetupViewModel(vm, false)
+		end
+	end
 end
 
 function SWEP:OnRemove()
@@ -104,6 +118,16 @@ if CLIENT then
 	local white = Color(255,255,255,255)
 	local trans = Color(255,255,255,1  )
 
+	function SWEP:ckSetupViewModel(vm, holster)
+		if self.ShowViewModel ~= false or holster then
+			vm:SetColor(white)
+			vm:SetMaterial("")
+		else
+			vm:SetColor(trans)
+			vm:SetMaterial("vgui/hsv")
+		end
+	end
+
 	function SWEP:ckInit()
 		self.VElements         = fullCopy(self.VElements)
 		self.WElements         = fullCopy(self.WElements)
@@ -117,13 +141,6 @@ if CLIENT then
 
 			if IsValid(vm) then
 				self:ckResetBonePositions(vm)
-
-				if self.ShowViewModel ~= false then
-					vm:SetColor(white)
-				else
-					vm:SetColor(trans)
-					vm:SetMaterial("vgui/hsv")
-				end
 			end
 		end
 	end

@@ -261,8 +261,8 @@ function ENT:OnTakeDamage(dmginfo)
 	end
 
 	self:SetHealth(self:Health() - dmg)
-	if self:Health() <= 0 and not self.exploded then
-		self.exploded = true
+	if self:Health() <= 0 and not self.markedAsDestroyed then
+		self.markedAsDestroyed = true
 
 		local res = hook.Run("BW_PreEntityDestroyed", self, dmginfo) -- DOCUMENT:
 

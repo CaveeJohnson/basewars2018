@@ -34,7 +34,8 @@ do
 	local ext = basewars.createExtension"core.itemLoader"
 
 	function basewars.loadItems()
-		basewars.loadItemFolder("")
+		hook.Run("OnInvalidateItems")
+			basewars.loadItemFolder("")
 		hook.Run("PostItemsLoaded")
 	end
 

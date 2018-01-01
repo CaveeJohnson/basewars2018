@@ -4,9 +4,17 @@ SWEP.Base          = "basewars_ck_base"
 SWEP.PrintName     = "MATTER MANIPULATOR"
 
 -- Contact and author are same as base
-SWEP.Purpose       = "Equiped with a massenergy <-> money conversion matrix, the easiest way to create items on the go."
+SWEP.Purpose       = "Equiped with a massenergy &lt;-&gt; money conversion matrix, the easiest way to create items on the go."
+
 local reload       = SERVER and "R" or input.LookupBinding("reload"):upper()
-SWEP.Instructions  = "<color=192,192,192>LMB</color>\t[1] Create\t[2] Destroy\n<color=192,192,192>RMB\t</color>[1] Rotate\t[2] UNUSED\n<color=192,192,192>" .. reload .. "</color>\tChange between [1] and [2]"
+local use          = SERVER and "E" or input.LookupBinding("use"):upper()
+local speed        = SERVER and "E" or input.LookupBinding("speed"):upper()
+SWEP.Instructions  = ([=[
+  <color=192,192,192>LMB</color>\t[1] Create\t[2] Destroy
+  <color=192,192,192>RMB\t</color>[1] UNUSED\t[2] UNUSED
+  <color=192,192,192>]=] .. use    .. [=[</color>\t[1] Rotate\t[2] UNUSED
+  <color=192,192,192>]=] .. reload .. [=[</color>\tChange between [1] and [2]
+  <color=192,192,192>]=] .. speed  .. [=[</color>\tSnap to angle]=]):Trim():gsub("\\t", "\t")
 
 SWEP.Slot          = 0
 SWEP.SlotPos       = 3
@@ -39,6 +47,7 @@ SWEP.reloadSound   = Sound("weapons/ar2/ar2_empty.wav")
 SWEP.shootSound    = "weapons/airboat/airboat_gun_energy%d.wav"
 
 local ext = basewars.createExtension"matter-manipulator"
+SWEP.ext  = ext
 
 function ext:PlayerLoadout(ply)
 	ply:Give("basewars_mattermanipulator")
@@ -47,22 +56,71 @@ end
 ext.rtName = "bw18_matter_manipulator_rt"
 ext.rtMatName = "!" .. ext.rtName .. "_mat"
 
-function ext:buyItem(ply, res)
-	local id = ply:GetInfo("bw18_mm_creation_item", "error") or "error"
-	if id == "error" then return false end
+function ext:getAngles(ply)
+	local yaw = tonumber(ply:GetInfoNum("bw18_mm_creation_yaw", 0)) or 0
+	local snap = tonumber(ply:GetInfoNum("gm_snapangles", 0)) or 0
+	if ply:KeyDown(IN_SPEED) then yaw = (math.Round(yaw/snap))*snap end
 
-	local yaw = ply:GetInfo("bw18_mm_creation_yaw", 0) or 0
 	local ang = Angle()--res.HitNormal:Angle()
 		ang.y = ang.y + yaw
 	ang:Normalize()
 
-	return basewars.spawnItem(id, ply, res.HitPos, ang)
+	return ang
+end
+
+function ext:buyItem(ply, res)
+	local id = ply:GetInfo("bw18_mm_creation_item", "error") or "error"
+	if id == "error" then return false end
+
+	return basewars.spawnItem(id, ply, res.HitPos, self:getAngles(ply), res.HitNormal)
 end
 
 if CLIENT then
 	ext.creationItemCVar = CreateClientConVar("bw18_mm_creation_item", "error", true, true, "The unique identifier for the selected item you are creating.")
-	ext.yawCVar = CreateClientConVar("bw18_mm_creation_yaw", "0", true, true, "The yaw offset of the entity.")
-	ext.creationItemId = ext.creationItemCVar:GetString()
+	ext.yawCVar          = CreateClientConVar("bw18_mm_creation_yaw", "0", true, true, "The yaw offset of the entity.")
+	ext.snapCVar         = GetConVar("gm_snapangles")
+
+	function SWEP:FreezeMovement()
+		if not self:GetFireMode() and ext.creationItem and self:GetOwner():KeyDown(IN_USE) then
+			return true
+		elseif self.clampYawNext then
+			local cur = ext.yawCVar:GetFloat()
+			local snap = ext.snapCVar:GetFloat()
+			cur = (math.Round(cur/snap))*snap
+
+			RunConsoleCommand("bw18_mm_creation_yaw", cur)
+			self.clampYawNext = nil
+		end
+	end
+
+	function SWEP:Think()
+		local owner = self:GetOwner()
+		if not self:GetFireMode() and ext.creationItem and owner:KeyDown(IN_USE) then
+			local cmd = self:GetOwner():GetCurrentCommand()
+			local deg = cmd:GetMouseX() * 0.02
+
+			if math.abs(deg) > 0.001 then
+				local cur = ext.yawCVar:GetFloat()
+				cur = cur + deg
+
+				RunConsoleCommand("bw18_mm_creation_yaw", cur)
+				if owner:KeyDown(IN_SPEED) then
+					self.clampYawNext = true
+				else
+					self.clampYawNext = nil
+				end
+			end
+		end
+
+		return self.BaseClass.Think(self)
+	end
+
+	function ext:PostItemsLoaded()
+		local id = self.creationItemCVar:GetString()
+
+		self.creationItemId   = id
+		self.creationItem     = basewars.getItem(id)
+	end
 
 	function ext:setCreationItem(id, dontSwap)
 		if not dontSwap then
@@ -77,6 +135,77 @@ if CLIENT then
 		self.creationItem = basewars.getItem(id)
 
 		RunConsoleCommand("bw18_mm_creation_item", id)
+	end
+
+	function SWEP:createGhostEntity()
+		if IsValid(self.csEnt) then return end
+
+		self.csEnt = ents.CreateClientProp("models/error.mdl")
+			self.csEnt:SetNoDraw(true)
+
+			self.csEnt:SetSolid(SOLID_VPHYSICS)
+			self.csEnt:SetMoveType(MOVETYPE_NONE)
+			self.csEnt:SetNotSolid(true)
+			self.csEnt:SetRenderMode(RENDERMODE_TRANSALPHA)
+			self.csEnt:SetColor(Color(255, 255, 255, 150))
+		self.csEnt:Spawn()
+	end
+
+	function SWEP:cleanupGhostEntity()
+		if IsValid(self.csEnt) then self.csEnt:Remove() end
+	end
+
+	function SWEP:Holster()
+		self:cleanupGhostEntity()
+
+		return self.BaseClass.Holster(self)
+	end
+
+	local function DropToFloor(ent)
+		local obb_mins   = ent:OBBMins()
+		local obb_maxs   = ent:OBBMaxs()
+
+		local res = util.TraceHull{
+			start  = ent:GetPos(),
+			endpos = ent:GetPos() - Vector(0, 0, 256),
+			filter = ent,
+			mins   = obb_mins,
+			maxs   = obb_maxs,
+		}
+
+		if res.Hit and res.HitTexture ~= "**empty**" then -- .hit is always true :v
+			ent:SetPos(res.HitPos)
+		end
+	end
+
+	function SWEP:updateGhostEntity(res)
+		self:createGhostEntity()
+
+		if self:GetFireMode() or not res then
+			self.csEnt:SetNoDraw(true)
+			return
+		end
+
+		if ext.creationItem then
+			self.csEnt:SetNoDraw(false)
+			self.csEnt:SetModel(ext.creationItem.model or "models/error.mdl")
+
+			local col = ext.creationItem.color or Color(255, 255, 255)
+			self.csEnt:SetColor(Color(col.r, col.g, col.b, 150))
+
+			local dot_maxs = res.HitNormal:Dot(self.csEnt:OBBMaxs())
+			local dot_mins = res.HitNormal:Dot(self.csEnt:OBBMins())
+			local off = math.max(dot_maxs, dot_mins)*res.HitNormal
+
+			local pos = res.HitPos + off
+			self.csEnt:SetPos(pos)
+			DropToFloor(self.csEnt)
+
+			local ang = ext:getAngles(self:GetOwner())
+			self.csEnt:SetAngles(ang)
+		else
+			self.csEnt:SetNoDraw(true)
+		end
 	end
 
 	cvars.AddChangeCallback("bw18_mm_creation_item", function(_, old, new)
@@ -144,6 +273,8 @@ if CLIENT then
 
 		surface.DrawTexturedRectRotated(x, y, 32, 32, 90)
 		surface.DrawTexturedRectRotated(x, y, 32, 32, 0)
+
+		self:updateGhostEntity(self:trace())
 	end
 
 	function SWEP:getElementColor(name)
@@ -241,11 +372,7 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:Attack1(tr_res)
-	if tr_res.HitWorld then
-		return ext:buyItem(self:GetOwner(), tr_res)
-	else
-		return false
-	end
+	return ext:buyItem(self:GetOwner(), tr_res)
 end
 
 function SWEP:Attack2(tr_res)
@@ -257,5 +384,4 @@ function SWEP:Attack2(tr_res)
 end
 
 function SWEP:SecondaryAttack()
-	-- boilerplate
 end

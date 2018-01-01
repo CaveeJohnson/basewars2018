@@ -7,6 +7,16 @@ local item_index = 0
 
 local items_categories = {}
 
+function ext:OnInvalidateItems()
+	items = {}
+
+	items_list = {}
+	item_index = 0
+
+	items_categories = {}
+end
+
+
 basewars.defaultItemParams = {
 
 }
@@ -180,6 +190,11 @@ function ext:BW_EntitySold(ent, ply, violent)
 	if not val or val <= 0 then return end
 
 	local mult = violent and 0.5 or 0.6
+	if CurTime() - ent:GetNW2Int("boughtAt", 0) < 10 and not ent.hasBeenUsed then -- TODO: config
+		mult = 1.0
+	end
+	mult = hook.Run("BW_GetSaleMult", ent, ply, violent, mult) or mult -- DOCUMENT:
+
 	local final_val = val * mult
 
 	-- TODO: Faction share?
@@ -190,19 +205,31 @@ end
 
 function ext:BW_OnEntityDestroyed(ent, attack, inflic, violent)
 	local ply = attack
-	if not ply:IsPlayer() then
+	if not ply then
+		ply = ent:CPPIGetOwner()
+	elseif not ply:IsPlayer() then
 		ply = inflic
 
 		if not ply:IsPlayer() then
-			return
+			ply = ent:CPPIGetOwner()
 		end
 	end
+
+	if not ply:IsPlayer() then
+		return
+	end
+
+	local should_sell = hook.Run("BW_ShouldSell", ply, ent)
+	if should_sell == false then return false end
 
 	hook.Run("BW_EntitySold", ent, ply, violent or false)
 end
 ext.BW_OnNonBaseWarsEntityDestroyed = ext.BW_OnEntityDestroyed
 
-function basewars.onEntitySale(ply, ent, violent)
+function basewars.onEntitySale(ent, ply, violent)
+	if entmarkedAsDestroyed then return end
+	ent.markedAsDestroyed = true
+
 	if ent.isBaseWarsEntity then
 		hook.Run("BW_OnEntityDestroyed", ent, ply, ply, violent or false)
 	else
@@ -216,16 +243,12 @@ function basewars.sellEntity(ent, ply)
 	if ent:CPPIGetOwner() ~= ply then return false end
 	if ent.isCore then return false end
 
-	local should_sell = hook.Run("BW_ShouldSell", ply, ent)
-	if should_sell == false then return false end
-
 	if CLIENT then
 		ent.beingDestructed = true
 		return true
 	end
 
 	basewars.destructWithEffect(ent, 1, ent.getCurrentValue and ent:getCurrentValue())
-	basewars.onEntitySale(ply, ent, false)
 
 	return true
 end
@@ -263,7 +286,8 @@ if SERVER then
 		self.limiter[id][class] = (self.limiter[id][class] or 0) + 1
 		ply:SetNW2Int("bw18_limit_" .. class, self.limiter[id][class])
 
-		ent:CallOnRemove("bw18_ent_limits", onRemoveLimitHandler, self, id, class)
+		ent:CallOnRemove("bw18_ent_limits" , onRemoveLimitHandler, self, id, class)
+		ent:CallOnRemove("bw18_ent_removal", basewars.onEntitySale) -- won't call if the entity marks itsself as having handled before
 	end
 
 	function ext:doSpawnEffect(ent, money)
@@ -287,18 +311,27 @@ if SERVER then
 		-- not finished
 	end
 
-	function ext:spawnGenericItem(item, ply, pos, ang)
+	function ext:spawnGenericItem(item, ply, pos, ang, norm)
 		local ent = ents.Create(item.class)
 		if not IsValid(ent) then return "ents.Create failed" end
 		ent:Spawn()
 		ent:Activate()
 
-		ent:SetPos(pos + Vector(0, 0, ent:BoundingRadius() * 2))
+		ent:SetAngles(ang)
+		if norm then
+			local dot_maxs = norm:Dot(ent:LocalToWorld(ent:OBBMaxs()))
+			local dot_mins = norm:Dot(ent:LocalToWorld(ent:OBBMins()))
+			local off = math.max(dot_maxs, dot_mins)*norm
+
+			ent:SetPos(pos + off)
+		else
+			ent:SetPos(pos)
+		end
 		ent:DropToFloor()
 
-		ent:SetAngles(ang)
-
 		ent:CPPISetOwner(ply)
+		if ent.setAbsoluteOwner then ent:setAbsoluteOwner(ply:SteamID64()) end
+
 		ent.DoNotDuplicate = true
 
 		if item.limit then
@@ -313,7 +346,7 @@ if SERVER then
 		return ent
 	end
 
-	function basewars.spawnItem(id, ply, pos, ang)
+	function basewars.spawnItem(id, ply, pos, ang, norm)
 		local item = items[id]
 		if not item then return false, "Invalid item!" end
 
@@ -331,9 +364,9 @@ if SERVER then
 
 		local ent
 		if item.spawn then
-			ent = item:spawn(ply, pos, ang)
+			ent = item:spawn(ply, pos, ang, norm)
 		else
-			ent = ext:spawnGenericItem(item, ply, pos, ang)
+			ent = ext:spawnGenericItem(item, ply, pos, ang, norm)
 		end
 		if not IsValid(ent) then return false, ent or "Error spawning entity <REPORT THIS: '" .. id .. "'>" end
 

@@ -13,10 +13,12 @@ function ext:PostEntityCreated(ent)
 end
 
 function ext:SharedEntityTakeDamage(ent, dmginfo)
-	if ent.__healthOverride and not ent.beingDestructed then
+	if ent.__healthOverride and not ent.beingDestructed and not ent.markedAsDestroyed then
 		local newHealth = ent:Health() - dmginfo:GetDamage()
 
 		if newHealth <= 0 then
+			ent.markedAsDestroyed = true
+
 			hook.Run("BW_OnNonBaseWarsEntityDestroyed", ent, dmginfo:GetAttacker(), dmginfo:GetInflictor(), true) -- DOCUMENT:
 			SafeRemoveEntity(ent)
 		else

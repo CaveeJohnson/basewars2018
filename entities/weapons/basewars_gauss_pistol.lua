@@ -25,7 +25,7 @@ SWEP.Primary.ClipSize    = 9
 SWEP.Primary.DefaultClip = 9
 SWEP.Primary.Automatic   = false
 SWEP.Primary.Delay       = 1 / 5
-SWEP.Primary.Damage      = 10
+SWEP.Primary.Damage      = 12
 SWEP.Primary.Range       = 1024
 
 SWEP.Secondary.Ammo        = "none"
@@ -46,7 +46,7 @@ SWEP.ShowViewModel = true
 SWEP.ShowWorldModel = true
 SWEP.ViewModelBoneMods = {}
 
-SWEP.DrawAmmo      = false
+SWEP.DrawAmmo = false
 
 sound.Add({
 	channel = CHAN_WEAPON,

@@ -9,8 +9,12 @@ DEFINE_BASECLASS     "basewars_ck_base"
 SWEP.PrintName     = "GAUSS PISTOL"
 
 SWEP.Purpose       = "A small self-recharching energy weapon with a powerful alternate fire mode."
+
 local reload       = SERVER and "R" or input.LookupBinding("reload"):upper()
-SWEP.Instructions  = "<color=192,192,192>LMB</color>\t\tPrimary Attack\n<color=192,192,192>RMB (hold)\t</color>Charged Attack\n<color=192,192,192>" .. reload .. "</color>\t\tReload"
+SWEP.Instructions  = ([=[
+  <color=192,192,192>LMB</color>\tPrimary attack
+  <color=192,192,192>RMB</color>\t(hold) Charged attack
+  <color=192,192,192>]=] .. reload .. [=[</color>\tReload]=]):gsub("\\t", "\t")
 
 SWEP.Slot          = 1
 SWEP.SlotPos       = 2

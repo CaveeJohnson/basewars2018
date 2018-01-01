@@ -1,12 +1,14 @@
 AddCSLuaFile()
 
-SWEP.Base          = "weapon_base"
-SWEP.PrintName     = "Hands"
+SWEP.Base          = "basewars_ck_base"
+SWEP.PrintName     = "HANDS"
 
 SWEP.Author        = GAMEMODE.Author
 SWEP.Contact       = GAMEMODE.Website
-SWEP.Purpose       = ""
-SWEP.Instructions  = ""
+SWEP.Purpose       = "A set of fleshy tendrils extending from your arms. Used for interacting with doors and to hide your weapon."
+SWEP.Instructions  = ([=[
+  <color=192,192,192>LMB</color>\tLock doors
+  <color=192,192,192>RMB</color>\tUnlock doors]=]):gsub("\\t", "\t")
 
 SWEP.Slot          = 1
 SWEP.SlotPos       = 0
@@ -41,9 +43,7 @@ function SWEP:Reload()                    return false end
 function SWEP:Holster()                   return true  end
 function SWEP:ShouldDropOnDie()           return false end
 
-function SWEP:DrawWeaponSelection(x, y, w, h, a)
-	draw.SimpleText("C", "creditslogo", x + w / 2, y, Color(255, 220, 0, a), TEXT_ALIGN_CENTER)
-end
+SWEP.weaponSelectionLetter = "C"
 
 function SWEP:Initialize()
 	if self.SetHoldType then

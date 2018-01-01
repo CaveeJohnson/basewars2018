@@ -11,10 +11,10 @@ local use          = SERVER and "E" or input.LookupBinding("use"):upper()
 local speed        = SERVER and "E" or input.LookupBinding("speed"):upper()
 SWEP.Instructions  = ([=[
   <color=192,192,192>LMB</color>\t[1] Create\t[2] Destroy
-  <color=192,192,192>RMB\t</color>[1] UNUSED\t[2] UNUSED
+  <color=192,192,192>RMB</color>\t[1] UNUSED\t[2] UNUSED
   <color=192,192,192>]=] .. use    .. [=[</color>\t[1] Rotate\t[2] UNUSED
   <color=192,192,192>]=] .. reload .. [=[</color>\tChange between [1] and [2]
-  <color=192,192,192>]=] .. speed  .. [=[</color>\tSnap to angle]=]):Trim():gsub("\\t", "\t")
+  <color=192,192,192>]=] .. speed  .. [=[</color>\tSnap to angle]=]):gsub("\\t", "\t")
 
 SWEP.Slot          = 0
 SWEP.SlotPos       = 3

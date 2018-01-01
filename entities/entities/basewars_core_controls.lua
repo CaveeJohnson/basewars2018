@@ -531,9 +531,11 @@ else
 		self.__box_color = ColorAlpha(bg, 255)
 		self.__slc_color = Color(255 - bg.r, 255 - bg.g, 255 - bg.b, 100)
 
+		local mat_num = string.format("%d_%d", self:EntIndex(), math.ceil(self:GetCreationTime()))
+
 		-- Create material for rendering the main panel
-		local tex = GetRenderTargetEx(string.format("bw2018_rtcc_%f", SysTime()), 1200, 600, RT_SIZE_DEFAULT, MATERIAL_RT_DEPTH_NONE, 2, 0, IMAGE_FORMAT_RGBA8888)
-		local mat = CreateMaterial(string.format("bw2018_matgencc_%d_%d", self:EntIndex(), math.ceil(self:GetCreationTime())), "UnlitGeneric", {
+		local tex = GetRenderTargetEx(string.format("bw2018_rtcc_%f", mat_num), 1200, 600, RT_SIZE_DEFAULT, MATERIAL_RT_DEPTH_NONE, 2, 0, IMAGE_FORMAT_RGBA8888)
+		local mat = CreateMaterial(string.format("bw2018_matgencc_%s", mat_num), "UnlitGeneric", {
 			["$basetexture"] = tex,
 			["$model"] = "1"
 		})

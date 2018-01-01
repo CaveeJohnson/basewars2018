@@ -4,8 +4,9 @@ SWEP.Base          = "basewars_ck_base"
 SWEP.PrintName     = "MATTER MANIPULATOR"
 
 -- Contact and author are same as base
-SWEP.Purpose       = "Converts between massenergy and money"
-SWEP.Instructions  = ""
+SWEP.Purpose       = "Equiped with a massenergy <-> money conversion matrix, the easiest way to create items on the go."
+local reload       = SERVER and "R" or input.LookupBinding("reload"):upper()
+SWEP.Instructions  = "<color=192,192,192>LMB</color>\t[1] Create\t[2] Destroy\n<color=192,192,192>RMB\t</color>[1] Rotate\t[2] UNUSED\n<color=192,192,192>" .. reload .. "</color>\tChange between [1] and [2]"
 
 SWEP.Slot          = 0
 SWEP.SlotPos       = 3

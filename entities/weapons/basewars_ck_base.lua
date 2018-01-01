@@ -1,11 +1,11 @@
 AddCSLuaFile()
 
-SWEP.Base = "weapon_base"
-DEFINE_BASECLASS "weapon_base"
+SWEP.Base          = "weapon_base"
+DEFINE_BASECLASS     "weapon_base"
 
 SWEP.PrintName     = "Basewars Construction Kit Base"
 
-SWEP.Author        = "Clavus, " .. GAMEMODE.Author
+SWEP.Author        = GAMEMODE.Author .. ", Clavus"
 SWEP.Contact       = GAMEMODE.Website
 SWEP.Purpose       = ""
 SWEP.Instructions  = ""
@@ -74,6 +74,8 @@ if CLIENT then
 		if self.weaponSelectionLetter then
 			draw.SimpleText(self.weaponSelectionLetter, self.weaponSelectionFontBlur or "bw18_ck_base_weapon_selection_blur", x + w / 2, y + h / 2, Color(255, 235, 20, math.max(a - 8, 0)), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 			draw.SimpleText(self.weaponSelectionLetter, self.weaponSelectionFont     or "bw18_ck_base_weapon_selection",      x + w / 2, y + h / 2, Color(255, 235, 20, a), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+			self:PrintWeaponInfo(x + w + 20, y + h * 0.95, a)
 		else
 			BaseClass.DrawWeaponSelection(self, x, y, w, h, a)
 		end

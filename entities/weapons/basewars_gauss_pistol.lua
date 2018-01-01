@@ -8,8 +8,17 @@ SWEP.Base          = "basewars_ck_base"
 DEFINE_BASECLASS     "basewars_ck_base"
 SWEP.PrintName     = "GAUSS PISTOL"
 
-SWEP.Purpose       = "Gauss Pistol"
-SWEP.Instructions  = "LMB: Primary Attack\nRMB (hold): Charged Attack\nR: Reload"
+SWEP.Purpose       = "A small self-recharching energy weapon with a powerful alternate fire mode."
+local reload       = SERVER and "R" or input.LookupBinding("reload"):upper()
+SWEP.Instructions  = "<color=192,192,192>LMB</color>\t\tPrimary Attack\n<color=192,192,192>RMB (hold)\t</color>Charged Attack\n<color=192,192,192>" .. reload .. "</color>\t\tReload"
+
+SWEP.Slot          = 1
+SWEP.SlotPos       = 2
+
+SWEP.Category      = "BaseWars"
+SWEP.Spawnable     = true
+
+SWEP.weaponSelectionLetter = "e"
 
 SWEP.Primary.Ammo        = "none"
 SWEP.Primary.ClipSize    = 9
@@ -37,9 +46,11 @@ SWEP.ShowViewModel = true
 SWEP.ShowWorldModel = true
 SWEP.ViewModelBoneMods = {}
 
+SWEP.DrawAmmo      = false
+
 sound.Add({
 	channel = CHAN_WEAPON,
-	name    = "bw18.basic_pistol.shoot1",
+	name    = "bw18.gauss_pistol.shoot1",
 	level   = 100,
 	sound   = ")weapons/pistol/pistol_fire2.wav",
 	volume  = 0.8,
@@ -48,7 +59,7 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw18.basic_pistol.shoot2",
+	name    = "bw18.gauss_pistol.shoot2",
 	level   = 90,
 	sound   = ")ambient/energy/zap8.wav",
 	volume  = 0.45,
@@ -57,7 +68,7 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_WEAPON,
-	name    = "bw18.basic_pistol.chargedshot1",
+	name    = "bw18.gauss_pistol.chargedshot1",
 	level   = 110,
 	sound   = {")weapons/airboat/airboat_gun_energy1.wav", ")weapons/airboat/airboat_gun_energy2.wav"},
 	volume  = 1,
@@ -66,7 +77,7 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw18.basic_pistol.chargedshot2",
+	name    = "bw18.gauss_pistol.chargedshot2",
 	level   = 100,
 	sound   = {")weapons/physcannon/energy_sing_flyby1.wav", ")weapons/physcannon/energy_sing_flyby2.wav"},
 	volume  = 0.5,
@@ -75,19 +86,19 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw18.basic_pistol.chargedshot3",
+	name    = "bw18.gauss_pistol.chargedshot3",
 	level   = 80,
 	sound   = ")weapons/physcannon/superphys_launch4.wav",
 	volume  = 0.1,
 	pitch   = 112
 })
 
-SWEP.primarySound1 = Sound "bw18.basic_pistol.shoot1"
-SWEP.primarySound2 = Sound "bw18.basic_pistol.shoot2"
+SWEP.primarySound1 = Sound "bw18.gauss_pistol.shoot1"
+SWEP.primarySound2 = Sound "bw18.gauss_pistol.shoot2"
 
-SWEP.secondarySound1 = Sound "bw18.basic_pistol.chargedshot1"
-SWEP.secondarySound2 = Sound "bw18.basic_pistol.chargedshot2"
-SWEP.secondarySound3 = Sound "bw18.basic_pistol.chargedshot3"
+SWEP.secondarySound1 = Sound "bw18.gauss_pistol.chargedshot1"
+SWEP.secondarySound2 = Sound "bw18.gauss_pistol.chargedshot2"
+SWEP.secondarySound3 = Sound "bw18.gauss_pistol.chargedshot3"
 
 SWEP.secondaryChargeSound = Sound "weapons/physcannon/energy_sing_loop4.wav"
 
@@ -478,4 +489,10 @@ end
 function SWEP:emitFailNoise()
 	self:EmitSound(self.chargeFailedSound, 100, 95)
 	self:CallOnClient("emitFailNoise")
+end
+
+local ext = basewars.createExtension"gauss-pistol"
+
+function ext:PlayerLoadout(ply)
+	ply:Give("basewars_gauss_pistol")
 end

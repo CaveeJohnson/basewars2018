@@ -26,7 +26,7 @@ do
 	})
 
 	function ext:paintSpawnIcon(w, h, ply, item)
-		-- no caching, this info can change
+		if hook.Run("BW_PaintBuymenuSpawnIcon", w, h, ply, item) then return end
 		local level = not item.level or ply:hasLevel(item.level)
 		local cost  = item.cost
 
@@ -50,6 +50,7 @@ do
 	end
 
 	function ext:paintOverSpawnIcon(w, h, ply, item, costText)
+		if hook.Run("BW_PaintOverBuymenuSpawnIcon", w, h, ply, item, costText) then return end
 		local level = not item.level or ply:hasLevel(item.level)
 
 		if not level then

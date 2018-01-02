@@ -34,13 +34,18 @@ function basewars.createItemEx(id, tbl)
 		local swep = weapons.Get(id)
 
 		if sent then
+			local sent_base = scripted_ents.Get(sent.Base)
+			if not sent_base then
+				error(string.format("entity with no baseclass used to init item? '%s', '%s'", id, sent.Base))
+			end
+
 			tbl.name  = tbl.name or sent.PrintName or sent.Name
 			tbl.class = id
-			tbl.model = tbl.model or sent.Model
+			tbl.model = tbl.model or sent.Model or sent_base.Model
 		elseif swep then
-			tbl.name  = tbl.name or sent.PrintName
+			tbl.name  = tbl.name or swep.PrintName
 			tbl.class = id
-			tbl.model = tbl.model or sent.WorldModel
+			tbl.model = tbl.model or swep.WorldModel
 			tbl.spawn = tbl.spawn or ext.spawnWeaponItem
 		elseif not tbl.spawn then
 			error(string.format("item with no classname and no spawn method registed? '%s'", id))
@@ -188,14 +193,20 @@ function basewars.destructWithEffect(ent, time, money)
 	end
 end
 
+function basewars.getSaleMult(ent, ply, violent)
+	local mult = violent and 0.5 or 0.6
+	if CurTime() - ent:GetNW2Int("boughtAt", 0) < 10 and not ent.noRefund and not ent:GetNW2Bool("hasBeenUsed", false) and not violent then -- TODO: config
+		mult = 1.0
+	end
+
+	return mult
+end
+
 function basewars.getEntitySaleValue(ent, ply, violent)
 	local val = ent.getCurrentValue and ent:getCurrentValue()
 	if not val or val <= 0 then return end
 
-	local mult = violent and 0.5 or 0.6
-	if CurTime() - ent:GetNW2Int("boughtAt", 0) < 10 and not ent.noRefund and not violent then -- TODO: config
-		mult = 1.0
-	end
+	local mult = basewars.getSaleMult(ent, ply, violent)
 	mult = hook.Run("BW_GetSaleMult", ent, ply, violent, mult) or mult -- DOCUMENT:
 
 	return val * mult
@@ -244,25 +255,34 @@ function basewars.onEntitySale(ent, ply, violent)
 	end
 end
 
-function basewars.sellEntity(ent, ply)
+function basewars.canSellEntity(ent, ply)
 	if not IsValid(ent)          then return false, "Invalid entity!" end
 	if ent.beingDestructed       then return false, "Destruction in progress!" end
 	if ent:CPPIGetOwner() ~= ply then return false, "You do not own this!" end
-	if ent.isCore                then return false, "Cores cannot be deconstructed!" end
 
 	local res, err = hook.Run("BW_ShouldSell", ply, ent)
 	if res == false then return false, err end
 
-	if CLIENT then
-		return true
+	if ent.shouldSell then
+		res, err = ent:shouldSell(ply)
+		if res == false then return false, err end
 	end
 
-	basewars.onEntitySale(ent, ply, false)
-	basewars.destructWithEffect(ent, 1, basewars.getEntitySaleValue(ent, ply, false))
 	return true
 end
 
 if SERVER then
+	function basewars.sellEntity(ent, ply)
+		local res, err = basewars.canSellEntity(ent, ply)
+		if res == false then
+			return false, err
+		end
+
+		basewars.onEntitySale(ent, ply, false)
+		basewars.destructWithEffect(ent, 1, basewars.getEntitySaleValue(ent, ply, false))
+		return true
+	end
+
 	ext.limiter = {}
 
 	local function onRemoveLimitHandler(_, self, id, class)
@@ -306,13 +326,16 @@ if SERVER then
 		util.Effect("propspawn", ed, true, true)
 	end
 
-	function ext:spawnWeaponItem(item, ply, pos, ang)
-		-- not finished
+	function ext.spawnWeaponItem(item, ply, pos, ang, norm)
+		ext:spawnGenericItem    (item, ply, pos, ang, norm, item.class)
 	end
 
-	function ext:spawnGenericItem(item, ply, pos, ang, norm)
-		local ent = ents.Create(item.class)
+	function ext:spawnGenericItem(item, ply, pos, ang, norm, wep)
+		local ent = ents.Create(wep and "basewars_weapon_container" or item.class)
 		if not IsValid(ent) then return "ents.Create failed" end
+			if wep and ent.SetWeaponClass then
+				ent:SetWeaponClass(wep)
+			end
 		ent:Spawn()
 		ent:Activate()
 
@@ -390,5 +413,6 @@ if SERVER then
 		return true, ent
 	end
 else
-	basewars.spawnItem = basewars.canSpawnItem
+	basewars.spawnItem  = basewars.canSpawnItem
+	basewars.sellEntity = basewars.canSellEntity
 end

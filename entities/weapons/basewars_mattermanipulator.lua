@@ -5,7 +5,7 @@ DEFINE_BASECLASS     "basewars_ck_base"
 SWEP.PrintName     = "MATTER MANIPULATOR"
 
 -- Contact and author are same as base
-SWEP.Purpose       = "Equiped with a massenergy &lt;-&gt; money conversion matrix, the easiest way to create items on the go."
+SWEP.Purpose       = "Equipped with a massenergy &lt;-&gt; money conversion matrix, the easiest way to create items on the go."
 
 local reload       = SERVER and "R" or input.LookupBinding("reload"):upper()
 local use          = SERVER and "E" or input.LookupBinding("use"):upper()
@@ -182,6 +182,9 @@ if CLIENT then
 		end
 	end
 
+	local white = Color(255, 255, 255)
+	local red   = Color(255, 0  , 0  )
+
 	function SWEP:updateGhostEntity(res, item)
 		if self:GetFireMode() or not res then
 			self.csEnt:SetNoDraw(true)
@@ -192,20 +195,27 @@ if CLIENT then
 			self.csEnt:SetNoDraw(false)
 			self.csEnt:SetModel(item.model or "models/error.mdl")
 
-			local col = item.color or Color(255, 255, 255)
-			self.csEnt:SetColor(Color(col.r, col.g, col.b, 150))
-
 			local dot_maxs = res.HitNormal:Dot(self.csEnt:OBBMaxs())
 			local dot_mins = res.HitNormal:Dot(self.csEnt:OBBMins())
 			local off = math.max(dot_maxs, dot_mins)*res.HitNormal
 
 			local pos = res.HitPos + off
 			self.csEnt:SetPos(pos)
-			self.ghostPos = DropToFloor(self.csEnt) or pos
 
-			local ang = ext:getAngles(self:GetOwner())
+			pos = DropToFloor(self.csEnt) or pos
+			self.ghostPos = pos
+
+			local owner = self:GetOwner()
+			local ang = ext:getAngles(owner)
 			self.csEnt:SetAngles(ang)
 			self.ghostAngs = ang
+
+			local col = item.color or white
+			if not basewars.canSpawnItem(item.item_id, owner, pos, ang) then
+				col = red
+			end
+
+			self.csEnt:SetColor(Color(col.r, col.g, col.b, 150))
 		else
 			self.csEnt:SetNoDraw(true)
 		end
@@ -302,7 +312,7 @@ if CLIENT then
 			y = y - drawString("Reload to toggle mode!", smallFont, x, y, nil, nil, TEXT_ALIGN_BOTTOM)
 		else
 			local value    = basewars.getEntitySaleValue(ent, self:GetOwner(), false)
-			local res, err = basewars.sellEntity(ent, self:GetOwner())
+			local res, err = basewars.canSellEntity(ent, self:GetOwner())
 
 			if value or res or ent.isBasewarsEntity then
 				value = value or 0

@@ -109,7 +109,7 @@ function ext:PostReloaded()
 			self.knownEnts[i] = v
 
 			v.__buildModeEntsID = i
-		elseif v:GetClass() == "prop_physics" then
+		elseif v:GetClass() == "prop_physics" or v.Type == "anim" then
 			i2 = i2 + 1
 			self.knownProps[i2] = v
 
@@ -157,8 +157,8 @@ function ext:mmRender(ply)
 			if owned and (invalid or not core:encompassesEntity(v)) then
 				render.SetColorModulation(1, 0, 0, 1)
 				v:DrawModel()
-			elseif owned and spawned_time < 10 then -- TODO: config, see items.lua
-				local alpha = (10 - spawned_time)/10
+			elseif owned and basewars.getSaleMult(v, ply, false) == 1.0 then
+				local alpha = (10 - spawned_time)/10 -- TODO: config, see items.lua
 				render.SetColorModulation(0, 1, 0, alpha)
 				render.SetBlend(alpha)
 				v:DrawModel()

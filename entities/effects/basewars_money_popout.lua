@@ -12,7 +12,7 @@ function EFFECT:Init(data)
 	local amt = data:GetScale()
 	self.amount = amt
 
-	self.inverse = amt < 0 
+	self.inverse = amt < 0
 
 	local str = "£" .. basewars.nformat(math.abs(amt))
 	if self.inverse then str = "-" .. str end
@@ -35,7 +35,7 @@ function EFFECT:Think()
 	self.cur_height = self.cur_height + d
 	self.alpha = 1 - (self.cur_height / self.height)
 
-	if self.cur_height > self.height then
+	if self.cur_height > self.height or self.cur_height < 0 then
 		return false
 	end
 

@@ -336,3 +336,9 @@ function ENT:OnTakeDamage(dmginfo)
 		hook.Run("BW_OnEntityDestroyed", self, dmginfo:GetAttacker(), dmginfo:GetInflictor(), true) -- DOCUMENT:
 	end
 end
+
+function ENT:canUse(act, caller, type, value)
+	if self.beingDestructed or self.markedAsDestroyed then return false end
+
+	return true
+end

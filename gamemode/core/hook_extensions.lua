@@ -1,16 +1,12 @@
-do
-	local null_timer_id = 0
+function GM:OnEntityCreated(ent, ...)
+	local a = {...}
+	timer.Simple(0, function()
+		if IsValid(ent) then
+			hook.Run("PostEntityCreated", ent, unpack(a))
+		end
+	end)
 
-	function GM:OnEntityCreated(ent, ...)
-		local a = {...}
-		timer.Simple(0, function()
-			if IsValid(ent) then
-				hook.Run("PostEntityCreated", ent, unpack(a))
-			end
-		end)
-
-		return self.BaseClass.OnEntityCreated(self, ent, ...)
-	end
+	return self.BaseClass.OnEntityCreated(self, ent, ...)
 end
 
 function GM:PlayerInitialSpawn(ply, ...)

@@ -94,6 +94,11 @@ function ENT:getAreaEnts()
 	return self.areaEnts or {}, self.area_count or 0
 end
 
+function ENT:shouldSell(ply)
+	if self.area_count and self.area_count ~= 0       then return false, "Cores must be the last thing sold!" end
+	if self.network_count and self.network_count ~= 0 then return false, "Cores must be the last thing sold!" end
+end
+
 function ENT.readNetwork()
 	local self = net.ReadEntity()
 	if not IsValid(self) then return end
@@ -234,7 +239,7 @@ function ENT:transmitAreaEnts(ply)
 		end
 	end
 
-	if not ply and self.area_count == 0 then return end
+	if not ply and (self.area_count == 0 and oldCount == 0) then return end
 	if not ply and (oldCount == self.area_count and not newEnt) then return end
 
 	self.__areaEntsInverse = inverse

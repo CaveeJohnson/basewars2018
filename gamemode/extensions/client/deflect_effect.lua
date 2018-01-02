@@ -6,8 +6,12 @@ ext.timeShown = 0.8
 ext.knownEntities = {}
 ext.knownEntCount = 0
 
+function ext:wantEntity(ent)
+	return ent:EntIndex() > 0 and (ent.Type == "anim" or ent:GetClass() == "prop_physics") and ent:GetModelRadius() and ent:CPPIGetOwner() and ent:CPPIGetOwner() ~= game.GetWorld()
+end
+
 function ext:PostEntityCreated(ent)
-	if ent:EntIndex() <= 0 or ent:IsPlayer() or not ent:GetModelRadius() then return end
+	if not self:wantEntity(ent) then return end
 
 	self.knownEntCount = self.knownEntCount + 1
 	self.knownEntities[self.knownEntCount] = ent
@@ -42,7 +46,7 @@ function ext:PostReloaded()
 	local i = 0
 
 	for _, v in ipairs(ents.GetAll()) do
-		if not (v:EntIndex() <= 0 or v:IsPlayer() or not v:GetModelRadius()) then
+		if self:wantEntity(v) then
 			i = i + 1
 			self.knownEntities[i] = v
 
@@ -61,8 +65,7 @@ function ext:SharedEntityTakeDamage(ent, info)
 	local res = ent.shouldDrawDeflect and ent:shouldDrawDeflect(info)
 	if res == false then return end
 
-	if info:GetDamage() <= 0.00001 and not info:IsDamageType(DMG_BURN) then
-		print(info:GetAttacker(), info:GetDamage(), info:GetDamageType()) -- TODO:
+	if info:GetDamage() <= 0.00001 and not info:IsDamageType(DMG_BURN) and not info:IsDamageType(DMG_CRUSH) then
 		ent.__damageDeflectedAlpha = 200
 		ent:EmitSound(self.deflectSounds[math.random(1, #self.deflectSounds)])
 	end
@@ -80,14 +83,12 @@ do
 		for i = 1, self.knownEntCount do
 			local v = ent[i]
 
-			local a = v.__damageDeflectedAlpha
+			local a = v.__deflectRadius and v.__damageDeflectedAlpha
 			if a and a > 0 then
 				v.__damageDeflectedAlpha = math.max(0, a - rem)
 				col.a = v.__damageDeflectedAlpha
 
 				render.SetColorMaterial()
-
-				v.__deflectRadius = v.__deflectRadius or v:GetModelRadius() * 1.25 -- why does this happen
 				render.DrawSphere(v:GetPos(), v.__deflectRadius, 25, 25, col)
 			end
 		end

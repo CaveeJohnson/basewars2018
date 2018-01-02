@@ -151,7 +151,7 @@ function ext:ShouldPlayerSpawnObject(ply, trace)
 end
 
 function ext:EntityTakeDamage(ent, info)
-	if info:GetDamage() <= 1 or ent.indestructible then
+	if info:GetDamage() <= 0.01 or ent.indestructible then
 		return true
 	end
 end
@@ -170,7 +170,7 @@ end
 
 function ext:BW_ShouldCoreOwnEntity(core, ent)
 	local owner = ent:CPPIGetOwner()
-	if not IsValid(owner) then return end
+	if not IsValid(owner) then return nil end
 
 	if basewars.getCore(owner) ~= core and not core:ownershipCheck(ent) then return false end
 end

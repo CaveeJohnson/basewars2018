@@ -11,6 +11,8 @@ ENT.BaseHealth = 750
 ENT.BasePassiveRate = -15
 ENT.BaseActiveRate = -35
 
+ENT.PhysgunDisabled = true
+
 ENT.respawnOffset = Vector(7.5673, 0, 9.1896)
 
 ENT.coreControlOpNameToCode = {
@@ -62,6 +64,8 @@ function ENT:animate(seq_name, dur)
 end
 
 function ENT:Think()
+	self.BaseClass.Think(self)
+
 	if CLIENT then return end
 
 	self:NextThink(CurTime() + 0.5)

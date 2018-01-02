@@ -65,4 +65,3 @@ function ENT:Initialize()
 	self:setPassiveRate(self.BasePassiveRate)
 	self:setActiveRate(self.BaseActiveRate)
 end
-

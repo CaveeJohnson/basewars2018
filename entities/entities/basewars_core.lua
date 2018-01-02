@@ -152,6 +152,8 @@ do
 	end
 
 	function ENT:Think()
+		self.BaseClass.Think(self)
+
 		local col = hook.Run("BW_GetCoreIndicatorColor", self) or (self:isActive() and green or red) -- DOCUMENT:
 		self.indicatorColor = col
 	end
@@ -504,6 +506,8 @@ function ENT:Use(user)
 end
 
 function ENT:Think()
+	self.BaseClass.Think(self)
+
 	--self:genArea()
 
 	self.nextAreaTransmit = self.nextAreaTransmit or 0

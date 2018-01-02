@@ -1,4 +1,4 @@
-ITEM.category = "[Base Construction]"
+ITEM.category = "Base Cores"
 
 ITEM.limit = 1
 

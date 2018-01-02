@@ -77,6 +77,7 @@ function ext:PostReloaded()
 	self.knownEntCount = i
 end
 ext.InitPostEntity = ext.PostReloaded
+ext.OnFullUpdate   = ext.PostReloaded
 
 function basewars.canSpawnCore(ply, pos, class)
 	if not IsValid(ply) then return false, "Invalid player!" end
@@ -168,10 +169,10 @@ function ext:EntityTakeDamageFinal(ent, info)
 end
 
 function ext:BW_ShouldCoreOwnEntity(core, ent)
-	local owner, nyi = ent:CPPIGetOwner()
-	if not IsValid(owner) and nyi == CPPI.CPPI_NOTIMPLEMENTED then return end -- fallback
+	local owner = ent:CPPIGetOwner()
+	if not IsValid(owner) then return end
 
-	if basewars.getCore(owner) ~= core then return false end
+	if basewars.getCore(owner) ~= core and not core:ownershipCheck(ent) then return false end
 end
 
 function ext:BW_PreEntityDestroyed(ent, dmginfo)

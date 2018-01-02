@@ -53,6 +53,7 @@ function ext:PostReloaded()
 	self.knownEntCount = i
 end
 ext.InitPostEntity = ext.PostReloaded
+ext.OnFullUpdate   = ext.PostReloaded
 
 function ext:SharedEntityTakeDamage(ent, info)
 	if not ent.__deflectEntID then return end

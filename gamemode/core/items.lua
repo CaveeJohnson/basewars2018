@@ -155,9 +155,21 @@ function basewars.canSpawnItem(id, ply, pos, ang)
 	return true
 end
 
+function basewars.moneyPopout(ent, money)
+	if not (money and money ~= 0) then return end
+
+	local ed = EffectData()
+		ed:SetOrigin(ent:LocalToWorld(ent:OBBCenter()))
+		ed:SetEntity(ent)
+
+		ed:SetRadius(ent:BoundingRadius() + 10)
+		ed:SetScale(money)
+	util.Effect("basewars_money_popout", ed, true, true)
+end
+
 function basewars.destructWithEffect(ent, time, money)
 	if ent.beingDestructed then return end
-	time = time or 1
+	time = time or 0.8
 
 	local ed = EffectData()
 		ed:SetOrigin(ent:GetPos())
@@ -168,16 +180,6 @@ function basewars.destructWithEffect(ent, time, money)
 
 	ent:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
 	ent:EmitSound(string.format("weapons/physcannon/energy_disintegrate%d.wav", math.random(4, 5)))
-
-	if money and money ~= 0 then
-		local ed = EffectData()
-			ed:SetOrigin(ent:LocalToWorld(ent:OBBCenter()))
-			ed:SetEntity(ent)
-
-			ed:SetRadius(ent:BoundingRadius() + 10)
-			ed:SetScale(money)
-		util.Effect("basewars_money_popout", ed, true, true)
-	end
 
 	ent.beingDestructed = true
 	if SERVER then
@@ -191,7 +193,7 @@ function basewars.getEntitySaleValue(ent, ply, violent)
 	if not val or val <= 0 then return end
 
 	local mult = violent and 0.5 or 0.6
-	if CurTime() - ent:GetNW2Int("boughtAt", 0) < 10 and not ent.hasBeenUsed then -- TODO: config
+	if CurTime() - ent:GetNW2Int("boughtAt", 0) < 10 and not ent.noRefund and not violent then -- TODO: config
 		mult = 1.0
 	end
 	mult = hook.Run("BW_GetSaleMult", ent, ply, violent, mult) or mult -- DOCUMENT:
@@ -204,7 +206,9 @@ function ext:BW_EntitySold(ent, ply, violent)
 	if not final_val or final_val < 1 then return end
 
 	-- TODO: Faction share?
-	ply:giveMoney(final_val)
+
+	basewars.moneyPopout(ent, final_val)
+	ply:addMoney(final_val)
 
 	-- TODO: Notify
 end
@@ -230,7 +234,7 @@ end
 ext.BW_OnNonBaseWarsEntityDestroyed = ext.BW_OnEntityDestroyed
 
 function basewars.onEntitySale(ent, ply, violent)
-	if entmarkedAsDestroyed then return end
+	if ent.markedAsDestroyed then return end
 	ent.markedAsDestroyed = true
 
 	if ent.isBasewarsEntity then
@@ -253,7 +257,8 @@ function basewars.sellEntity(ent, ply)
 		return true
 	end
 
-	basewars.destructWithEffect(ent, 1, ent.getCurrentValue and ent:getCurrentValue())
+	basewars.onEntitySale(ent, ply, false)
+	basewars.destructWithEffect(ent, 1, basewars.getEntitySaleValue(ent, ply, false))
 	return true
 end
 
@@ -299,16 +304,6 @@ if SERVER then
 			ed:SetOrigin(ent:GetPos())
 			ed:SetEntity(ent)
 		util.Effect("propspawn", ed, true, true)
-
-		if money and money ~= 0 then
-			local ed = EffectData()
-				ed:SetOrigin(ent:LocalToWorld(ent:OBBCenter()))
-				ed:SetEntity(ent)
-
-				ed:SetRadius(ent:BoundingRadius() + 10)
-				ed:SetScale(money)
-			util.Effect("basewars_money_popout", ed, true, true)
-		end
 	end
 
 	function ext:spawnWeaponItem(item, ply, pos, ang)
@@ -345,9 +340,14 @@ if SERVER then
 		-- more to come probably
 
 		self:doSpawnEffect(ent, item.cost)
+		basewars.moneyPopout(ent, -item.cost)
 
 		if ent.setCurrentValue then ent:setCurrentValue(item.cost) end
 		ent:SetNW2Int("boughtAt", CurTime())
+
+		if item.cost > 0 then
+			ply:takeMoney(item.cost)
+		end
 
 		return ent
 	end

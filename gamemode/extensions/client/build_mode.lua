@@ -121,6 +121,7 @@ function ext:PostReloaded()
 	self.knownPropsCount = i2
 end
 ext.InitPostEntity = ext.PostReloaded
+ext.OnFullUpdate   = ext.PostReloaded
 
 function ext:buildingRender(ply)
 	local core = basewars.getCore(ply)

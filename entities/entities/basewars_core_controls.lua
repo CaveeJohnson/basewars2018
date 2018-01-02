@@ -565,6 +565,8 @@ else
 	end
 
 	function ENT:Think()
+		self.BaseClass.Think(self)
+	
 		if self.__selected and not IsValid(self.__selected) then
 			self.__selected = nil
 		end

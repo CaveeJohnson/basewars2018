@@ -28,9 +28,16 @@ function ENT:SetupDataTables()
 end
 
 function ENT:updateEnergyThroughput(name, old, new)
-	local base = (name == "PassiveRate" and new) or self:getPassiveRate()
-	if (name == "Active" and new == true) or (name ~= "Active" and self:isActive()) then
-		base = base + ((name == "ActiveRate" and new) or self:getActiveRate())
+	local base        = (name == "PassiveRate" and new) or self:getPassiveRate()
+	local active_rate = (name == "ActiveRate"  and new) or self:getActiveRate()
+
+	local set_active = name == "Active" and new
+	local is_active  = name ~= "Active" and self:isActive()
+
+	print(self, "updateEnergyThroughput", base, active_rate, set_active, is_active)
+
+	if set_active or is_active then
+		base = base + active_rate
 	end
 
 	if self.multEnergyTP then

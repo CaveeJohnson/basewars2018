@@ -1,6 +1,6 @@
 AddCSLuaFile()
 
-ENT.Base = "base_gmodentity"
+ENT.Base = "base_anim"
 ENT.Type = "anim"
 DEFINE_BASECLASS(ENT.Base)
 
@@ -25,6 +25,59 @@ do
 	local clamp = math.ClampRev
 	local max = math.max
 
+	-- unless you're name is Q2F2 or the 2020 networking rewrite 10.0 has been released you are forbidden to touch this code
+
+	if SERVER then
+		util.AddNetworkString("cancer")
+	else
+		local function onCancerDesynced()
+			for _, e in ipairs(ents.GetAll()) do
+				if e.cancer then
+					for n, t in pairs(e.cancer) do
+						for _, v in ipairs(t) do
+							v(e, n, e.dt[name], e.dt[name])
+						end
+					end
+				end
+			end
+		end
+
+		net.Receive("cancer", function() -- sums this up perfectly
+			local self = net.ReadEntity()
+
+			if not IsValid(self) then
+				print("entity networking cancer: desyncronization occured on entity")
+				return onCancerDesynced()
+			end
+
+			self:transmitCancer(net.ReadString(), net.ReadType(), net.ReadType())
+		end)
+	end
+
+	function ENT:transmitCancer(name, old, new)
+		if not (self.cancer and self.cancer[name]) then return end
+
+		for _, v in ipairs(self.cancer[name]) do
+			v(self, name, old, new)
+		end
+
+		if SERVER then
+			timer.Simple(0, function()
+				if not IsValid(self) then return end -- sigh
+
+				net.Start("cancer")
+					net.WriteEntity(self)
+					net.WriteString(name)
+
+					net.WriteType(old)
+					net.WriteType(new)
+				net.Broadcast()
+			end)
+		end
+	end
+
+	-- cancer over
+
 	function ENT:makeGSAT(type, name, max, min)
 		local numberString = type == "Double"
 
@@ -40,24 +93,26 @@ do
 		local setter = self["SetNW2" .. type]
 		local getter = self["GetNW2" .. type]
 
-		self[getType .. name] = function(self)
-			if numberString then
-				--return tonumber(self:GetNW2String(name)) or 0
+		if numberString then
+			self[getType .. name] = function(self)
 				return tonumber(self.dt[name]) or 0
 			end
-
-			--return getter(self, name)
-			return self.dt[name]
+		else
+			self[getType .. name] = function(self)
+				return self.dt[name]
+			end
 		end
 
 		if numberString then
 			self["set" .. name] = function(self, var)
 				--self:SetNW2String(name, var)
+				self:transmitCancer(name, self.dt[name], var)
 				self.dt[name] = tostring(var)
 			end
 		else
 			self["set" .. name] = function(self, var)
 				--setter(self, name, var)
+				self:transmitCancer(name, self.dt[name], var)
 				self.dt[name] = var
 			end
 		end
@@ -132,7 +187,11 @@ do
 	end
 
 	function ENT:netVarCallback(name, func)
-		self:SetNWVarProxy(name, func)
+		--self:SetNWVarProxy(name, func)
+		self.cancer       = self.cancer       or {}
+		self.cancer[name] = self.cancer[name] or {}
+
+		table.insert(self.cancer[name], func)
 	end
 
 	function ENT:SetupDataTables()
@@ -165,7 +224,11 @@ function ENT:ownershipCheck(ent)
 	local abs_owner = self:getAbsoluteOwner()
 
 	if isentity(ent) then
-		if ent:IsPlayer() and abs_owner == ent:SteamID64() then return true end
+		if ent:IsPlayer() and abs_owner == ent:SteamID64() then
+			return true
+		elseif ent.getAbsoluteOwner and abs_owner == ent:getAbsoluteOwner() then
+			return true
+		end
 	else
 		if abs_owner == ent then return true end
 	end
@@ -270,7 +333,6 @@ function ENT:OnTakeDamage(dmginfo)
 			self:explode(dmginfo:IsExplosionDamage())
 		end
 
-		-- self, attack, inflic, agression
 		hook.Run("BW_OnEntityDestroyed", self, dmginfo:GetAttacker(), dmginfo:GetInflictor(), true) -- DOCUMENT:
 	end
 end

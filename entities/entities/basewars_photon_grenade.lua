@@ -1,3 +1,9 @@
+AddCSLuaFile()
+
+ENT.Base = "base_anim"
+ENT.Type = "anim"
+DEFINE_BASECLASS(ENT.Base)
+
 ENT.PrintName = "Photon Cannon Grenade"
 
 ENT.model      = "models/Combine_Helicopter/helicopter_bomb01.mdl"

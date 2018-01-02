@@ -23,7 +23,7 @@ Fixes:
 	[X] Hands dont autoselect, maybe needs a 1 tick delay
 	[ ] Playervars need support for Doubles / string numbers
 	[X] Control panel works on literaly any entity, check if the entitiy is encompassed
-	[ ] Cloning machine only works if p = 0 and y % 90 = whole, needs to be static
+	[x] Cloning machine only works if p = 0 and y % 90 = whole, needs to be static
 
 
 OLD:
@@ -75,9 +75,16 @@ Fri: Done
 
 Friday:
 	[X] Buildmode + encompassed indicators
-	[ ] Basic purchasing / core spawner / we
+	[X] Basic purchasing / core spawner / we
+	[X] Item system
 
-Saturday:
+...
+
+...
+
+...
+
+Tuesday:
 	[ ] Raid system frontend
 
 [X] Entity destruct effect (explosion for damage is done, but selling / packing should have its own method)

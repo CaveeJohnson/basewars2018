@@ -239,7 +239,8 @@ else
 		local owner = self:GetOwner()
 		local aim   = owner:GetAimVector()
 
-		local ent = ents.Create("basewars_photon_cannon_grenade")
+		local ent = ents.Create("basewars_photon_grenade")
+		if not IsValid(ent) then error("failed to create grenade ent") end
 		local pos = owner:EyePos() + aim * 16
 
 		ent.weapon = self

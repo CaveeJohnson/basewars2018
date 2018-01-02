@@ -137,6 +137,8 @@ SWEP.WElements = {
 }
 
 function SWEP:PrimaryAttack()
+	if self:GetNW2Bool("reloading") then return end
+
 	if self:Clip1() == 0 then
 		self:EmitSound(self.noAmmoSound)
 		return
@@ -239,7 +241,7 @@ else
 		local owner = self:GetOwner()
 		local aim   = owner:GetAimVector()
 
-		local ent = ents.Create("basewars_photon_grenade")
+		local ent = ents.Create("basewars_photon_cannon_grenade")
 		if not IsValid(ent) then error("failed to create grenade ent") end
 		local pos = owner:EyePos() + aim * 16
 
@@ -275,11 +277,13 @@ else
 		self:SendWeaponAnim(ACT_VM_RELOAD)
 		self.reloading = CurTime() + 0.3
 		self.busy = CurTime() + self.reloadDelay
+		self:SetNW2Bool("reloading", true)
 	end
 
 	function SWEP:Think()
 		if self.reloading then
 			if self.busy and CurTime() > self.busy then
+				self:SetNW2Bool("reloading", false)
 				self.busy = nil
 				self:doReloadEndSound()
 			elseif CurTime() > self.reloading then

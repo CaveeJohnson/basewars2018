@@ -28,7 +28,7 @@ SWEP.Primary.ClipSize    = 9
 SWEP.Primary.DefaultClip = 9
 SWEP.Primary.Automatic   = false
 SWEP.Primary.Delay       = 1 / 5
-SWEP.Primary.Damage      = 12
+SWEP.Primary.Damage      = 16
 SWEP.Primary.Range       = 1024
 
 SWEP.Secondary.Ammo        = "none"
@@ -116,6 +116,8 @@ SWEP.chargeFailedSound = Sound "items/medshotno1.wav"
 SWEP.punchAngle = Angle(-2, 0, 0)
 SWEP.punchAngleSecondary = Angle(-8, 0, 0)
 
+SWEP.reloadAfterFireDelay = 0.4
+
 SWEP.VElements = {
 	["PowerAmmo"] = { type = "Model", model = "models/Items/combine_rifle_ammo01.mdl", bone = "Cylinder", rel = "", pos = Vector(0, -0, 3), angle = Angle(180, 0, 0), size = Vector(0.5, 0.5, 0.5), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
 	["Mount"] = { type = "Model", model = "models/Items/battery.mdl", bone = "Cylinder", rel = "", pos = Vector(0, 0.5, -4.2), angle = Angle(45, -90, -0), size = Vector(0.2, 0.2, 0.2), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
@@ -135,11 +137,7 @@ SWEP.WElements = {
 function SWEP:PrimaryAttack()
 	if self:isCharging() then return end
 
-	if self:isBusy() then
-		self:setBusy(false)
-		self.__wasBusy = nil
-		if SERVER then self:stopReload() end
-	end
+	if self:isBusy() then return end
 
 	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 
@@ -154,6 +152,8 @@ function SWEP:PrimaryAttack()
 		self:EmitSound(self.noAmmoSound, 100, 105)
 		return
 	end
+
+	self.primaryBusy = CurTime() + self.reloadAfterFireDelay
 
 	self:handlePrimary()
 end
@@ -425,6 +425,7 @@ else
 	end
 
 	function SWEP:Reload()
+		if self.primaryBusy and CurTime() < self.primaryBusy then return end
 		if self:isBusy() or self.__wasBusy then return end
 		if self:Clip1() == self:GetMaxClip1() then return end
 

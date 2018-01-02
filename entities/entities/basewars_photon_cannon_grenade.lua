@@ -1,9 +1,3 @@
-AddCSLuaFile()
-
-ENT.Base = "base_anim"
-ENT.Type = "anim"
-DEFINE_BASECLASS(ENT.Base)
-
 ENT.PrintName = "Photon Cannon Grenade"
 
 ENT.model      = "models/Combine_Helicopter/helicopter_bomb01.mdl"
@@ -119,25 +113,46 @@ if SERVER then
 		end
 	end
 
-	local up = Vector(0, 0, 256)
-	function ENT:dealDamage(normal)
-		local e = ents.FindInSphere(self:GetPos(), self.damageRadius)
+	do
+		local tr = {output = res}
 
-		for i = 1, #e do
-			local ent = e[i]
+		local up = Vector(0, 0, 256)
+		function ENT:dealDamage(normal)
+			local e = ents.FindInSphere(self:GetPos(), self.damageRadius)
 
-			if ent:IsValid() and ent.TakeDamageInfo then
-				local f = math.max(0, self.damageRadiusSqr - ent:GetPos():DistToSqr(self:GetPos())) / self.damageRadiusSqr
+			local attacker  = self:GetOwner()
+			local inflictor = IsValid(self.weapon) and self.weapon or self
 
-				local dmg = DamageInfo()
-				dmg:SetDamageType(DMG_SHOCK)
-				dmg:SetDamage(self.damage * f)
-				dmg:SetAttacker(self:GetOwner())
-				dmg:SetInflictor(IsValid(self.weapon) and self.weapon or self)
+			for i = 1, #e do
+				local ent = e[i]
 
-				ent:TakeDamageInfo(dmg)
+				if ent:IsValid() and ent.TakeDamageInfo then
+					tr.start  = self:GetPos()
+					tr.endpos = ent:GetPos()
+					tr.filter = self
+					util.TraceLine(tr)
 
-				push(ent, ((ent:GetPos() + up) - self:GetPos()):GetNormal() * f * self.damageKnockback)
+					local res1 = res.HitWorld
+
+					tr.start = tr.start + up
+					util.TraceLine(tr)
+
+					local res2 = res.HitWorld
+
+					if not (res1 or res2) then
+						local f = math.max(0, self.damageRadiusSqr - tr.start:DistToSqr(tr.endpos)) / self.damageRadiusSqr
+
+						local dmg = DamageInfo()
+						dmg:SetDamageType(DMG_SHOCK)
+						dmg:SetDamage(self.damage * f)
+						dmg:SetAttacker(attacker)
+						dmg:SetInflictor(inflictor)
+
+						ent:TakeDamageInfo(dmg)
+
+						push(ent, ((ent:GetPos() + up) - self:GetPos()):GetNormal() * f * self.damageKnockback)
+					end
+				end
 			end
 		end
 	end

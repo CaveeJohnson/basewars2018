@@ -202,41 +202,22 @@ if CLIENT then -- GUI (temp)
 		self.list:SetHideHeaders(true)
 
 		function self.list.OnRowSelected(list, i, line)
-			self:handleStartButtonState(line)
+			self:handleButtonState(line)
 		end
 
 		self.column = self.list:AddColumn("")
 
-		local c = vgui.Create("EditablePanel", self)
-		c:Dock(BOTTOM)
-		c:SetTall(32)
-
-		self.rbutton = vgui.Create("DButton", c)
+		self.rbutton = vgui.Create("DButton", self)
 		self.rbutton:SetText("Start raid")
 		self.rbutton:SetEnabled(false)
-		self.rbutton:Dock(LEFT)
-
-		self.ebutton = vgui.Create("DButton", c)
-		self.ebutton:SetText("Disband raid")
-		self.ebutton:SetEnabled(false)
-		self.ebutton:Dock(LEFT)
+		self.rbutton:Dock(BOTTOM)
 
 		function self.rbutton.DoClick()
-			self:handleStartButtonClick()
-		end
-
-		function self.ebutton.DoClick()
-			self:handleEndButtonClick()
+			self:handleButtonClick()
 		end
 
 		self:populateList()
 		self:resize()
-	end
-
-	function PANEL:PerformLayout()
-		BaseClass.PerformLayout(self)
-		self.rbutton:SetWide(self:GetWide() / 2)
-		self.ebutton:SetWide(self:GetWide() / 2)
 	end
 
 	function PANEL:Think()
@@ -251,34 +232,40 @@ if CLIENT then -- GUI (temp)
 		local sel_line = sel_i and list:GetLine(sel_i)
 		local sel_core = sel_line and sel_line.ent
 
+		local x = 0
 		for i = 1, math.max(#list:GetLines(), l) do
 			local core = cores[i]
-			local line = list:GetLine(i)
+			local owner = core:CPPIGetOwner()
 
-			if not core then
-				print("[rg] dbg: remove i:" .. i)
-				list:RemoveLine(i)
-				if sel_i == i then list:ClearSelection() end
-			else
-				if not line then
-					print("[rg] dbg: add i:" .. i .. " c:" .. tostring(core))
-					list:AddLine(self:lineText(core)).ent = core
-				elseif not line.ent:IsValid() or line.ent:getAbsoluteOwner() ~= core:getAbsoluteOwner() then
-					print("[rg] dbg: update i:" .. i .. " n:" .. tostring(core))
+			if IsValid(owner) and owner ~= LocalPlayer() then
+				x = x + 1
+				local line = list:GetLine(x)
 
-					if sel_line and (sel_line ~= line and core == sel_core) then
-						print("[rg] dbg: selupdate i:" .. i .. " o:" .. tostring(self_core) .. " n:" .. tostring(core))
-						list:SelectItem(i)
+				if not core then
+					print("[rg] dbg: remove i:" .. x)
+					list:RemoveLine(x)
+					if sel_i == x then list:ClearSelection() end
+				else
+					if not line then
+						print("[rg] dbg: add i:" .. x .. " c:" .. tostring(core))
+						list:AddLine(self:lineText(core)).ent = core
+					elseif not line.ent:IsValid() or line.ent:getAbsoluteOwner() ~= core:getAbsoluteOwner() then
+						print("[rg] dbg: update i:" .. x .. " n:" .. tostring(core))
+
+						if sel_line and (sel_line ~= line and core == sel_core) then
+							print("[rg] dbg: selupdate i:" .. x .. " o:" .. tostring(self_core) .. " n:" .. tostring(core))
+							list:SelectItem(x)
+						end
+
+						line.ent = core
+						line:SetColumnText(1, self:lineText(core))
 					end
-
-					line.ent = core
-					line:SetColumnText(1, self:lineText(core))
 				end
 			end
 		end
 
 		list:SortByColumn(1)
-		self:handleButtonStates()
+		self:handleButtonState()
 	end
 
 	function PANEL:lineText(core)
@@ -301,12 +288,7 @@ if CLIENT then -- GUI (temp)
 		return true
 	end
 
-	function PANEL:handleButtonStates()
-		self:handleStartButtonState()
-		self:handleEndButtonState()
-	end
-
-	function PANEL:handleStartButtonState(line)
+	function PANEL:handleButtonState(line)
 		local button = self.rbutton
 
 		local ourCore = basewars.getCore(LocalPlayer())
@@ -327,12 +309,7 @@ if CLIENT then -- GUI (temp)
 		button:SetEnabled(self:checkLineValidity(line))
 	end
 
-	function PANEL:handleEndButtonState()
-		local button = self.ebutton
-		button:SetEnabled(ext.ongoingRaids[core] ~= nil)
-	end
-
-	function PANEL:handleStartButtonClick()
+	function PANEL:handleButtonClick()
 		local list     = self.list
 		local sel_i    = list:GetSelectedLine()
 		if not sel_i then self:displayError("Something has gone horribly wrong! (sel_i == nil)") return end
@@ -347,18 +324,8 @@ if CLIENT then -- GUI (temp)
 		if not ok then self:displayError(why) return end
 
 		net.Start(ext:getTag() .. "interaction")
-			net.WriteBit(0)
 			net.WriteEntity(sel_core)
 		net.SendToServer()
-	end
-
-	function PANEL:handleEndButtonClick()
-		self:displayError("This is not allowed yet!")
-
-		-- net.Start(ext:getTag() .. "interaction")
-		-- 	net.WriteBit(1)
-		-- 	net.WriteEntity(sel_core)
-		-- net.SendToServer()
 	end
 
 	function PANEL:displayError(msg)
@@ -490,27 +457,22 @@ function ext:startRaid(ply, core)
 end
 
 function ext.readNetworkInteraction(_, ply)
-	local kind = net.ReadBit()
 	local core = net.ReadEntity()
 	if not core:IsValid() then return end
 
-	if kind == 0 then -- Start
-		local t
-		local ok, why = ext:startRaid(ply, core)
-		if ok == false then
-			print("GAMEMODE ERROR!!! Raid verification passed on client but failed on server: " .. why)
-			t = true
-		end
-
-		net.Start(ext:getTag() .. "interaction")
-			net.WriteBit(t and 0 or 1)
-			if t then
-				net.WriteString(why)
-			end
-		net.Send(ply)
-	else
-		-- TODO:
+	local t
+	local ok, why = ext:startRaid(ply, core)
+	if ok == false then
+		print("GAMEMODE ERROR!!! Raid verification passed on client but failed on server: " .. why)
+		t = true
 	end
+
+	net.Start(ext:getTag() .. "interaction")
+		net.WriteBit(t and 0 or 1)
+		if t then
+			net.WriteString(why)
+		end
+	net.Send(ply)
 end
 
 net.Receive(ext:getTag() .. "interaction", ext.readNetworkInteraction)

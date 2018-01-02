@@ -357,6 +357,10 @@ if CLIENT then
 		self:spin(30)
 	end
 
+	function SWEP:stopSecondary()
+		self:SetNextPrimaryFire(CurTime() + self.reloadAfterFireDelay)
+	end
+
 	function SWEP:CustomAmmoDisplay()
 		local ammo = self.__ammoDisplay or {}
 		self.__ammoDisplay = ammo
@@ -400,6 +404,8 @@ else
 		if not owner:KeyDown(IN_RELOAD) then self.__wasBusy = nil end
 
 		if owner:KeyDown(IN_ATTACK2) and self:Clip1() > 0 then
+			if self.primaryBusy and CurTime() < self.primaryBusy then return end
+
 			self:startSecondary()
 			self.__nstopped = true
 
@@ -466,6 +472,8 @@ else
 		if f then self.__startedCharging = false end
 		self:SetNW2Bool("chargingSecondary", false)
 		self.chargeNoise:Stop()
+		self:SetNextPrimaryFire(CurTime() + self.reloadAfterFireDelay)
+		self:CallOnClient("stopSecondary")
 	end
 
 	function SWEP:OnRemove()

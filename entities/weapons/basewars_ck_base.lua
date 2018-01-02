@@ -242,11 +242,17 @@ if CLIENT then
 		end
 	end
 
+	function SWEP:PreDrawViewModel(vm)
+		self:ckSetupViewModel(vm, self.ShowViewModel ~= false)
+	end
+
 	SWEP.vRenderOrder = nil
 	function SWEP:ViewModelDrawn()
 		local owner = self:GetOwner()
 		local vm = owner:GetViewModel()
 		if not IsValid(vm) then return end
+
+		self:ckSetupViewModel(vm, true)
 
 		if not self.VElements then return end
 
@@ -356,7 +362,7 @@ if CLIENT then
 					(not IsValid(v.modelEnt) or v.createdModel ~= model) and
 					string.find(model, ".mdl", 1, true) and file.Exists(model, "GAME")
 				then
-					v.modelEnt = ClientsideModel(model, RENDER_GROUP_VIEW_MODEL_OPAQUE)
+					v.modelEnt = ClientsideModel(model, RENDERGROUP_VIEWMODEL)
 
 					if IsValid(v.modelEnt) then
 						v.modelEnt:SetPos(self:GetPos())

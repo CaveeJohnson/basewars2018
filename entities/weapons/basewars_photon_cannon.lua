@@ -207,14 +207,6 @@ if CLIENT then
 		return ang
 	end
 
-	-- TODO: fix the base so that i don't have to hack this in
-	function SWEP:Draw()
-		local vm = self:GetOwner():GetViewModel()
-		if vm and vm:IsValid() then self:ckSetupViewModel(vm, false) end
-		BaseClass.Draw(self)
-		if vm and vm:IsValid() then self:ckSetupViewModel(vm, true) end
-	end
-
 	function SWEP:Think()
 		BaseClass.Think(self)
 

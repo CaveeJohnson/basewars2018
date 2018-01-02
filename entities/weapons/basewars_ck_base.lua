@@ -36,14 +36,19 @@ function SWEP:Initialize()
 	end
 end
 
-function SWEP:Holster()
+function SWEP:Holster(wep)
 	local owner = self:GetOwner()
-	if CLIENT and IsValid(owner) then
+	if CLIENT and IsValid(owner) and IsFirstTimePredicted() then
 		local vm = owner:GetViewModel()
 
 		if IsValid(vm) then
 			self:ckResetBonePositions(vm)
-			self:ckSetupViewModel(vm, true)
+
+			if IsValid(wep) then
+				self:ckSetupViewModel(vm, wep.ShowViewModel ~= false)
+			else
+				self:ckSetupViewModel(vm, true)
+			end
 		end
 	end
 
@@ -53,14 +58,16 @@ end
 function SWEP:Deploy()
 	local owner = self:GetOwner()
 
-	if CLIENT and IsValid(owner) then
+	if CLIENT and IsValid(owner) and IsFirstTimePredicted() then
 		local vm = owner:GetViewModel()
 
 		if IsValid(vm) then
 			self:ckResetBonePositions(vm)
-			self:ckSetupViewModel(vm, false)
+			self:ckSetupViewModel(vm, self.ShowViewModel ~= false)
 		end
 	end
+
+	return true
 end
 
 function SWEP:OnRemove()
@@ -118,8 +125,8 @@ if CLIENT then
 	local white = Color(255,255,255,255)
 	local trans = Color(255,255,255,1  )
 
-	function SWEP:ckSetupViewModel(vm, holster)
-		if self.ShowViewModel ~= false or holster then
+	function SWEP:ckSetupViewModel(vm, show)
+		if show then
 			vm:SetColor(white)
 			vm:SetMaterial("")
 		else
@@ -136,12 +143,12 @@ if CLIENT then
 		self:ckCreateModels(self.WElements)
 
 		local owner = self:GetOwner()
-		if IsValid(owner) then
+		if IsValid(owner) and owner:GetActiveWeapon() == self then
 			local vm = owner:GetViewModel()
 
 			if IsValid(vm) then
 				self:ckResetBonePositions(vm)
-				self:ckSetupViewModel(vm, false)
+				self:ckSetupViewModel(vm, self.ShowViewModel ~= false)
 			end
 		end
 	end

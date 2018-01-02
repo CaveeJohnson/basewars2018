@@ -1,6 +1,7 @@
 AddCSLuaFile()
 
 SWEP.Base          = "basewars_ck_base"
+DEFINE_BASECLASS     "basewars_ck_base"
 SWEP.PrintName     = "HANDS"
 
 SWEP.Author        = GAMEMODE.Author
@@ -40,20 +41,10 @@ function SWEP:DrawWorldModelTranslucent() end
 function SWEP:CanPrimaryAttack()          return false end
 function SWEP:CanSecondaryAttack()        return false end
 function SWEP:Reload()                    return false end
-function SWEP:Holster()                   return true  end
 function SWEP:ShouldDropOnDie()           return false end
 
 SWEP.weaponSelectionLetter = "C"
-
-function SWEP:Initialize()
-	if self.SetHoldType then
-		self:SetHoldType("normal")
-	else
-		self:SetWeaponHoldType("normal")
-	end
-
-	self:DrawShadow(false)
-end
+SWEP.HoldType = "normal"
 
 function SWEP:OnDrop()
 	if SERVER then
@@ -62,10 +53,8 @@ function SWEP:OnDrop()
 end
 
 function SWEP:Deploy()
-	if not self.HasAdmired then
-		local owner = self:GetOwner()
-		if not IsValid(owner) then return end
-
+	local owner = self:GetOwner()
+	if not self.HasAdmired and IsValid(owner) then
 		local vm = owner:GetViewModel()
 
 		if IsValid(vm) then
@@ -81,6 +70,8 @@ function SWEP:Deploy()
 	else
 		-- admired
 	end
+
+	return BaseClass.Deploy(self)
 end
 
 do

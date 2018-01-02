@@ -105,7 +105,7 @@ function ext:buildCategory(layout, data)
 			local SpawnIcon = vgui.GetControlTable"SpawnIcon"
 
 			function icon:DoClick()
-				surface.PlaySound("buttons/button3.wav")
+				surface.PlaySound("buttons/button9.wav")
 
 				hook.Run("BW_SelectedEntityForPurchase", tbl.item_id)
 			end

@@ -45,6 +45,7 @@ SWEP.DrawCrosshair = false
 SWEP.weaponSelectionLetter = "l"
 
 SWEP.reloadSound   = Sound("weapons/ar2/ar2_empty.wav")
+SWEP.failSound     = Sound("buttons/button8.wav")
 SWEP.shootSound    = "weapons/airboat/airboat_gun_energy%d.wav"
 
 local ext = basewars.createExtension"matter-manipulator"
@@ -469,7 +470,13 @@ function SWEP:PrimaryAttack()
 	else
 		res = self:Attack1(tr_res)
 	end
-	if res then self:DoShootEffect(trace_res.HitPos, trace_res.HitNormal, trace_res.Entity, trace_res.PhysicsBone, IsFirstTimePredicted()) end
+	if res then
+		self:DoShootEffect(trace_res.HitPos, trace_res.HitNormal, trace_res.Entity, trace_res.PhysicsBone, IsFirstTimePredicted())
+	else
+		self:EmitSound(self.failSound)
+	end
+
+	self:SetNextPrimaryFire(CurTime() + 0.6)
 end
 
 function SWEP:Attack1(tr_res)

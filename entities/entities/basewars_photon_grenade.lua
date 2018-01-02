@@ -133,7 +133,7 @@ if SERVER then
 				dmg:SetDamageType(DMG_SHOCK)
 				dmg:SetDamage(self.damage * f)
 				dmg:SetAttacker(self:GetOwner())
-				dmg:SetInflictor(self.weapon or self)
+				dmg:SetInflictor(IsValid(self.weapon) and self.weapon or self)
 
 				ent:TakeDamageInfo(dmg)
 

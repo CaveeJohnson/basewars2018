@@ -166,6 +166,8 @@ function SWEP:SecondaryAttack()
 end
 
 function SWEP:Holster()
+	BaseClass.Holster(self)
+
 	if not IsFirstTimePredicted() then return end
 	if self:isBusy() then return false end
 	return true

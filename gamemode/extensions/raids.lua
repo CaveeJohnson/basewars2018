@@ -235,31 +235,32 @@ if CLIENT then -- GUI (temp)
 		local x = 0
 		for i = 1, math.max(#list:GetLines(), l) do
 			local core = cores[i]
+
+			if not core then
+				print("[rg] dbg: remove i:" .. x)
+				list:RemoveLine(x)
+				if sel_i == x then list:ClearSelection() end
+			end
+
 			local owner = core:CPPIGetOwner()
 
 			if IsValid(owner) and owner ~= LocalPlayer() then
 				x = x + 1
 				local line = list:GetLine(x)
 
-				if not core then
-					print("[rg] dbg: remove i:" .. x)
-					list:RemoveLine(x)
-					if sel_i == x then list:ClearSelection() end
-				else
-					if not line then
-						print("[rg] dbg: add i:" .. x .. " c:" .. tostring(core))
-						list:AddLine(self:lineText(core)).ent = core
-					elseif not line.ent:IsValid() or line.ent:getAbsoluteOwner() ~= core:getAbsoluteOwner() then
-						print("[rg] dbg: update i:" .. x .. " n:" .. tostring(core))
+				if not line then
+					print("[rg] dbg: add i:" .. x .. " c:" .. tostring(core))
+					list:AddLine(self:lineText(core)).ent = core
+				elseif not line.ent:IsValid() or line.ent:getAbsoluteOwner() ~= core:getAbsoluteOwner() then
+					print("[rg] dbg: update i:" .. x .. " n:" .. tostring(core))
 
-						if sel_line and (sel_line ~= line and core == sel_core) then
-							print("[rg] dbg: selupdate i:" .. x .. " o:" .. tostring(self_core) .. " n:" .. tostring(core))
-							list:SelectItem(x)
-						end
-
-						line.ent = core
-						line:SetColumnText(1, self:lineText(core))
+					if sel_line and (sel_line ~= line and core == sel_core) then
+						print("[rg] dbg: selupdate i:" .. x .. " o:" .. tostring(self_core) .. " n:" .. tostring(core))
+						list:SelectItem(x)
 					end
+
+					line.ent = core
+					line:SetColumnText(1, self:lineText(core))
 				end
 			end
 		end

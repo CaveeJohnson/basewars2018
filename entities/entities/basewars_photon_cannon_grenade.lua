@@ -15,6 +15,9 @@ ENT.damageRadius    = 512
 ENT.damageRadiusSqr = ENT.damageRadius ^ 2
 ENT.damageKnockback = 0
 
+ENT.damageUpperBoundMult = 3
+ENT.damageLowerBoundMult = 1
+
 sound.Add({
 	channel = CHAN_AUTO,
 	name    = "bw18.photon_cannon_grenade.explode1",
@@ -115,7 +118,7 @@ if SERVER then
 			ent:SetVelocity(arg)
 		else
 			local phys = ent:GetPhysicsObject()
-			if phys:IsValid() then phys:ApplyForceCenter(arg) end
+			if phys:IsValid() then phys:ApplyForceCenter(phys:GetMass() * arg) end
 		end
 	end
 
@@ -147,10 +150,11 @@ if SERVER then
 
 					if not (res1 or res2) then
 						local f = math.max(0, self.damageRadiusSqr - tr.start:DistToSqr(tr.endpos)) / self.damageRadiusSqr
+						local b = math.Clamp(ent:Health(), self.damage * self.damageLowerBoundMult, self.damage * self.damageUpperBoundMult)
 
 						local dmg = DamageInfo()
 						dmg:SetDamageType(DMG_SHOCK)
-						dmg:SetDamage(self.damage * f)
+						dmg:SetDamage(ent:IsPlayer() and self.damage * f or b)
 						dmg:SetAttacker(attacker)
 						dmg:SetInflictor(inflictor)
 

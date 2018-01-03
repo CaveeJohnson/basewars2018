@@ -146,4 +146,4 @@ function PLAYER:SetupDataTables()
 	hook.Run("PostSetupPlayerDataTables", self.Player)
 end
 
-player_manager.RegisterClass("player_extended", PLAYER, "player_sandbox")
+player_manager.RegisterClass("player_extended", PLAYER, "player_default")

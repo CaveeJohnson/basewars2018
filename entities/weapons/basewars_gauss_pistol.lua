@@ -303,11 +303,9 @@ if CLIENT then
 	function SWEP:Initialize()
 		BaseClass.Initialize(self)
 
-		self.glow = self.VElements.Glow
-		self.pa   = self.VElements.PowerAmmo
 		self.angle       = 0
 		self.targetAngle = 0
-		self.baseAngle   = Angle(self.pa.angle)
+		self.baseAngle   = Angle(self.VElements.PowerAmmo.angle)
 	end
 
 	local function lf(factor, from, to)
@@ -324,8 +322,8 @@ if CLIENT then
 	function SWEP:Think()
 		BaseClass.Think(self)
 
-		local c  = self.glow.color
-		local pa = self.pa
+		local c  = self.VElements.Glow.color
+		local pa = self.VElements.PowerAmmo
 
 		if self:isBusy() then
 			local t = self:GetNW2Float("flashT", CurTime())

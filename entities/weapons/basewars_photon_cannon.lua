@@ -190,10 +190,9 @@ if CLIENT then
 	function SWEP:Initialize()
 		BaseClass.Initialize(self)
 
-		self.barrel      = self.VElements.Barrel
 		self.angle       = 0
 		self.targetAngle = 0
-		self.baseAngle   = Angle(self.barrel.angle)
+		self.baseAngle   = Angle(self.VElements.Barrel.angle)
 	end
 
 	local function lf(factor, from, to)
@@ -211,7 +210,7 @@ if CLIENT then
 		BaseClass.Think(self)
 
 		self.angle = lf(0.035, self.angle, self.targetAngle)
-		self.barrel.angle = angle_rotated(self.baseAngle, self.angle)
+		self.VElements.Barrel.angle = angle_rotated(self.baseAngle, self.angle)
 	end
 
 	function SWEP:spin(amount)

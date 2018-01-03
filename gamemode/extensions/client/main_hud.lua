@@ -17,11 +17,11 @@ do
 	function ext:updateParams()
 		eye_ang = EyeAngles()
 		eye_ang.r = 0
-		
+
 		ang = eye_ang * 1
 		ang:RotateAroundAxis(ang:Forward(), 90)
 		ang:RotateAroundAxis(ang:Right(), 90)
-		
+
 		local forward = ScrW() / 162.2
 		local right   = ScrW() / 192.72
 		local up      = ScrH() / 200
@@ -33,7 +33,7 @@ do
 		if not self.is3d then return end
 		if enabled then return end
 			enabled = true
-		
+
 		local ang = ang * 1 -- copies
 			ang:RotateAroundAxis(ang:Right(), yaw)
 
@@ -46,7 +46,7 @@ do
 		if not self.is3d then return end
 		if not enabled then return end
 			enabled = false
-		
+
 		cam.End3D2D()
 		cam.End3D()
 	end

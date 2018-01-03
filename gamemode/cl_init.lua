@@ -30,7 +30,9 @@ If this content is not installed, the Gamemode will %s!]]
 			content,
 			howBad)
 
-		Derma_Message(txt, "Content Notification", "Alrighty")
+		Derma_Query(txt, "Content Notification", "Alrighty", function() hook.Run("BW_PostContentNotification") end)
+	else
+		hook.Run("BW_PostContentNotification")
 	end
 
 	basewars.contentNotificationDone = true

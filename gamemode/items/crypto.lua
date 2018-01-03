@@ -6,7 +6,7 @@ basewars.item "basewars_crypto_copper" {
 	limit        = limit,
 	requiresCore = true,
 
-	cost         = 100,
+	cost         = 250,
 }
 
 basewars.item "basewars_crypto_silver" {

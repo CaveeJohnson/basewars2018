@@ -148,6 +148,7 @@ if CLIENT then
 		self.ViewModelBoneMods = fullCopy(self.ViewModelBoneMods)
 		self:ckCreateModels(self.VElements)
 		self:ckCreateModels(self.WElements)
+		self._ckModelsActive   = true
 
 		local owner = self:GetOwner()
 		if IsValid(owner) and owner:GetActiveWeapon() == self then
@@ -159,7 +160,6 @@ if CLIENT then
 			end
 		end
 	end
-
 
 	function SWEP:ckDeleteModels(tab)
 		if not tab then return end
@@ -180,6 +180,7 @@ if CLIENT then
 	function SWEP:ckCleanupModels()
 		self:ckDeleteModels(self.VElements)
 		self:ckDeleteModels(self.WElements)
+		self._ckModelsActive = false
 	end
 
 	function SWEP:ckCreateModels(tab)
@@ -338,6 +339,10 @@ if CLIENT then
 
 		if not self.VElements then return end
 
+		if not self._ckModelsActive then -- fix for onremove being called at the wrong time
+			self:ckInit()
+		end
+
 		self:ckUpdateBonePositions(vm)
 		if not self.vRenderOrder then
 			self.vRenderOrder = {}
@@ -365,6 +370,10 @@ if CLIENT then
 		end
 
 		if not self.WElements then return end
+
+		if not self._ckModelsActive then -- fix for onremove being called at the wrong time
+			self:ckInit()
+		end
 
 		if not self.wRenderOrder then
 			self.wRenderOrder = {}

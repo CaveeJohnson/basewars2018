@@ -16,10 +16,10 @@ if CLIENT then
 
 	function ENT:Initialize()
 		self.wep = weapons.Get(self:GetWeaponClass())
-		if not self.wep then chat.AddText("fail1") return end
+		if not self.wep then return end
 
 		self.wepBase = weapons.Get(self.wep.Base)
-		if not self.wepBase then chat.AddText("fail2") return end
+		if not self.wepBase then return end
 
 		self.pseudoWeapon = ents.CreateClientProp(self.wep.WorldModel)
 			self.pseudoWeapon:SetNoDraw(true)

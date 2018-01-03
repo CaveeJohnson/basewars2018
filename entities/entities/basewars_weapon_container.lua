@@ -68,6 +68,7 @@ if CLIENT then
 
 		self.pseudoWeapon:SetPos(self:GetPos())
 		self.pseudoWeapon:SetAngles(self:GetAngles())
+		self.pseudoWeapon:SetColor(self:GetColor())
 
 		if not self.rendered then
 			pcall(self.pseudoWeapon.DrawModel, self.pseudoWeapon)
@@ -85,6 +86,7 @@ if CLIENT then
 
 	function ENT:OnRemove()
 		if IsValid(self.pseudoWeapon) then
+			pcall(self.pseudoWeapon.OnRemove, self.pseudoWeapon)
 			CSENT.Remove(self.pseudoWeapon)
 		end
 	end

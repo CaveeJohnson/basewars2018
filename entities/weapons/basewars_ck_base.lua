@@ -14,8 +14,11 @@ SWEP.Instructions  = ""
 -- base code with several features to allow for eaiser modification
 
 -- New Features:
--- SWEP:getElementColor(name)
--- element.submaterial
+-- 	SWEP:getElementColor(name)
+-- 	element.submaterial
+-- 	NO MEMORY LEAKS (models are cleaned up)
+-- 	fixes
+-- 	hl2 styled weaponselection icons
 
 -- Original by Clavus
 -- https://github.com/Clavus/SWEP_Construction_Kit
@@ -71,6 +74,10 @@ function SWEP:Deploy()
 end
 
 function SWEP:OnRemove()
+	if CLIENT then
+		self:ckCleanupModels()
+	end
+
 	self:Holster()
 end
 
@@ -149,6 +156,81 @@ if CLIENT then
 			if IsValid(vm) then
 				self:ckResetBonePositions(vm)
 				self:ckSetupViewModel(vm, self.ShowViewModel ~= false)
+			end
+		end
+	end
+
+
+	function SWEP:ckDeleteModels(tab)
+		if not tab then return end
+
+		-- Delete our models, they aren't garbage collected.
+		for _, v in pairs(tab) do
+			local model = v.modelEnt
+
+			if v.type == "Model" and IsValid(model) then
+				v.createdModel = nil
+				v.modelEnt = nil
+
+				model:Remove()
+			end
+		end
+	end
+
+	function SWEP:ckCleanupModels()
+		self:ckDeleteModels(self.VElements)
+		self:ckDeleteModels(self.WElements)
+	end
+
+	function SWEP:ckCreateModels(tab)
+		if not tab then return end
+
+		-- Create the clientside models here because Garry says we can't do it in the render hook
+		for _, v in pairs(tab) do
+			local model = v.model
+			local sprite = v.sprite
+
+			if v.type == "Model" and model and model ~= "" then
+				if
+					(not IsValid(v.modelEnt) or v.createdModel ~= model) and
+					string.find(model, ".mdl", 1, true) and file.Exists(model, "GAME")
+				then
+					v.modelEnt = ClientsideModel(model, RENDERGROUP_VIEWMODEL)
+
+					if IsValid(v.modelEnt) then
+						v.modelEnt:SetPos(self:GetPos())
+						v.modelEnt:SetAngles(self:GetAngles())
+						v.modelEnt:SetParent(self)
+						v.modelEnt:SetNoDraw(true)
+						v.createdModel = model
+					else
+						v.modelEnt = nil
+					end
+				end
+			elseif v.type == "Sprite" and sprite and sprite ~= "" then
+				if
+					(not v.spriteMaterial or v.createdSprite ~= sprite)
+					and file.Exists("materials/" .. sprite .. ".vmt", "GAME")
+				then
+					local name = sprite .. "-"
+					local params = {
+						["$basetexture"] = sprite
+					}
+
+					-- make sure we create a unique name based on the selected options
+					local tocheck = {"nocull", "additive", "vertexalpha", "vertexcolor", "ignorez"}
+					for _, j in pairs(tocheck) do
+						if v[j] then
+							params["$"..j] = 1
+							name = name.."1"
+						else
+							name = name.."0"
+						end
+					end
+
+					v.createdSprite = sprite
+					v.spriteMaterial = CreateMaterial(name, v.shader or "UnlitGeneric", params)
+				end
 			end
 		end
 	end
@@ -347,59 +429,6 @@ if CLIENT then
 		end
 
 		return pos, ang
-	end
-
-	function SWEP:ckCreateModels(tab)
-		if not tab then return end
-
-		-- Create the clientside models here because Garry says we can't do it in the render hook
-		for _, v in pairs(tab) do
-			local model = v.model
-			local sprite = v.sprite
-
-			if v.type == "Model" and model and model ~= "" then
-				if
-					(not IsValid(v.modelEnt) or v.createdModel ~= model) and
-					string.find(model, ".mdl", 1, true) and file.Exists(model, "GAME")
-				then
-					v.modelEnt = ClientsideModel(model, RENDERGROUP_VIEWMODEL)
-
-					if IsValid(v.modelEnt) then
-						v.modelEnt:SetPos(self:GetPos())
-						v.modelEnt:SetAngles(self:GetAngles())
-						v.modelEnt:SetParent(self)
-						v.modelEnt:SetNoDraw(true)
-						v.createdModel = model
-					else
-						v.modelEnt = nil
-					end
-				end
-			elseif v.type == "Sprite" and sprite and sprite ~= "" then
-				if
-					(not v.spriteMaterial or v.createdSprite ~= sprite)
-					and file.Exists("materials/" .. sprite .. ".vmt", "GAME")
-				then
-					local name = sprite .. "-"
-					local params = {
-						["$basetexture"] = sprite
-					}
-
-					-- make sure we create a unique name based on the selected options
-					local tocheck = {"nocull", "additive", "vertexalpha", "vertexcolor", "ignorez"}
-					for _, j in pairs(tocheck) do
-						if v[j] then
-							params["$"..j] = 1
-							name = name.."1"
-						else
-							name = name.."0"
-						end
-					end
-
-					v.createdSprite = sprite
-					v.spriteMaterial = CreateMaterial(name, v.shader or "UnlitGeneric", params)
-				end
-			end
-		end
 	end
 
 	local hasGarryFixedBoneScalingYet = false

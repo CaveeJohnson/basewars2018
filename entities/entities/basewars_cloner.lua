@@ -75,7 +75,7 @@ function ENT:Think()
 			if not self.hasOpened then
 				self.hasOpened = true
 				self:animate("open", 1.3333)
-				self:EmitSound("doors/doormove2.wav")
+				self:EmitSound("doors/doormove2.wav", 65, 100, 0.5)
 			end
 
 			return true
@@ -85,7 +85,7 @@ function ENT:Think()
 	if self.hasOpened then
 		self.hasOpened = false
 		self:animate("close", 1.3333)
-		self:EmitSound("doors/doormove2.wav")
+		self:EmitSound("doors/doormove2.wav", 65, 100, 0.5)
 	end
 
 	return true
@@ -111,7 +111,7 @@ function ENT:startHandlingRespawn(ply)
 	self:setActive(true)
 
 	local tid = tostring(self) .. "spawn"
-	local time = hook.Run("BW_GetSpawnTime", ply, self) or 5 -- CONFIG: -- DOCUMENT: 
+	local time = hook.Run("BW_GetSpawnTime", ply, self) or 5 -- CONFIG: -- DOCUMENT:
 	timer.Create(tid, time, 1, function()
 		if not IsValid(ply) then return end
 

@@ -5,6 +5,14 @@ ext.ongoingRaids = {}
 ext.color_orange = Color(255, 165, 0, 255)
 ext.color_red    = Color(255,   0, 0, 255)
 
+function ext:BW_ShouldSell(ply)
+	if self:getPlayerRaidTarget(ply) then return false, "You cannot sell during a raid!" end
+end
+
+function ext:BW_ShouldSpawn(ply)
+	if self:getPlayerRaidTarget(ply) then return false, "You cannot buy during a raid!"  end
+end
+
 function ext:BW_GetCoreIndicatorColor(core)
 	if self.ongoingRaids[core] then
 		return self.color_orange

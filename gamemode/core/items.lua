@@ -100,6 +100,9 @@ function basewars.canSpawnItem(id, ply, pos, ang)
 	local item = items[id]
 	if not item then return false, "Invalid item!" end
 
+	local res, err = hook.Run("BW_ShouldSpawn", ply, item, pos, ang)
+	if res == false then return false, err end
+
 	if SERVER and ents.GetEdictCount() > 8170 then
 		return false, "EDICT is about to reach its limit, spawn request denied"
 	end
@@ -131,8 +134,6 @@ function basewars.canSpawnItem(id, ply, pos, ang)
 			return false, "You have too many of this item!"
 		end
 	end
-
-	local res, err
 
 	if item.checkBuyable then
 		res, err = item:checkBuyable(ply)

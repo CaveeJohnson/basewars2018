@@ -62,6 +62,11 @@ function ext:CanTool(ply, trace, tool)
 	end
 end
 
+-- HACK: gmod checks .PhysgunDisabled in PhysgunPickup but not here, why?
+function ext:CanPlayerUnfreeze(ply, ent)
+	if ent.PhysgunDisabled then return false end
+end
+
 function ext:CanProperty(ply, prop, ent, ...)
 	local class = ent:GetClass()
 

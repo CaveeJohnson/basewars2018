@@ -144,7 +144,7 @@ function ext:ShouldPlayerSpawnObject(ply, trace)
 	for i = 1, ext.knownEntCount do
 		local v = ext.knownEntities[i]
 
-		if not (core == v or v:ownershipCheck(ply)) and ((pos and v:encompassesPos(pos)) or v:encompassesPos(pos2)) then
+		if not (core == v or basewars.sameOwner(v, ply)) and ((pos and v:encompassesPos(pos)) or v:encompassesPos(pos2)) then
 			return false
 		end
 	end
@@ -172,7 +172,7 @@ function ext:BW_ShouldCoreOwnEntity(core, ent)
 	local owner = ent:CPPIGetOwner()
 	if not IsValid(owner) then return nil end
 
-	if basewars.getCore(owner) ~= core and not core:ownershipCheck(ent) then return false end
+	if basewars.getCore(owner) ~= core and not basewars.sameOwner(ent, owner) then return false end
 end
 
 function ext:BW_PreEntityDestroyed(ent, dmginfo)
@@ -187,7 +187,7 @@ function ext:PlayerInitialSpawn(ply)
 	for i = 1, ext.knownEntCount do
 		local v = ext.knownEntities[i]
 
-		if v:ownershipCheck(ply) or hook.Run("BW_ShouldCoreBelongToPlayer", v, ply) then -- DOCUMENT:
+		if basewars.sameOwner(v, ply) or hook.Run("BW_ShouldCoreBelongToPlayer", v, ply) then -- DOCUMENT:
 			ply:SetNW2Entity("baseCore", v)
 
 			break

@@ -1,22 +1,11 @@
 local ext = basewars.createExtension"core.money-distributer"
 
-ext.fuckUniqueID = true
-
-if ext.fuckUniqueID then
-	local PLAYER = debug.getregistry().Player
-
-	-- get fucked you collision laden sack of cocks
-	function PLAYER:UniqueID()
-		return self:SteamID64()
-	end
-
-	function basewars.playerUIDToSID64(uid) return uid end
-else
+if not basewars.fuckUniqueID then
 	-- unfortunately addons are bad
 	ext.lookup = {}
 	ext.collisions = {}
 
-	local bad = "UniqueID collision! Do not complain about this, instead enable ext.fuckUniqueID and delete addons that rely on this shit and outdated function."
+	local bad = "UniqueID collision! Do not complain about this, instead enable basewars.fuckUniqueID and delete addons that rely on this shit and outdated function."
 
 	function ext:PlayerInitialSpawn(ply)
 		local uid   = ply:UniqueID()
@@ -44,6 +33,8 @@ else
 
 		return sid64
 	end
+else
+	function basewars.playerUIDToSID64(uid) return uid end
 end
 
 function basewars.playerAddMoney(ply, amt)

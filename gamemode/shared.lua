@@ -100,16 +100,18 @@ do
 	end
 end
 
-function basewars.sameOwner(e1, e2, orWorldDisconnected)
+function basewars.sameOwner(e1, e2)
 	if e1 == e2 then return true end
 
-	local o1 = e1:IsPlayer() and e1 or e1:CPPIGetOwner()
-	local o2 = e2:IsPlayer() and e2 or e2:CPPIGetOwner()
+	local owner_ent1, owner_id1 = e1:CPPIGetOwner()
+	local owner_ent2, owner_id2 = e2:CPPIGetOwner()
+	if owner_id1 == owner_id2 and owner_id1 ~= nil and owner_id1 ~= CPPI.CPPI_NOTIMPLEMENTED then return true end
+
+	local o1 = e1:IsPlayer() and e1 or owner_ent1
+	local o2 = e2:IsPlayer() and e2 or owner_ent2
 	if o1 == o2 then return true end
 
-	if orWorldDisconnected and (not IsValid(o1) or not IsValid(o2)) then
-		return true
-	elseif e1.ownershipCheck and (e1:ownershipCheck(e2) or e1:ownershipCheck(o2)) then
+	if e1.ownershipCheck and (e1:ownershipCheck(e2) or e1:ownershipCheck(o2)) then
 		return true
 	elseif e2.ownershipCheck and (e2:ownershipCheck(e1) or e1:ownershipCheck(o1)) then
 		return true
@@ -117,6 +119,17 @@ function basewars.sameOwner(e1, e2, orWorldDisconnected)
 
 	return false
 end
+
+basewars.fuckUniqueID = true
+
+if basewars.fuckUniqueID then
+	local PLAYER = debug.getregistry().Player
+
+	-- get fucked you collision laden sack of cocks
+	function PLAYER:UniqueID()
+		return self:SteamID64()
+	end
+else
 
 do
 	local cache = {}

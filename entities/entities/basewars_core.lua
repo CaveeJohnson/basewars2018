@@ -28,6 +28,9 @@ function ENT:SetupDataTables()
 
 	self:netVar("Int",  "ProtectionRadius")
 	self:netVar("Bool", "SequenceOngoing")
+
+	self:netVar("Int",  "SelfDestructTime")
+	self:netVar("Bool", "SelfDestructing")
 end
 
 function ENT:UpdateTransmitState()
@@ -131,10 +134,23 @@ end
 ENT.lightMat = Material("sprites/light_glow02_add")
 ENT.lightOffset = Vector(-15.966430664062 - 0.04, 0.470458984375, 47.341552734375)
 
-do
+if CLIENT then
 	local yellow = Color(255, 255, 20 , 255)
 	local red    = Color(255, 20 , 20 , 255)
 	local green  = Color(20 , 255, 20 , 255)
+
+	local font = "bw18-core"
+	local font_small = "bw18-core_small"
+
+	surface.CreateFont(font, {
+		font      = "DejaVu Sans Bold",
+		size      = 92,
+	})
+
+	surface.CreateFont(font_small, {
+		font      = "DejaVu Sans",
+		size      = 50,
+	})
 
 	function ENT:Draw()
 		self:DrawModel()
@@ -153,6 +169,28 @@ do
 			local pos = self:LocalToWorld(self.lightOffset)
 			render.DrawSprite(pos, 50, 50, col)
 			render.DrawSprite(pos, 50, 50, col)
+		end
+
+		if self:isSelfDestructing() then
+			local len = self:getSelfDestructTime() - CurTime()
+			if len < 0.2 then return end
+
+			local pos = self:GetPos() + Vector(0, 0, (self:BoundingRadius() or 100) + 10)
+			local render_ang   = Angle()
+			render_ang.p = 0
+			render_ang.y = (pos - EyePos()):Angle().y
+			render_ang.r = 0
+			render_ang:RotateAroundAxis(render_ang:Up(), -90)
+			render_ang:RotateAroundAxis(render_ang:Forward(), 90)
+
+			cam.Start3D2D(pos, render_ang, 0.1)
+				local m = math.floor(len / 60)
+				local s = math.floor(len - m * 60)
+				local time_str = string.format("%02.f:%02.f", m, s)
+
+				draw.SimpleText(time_str, font, 0, -50, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+				draw.SimpleText("WARNING! Neural Interface: Offline", font_small, 0, 0, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+			cam.End3D2D()
 		end
 	end
 
@@ -455,6 +493,8 @@ function ENT:explodeEffects()
 end
 
 function ENT:selfDestruct(dmginfo)
+	self.markedAsDestroyed = true
+
 	self.__alarm = CreateSound(self, "ambient/alarms/apc_alarm_loop1.wav")
 	self.__alarm:Play()
 
@@ -510,9 +550,33 @@ function ENT:Use(user)
 	end
 end
 
+function ENT:updateSelfDestruction()
+	local owner, owner_id = self:CPPIGetOwner() -- this is disconnected logic, we HAVE to do this
+	-- otherwise the PP addon will take over and fuck us up the ass, it's better we do it
+
+	-- factions should re-claim the core with next highest ranking member rather than blowing up
+
+	if IsValid(owner) then
+		self:setSelfDestructing(false)
+		self:setSelfDestructTime(0)
+	elseif not self:isSelfDestructing() then
+		local time = basewars.getCleanupTime()
+
+		self:setSelfDestructing(true)
+		self:setSelfDestructTime(CurTime() + time)
+	elseif self:getSelfDestructTime() <= CurTime() then
+		-- time to go, we have no more time!
+
+		if not hook.Run("BW_ReclaimCore", self, owner_id) then -- only return true if you can guarantee it has a new owner
+			self:selfDestruct()
+		end
+	end
+end
+
 function ENT:Think()
 	self.BaseClass.Think(self)
 
+	if self.markedAsDestroyed then return end
 	--self:genArea()
 
 	self.nextAreaTransmit = self.nextAreaTransmit or 0
@@ -520,6 +584,13 @@ function ENT:Think()
 		self:transmitAreaEnts()
 
 		self.nextAreaTransmit = CurTime() + 2
+	end
+
+	self.nextSelfDestructCheck = self.nextSelfDestructCheck or 0
+	if self.nextSelfDestructCheck <= CurTime() then
+		self:updateSelfDestruction()
+
+		self.nextSelfDestructCheck = CurTime() + 1
 	end
 
 	local drain = self:calcEnergyThroughput()

@@ -153,6 +153,22 @@ do
 	end
 end
 
+function basewars.getCleanupTime()
+	local def = 300 -- TODO: Config?
+
+	-- nadmod and fpp are only supported pp's, with fpp being prefered due to implementing the entire CPPI spec
+	-- to 1.3 correctly, we call a hook though incase someone has some weird obscure pp
+
+	if FPP and FPP.Settings and FPP.Settings.FPP_GLOBALSETTINGS1.cleanupdisconnected ~= 0 then
+		def = FPP.Settings.FPP_GLOBALSETTINGS1.cleanupdisconnectedtime or def
+	elseif NADMOD and NADMOD.PPConfig then
+		def = NADMOD.PPConfig.autocdp or def
+	end
+
+	return (hook.Run("GetPlayerCleanupTime") or def) - 10 -- -10 since we can't take risks of a slow frame or two causing us to be too late
+end
+
+
 concommand.Add("gamemode_reload", function(p)
 	if SERVER and IsValid(p) and not p:IsAdmin() then return end
 	hook.Run("OnReloaded")

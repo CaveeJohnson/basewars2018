@@ -25,58 +25,81 @@ do
 	local clamp = math.ClampRev
 	local max = math.max
 
-	-- unless you're name is Q2F2 or the 2020 networking rewrite 10.0 has been released you are forbidden to touch this code
-
+	local net_tag = "bw18-dtv_transmit"
 	if SERVER then
-		util.AddNetworkString("cancer")
-	else
-		local function onCancerDesynced()
-			for _, e in ipairs(ents.GetAll()) do
-				if e.cancer then
-					for n, t in pairs(e.cancer) do
-						for _, v in ipairs(t) do
-							v(e, n, e.dt[name], e.dt[name])
-						end
-					end
+		util.AddNetworkString(net_tag)
+
+		function ENT:dtvTransmit()
+			if not self.dtv_transmit or self.dtv_transmit_count == 0 then return end
+
+			net.Start(net_tag)
+				net.WriteUInt(self:EntIndex(), 16)
+				net.WriteUInt(self.dtv_transmit_count, 8)
+
+				for name, v in pairs(self.dtv_transmit) do
+					net.WriteString(name)
+
+					net.WriteType(v[1])
+					net.WriteType(v[2])
 				end
+			net.Broadcast()
+
+			self.dtv_transmit = {}
+			self.dtv_transmit_count = 0
+		end
+
+		function ENT:Think()
+			BaseClass.Think(self)
+
+			self:dtvTransmit()
+		end
+	else
+		local function callChanges(self, data)
+			for name, v in pairs(data) do
+				self:queueDtvChange(name, v[1], v[2])
 			end
 		end
 
-		net.Receive("cancer", function() -- sums this up perfectly
-			local self = net.ReadEntity()
+		net.Receive(net_tag, function() -- sums this up perfectly
+			local eidx  = net.ReadUInt(16)
+			local count = net.ReadUInt(8 )
 
-			if not IsValid(self) then
-				print("entity networking cancer: desyncronization occured on entity")
-				return onCancerDesynced()
+			local data = {}
+			for i = 1, count do
+				data[net.ReadString()] = {net.ReadType(), net.ReadType()}
 			end
 
-			self:transmitCancer(net.ReadString(), net.ReadType(), net.ReadType())
+			local self = Entity(eidx)
+			if not (IsValid(self) and self.queueDtvChange) then
+				local timer_id = net_tag .. "_" .. tostring(eidx)  .. "_" .. tostring(math.random()) -- just has to be unique
+
+				timer.Create(timer_id, 2, 5, function()
+					self = Entity(eidx)
+					if not (IsValid(self) and self.queueDtvChange) then return end
+
+					timer.Destroy(timer_id)
+					callChanges(self, data)
+				end)
+			else
+				callChanges(self, data)
+			end
 		end)
 	end
 
-	function ENT:transmitCancer(name, old, new)
-		if not (self.cancer and self.cancer[name]) then return end
+	function ENT:queueDtvChange(name, old, new)
+		if not (self.dtv_callbacks and self.dtv_callbacks[name]) then return end
 
-		for _, v in ipairs(self.cancer[name]) do
+		for _, v in ipairs(self.dtv_callbacks[name]) do
 			v(self, name, old, new)
 		end
 
 		if SERVER then
-			timer.Simple(0, function()
-				if not IsValid(self) then return end -- sigh
+			self.dtv_transmit       = self.dtv_transmit or {}
+			self.dtv_transmit[name] = {old, new}
 
-				net.Start("cancer")
-					net.WriteEntity(self)
-					net.WriteString(name)
-
-					net.WriteType(old)
-					net.WriteType(new)
-				net.Broadcast()
-			end)
+			self.dtv_transmit_count = (self.dtv_transmit_count or 0) + 1
 		end
 	end
-
-	-- cancer over
 
 	function ENT:makeGSAT(type, name, max, min)
 		local numberString = type == "Double"
@@ -106,13 +129,13 @@ do
 		if numberString then
 			self["set" .. name] = function(self, var)
 				--self:SetNW2String(name, var)
-				self:transmitCancer(name, self.dt[name], var)
+				self:queueDtvChange(name, self.dt[name], var)
 				self.dt[name] = tostring(var)
 			end
 		else
 			self["set" .. name] = function(self, var)
 				--setter(self, name, var)
-				self:transmitCancer(name, self.dt[name], var)
+				self:queueDtvChange(name, self.dt[name], var)
 				self.dt[name] = var
 			end
 		end
@@ -188,13 +211,14 @@ do
 
 	function ENT:netVarCallback(name, func)
 		--self:SetNWVarProxy(name, func)
-		self.cancer       = self.cancer       or {}
-		self.cancer[name] = self.cancer[name] or {}
 
-		table.insert(self.cancer[name], func)
+		self.dtv_callbacks[name] = self.dtv_callbacks[name] or {}
+		table.insert(self.dtv_callbacks[name], func)
 	end
 
 	function ENT:SetupDataTables()
+		self.dtv_callbacks = {}
+
 		self:netVar("Int", "XP")
 		self:netVar("Int", "UpgradeLevel")
 

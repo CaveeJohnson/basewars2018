@@ -216,12 +216,8 @@ function ext:BW_EntitySold(ent, ply, violent)
 	local final_val = basewars.getEntitySaleValue(ent, ply, violent)
 	if not final_val or final_val < 1 then return end
 
-	-- TODO: Faction share?
-
 	basewars.moneyPopout(ent, final_val)
-	ply:addMoney(final_val)
-
-	-- TODO: Notify
+	hook.Run("BW_DistributeSaleMoney", ent, ply, final_val)
 end
 
 function ext:BW_OnEntityDestroyed(ent, attack, inflic, violent)
@@ -289,12 +285,8 @@ if SERVER then
 		if self.limiter[id] and self.limiter[id][class] then
 			self.limiter[id][class] = self.limiter[id][class] - 1
 
-			for _, v in ipairs(player.GetAll()) do
-				if v:SteamID64() == id then
-					v:SetNW2Int("bw18_limit_" .. class, self.limiter[id][class])
-					break
-				end
-			end
+			local ply = player.GetBySteamID64(id)
+			if ply then ply:SetNW2Int("bw18_limit_" .. class, self.limiter[id][class]) end
 		end
 	end
 

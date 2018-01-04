@@ -1,3 +1,24 @@
+function player.GetBySteamID(id)
+	for _, ply in ipairs(player.GetAll()) do
+		if ply:SteamID() == id then
+			return ply
+		end
+	end
+
+	return false
+end
+
+function player.GetBySteamID64(id)
+	for _, ply in ipairs(player.GetAll()) do
+		if ply:SteamID64() == id then
+			return ply
+		end
+	end
+
+	return false
+end
+
+
 local PLAYER = {}
 
 do

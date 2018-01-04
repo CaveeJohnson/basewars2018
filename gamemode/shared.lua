@@ -129,7 +129,7 @@ if basewars.fuckUniqueID then
 	function PLAYER:UniqueID()
 		return self:SteamID64()
 	end
-else
+end
 
 do
 	local cache = {}

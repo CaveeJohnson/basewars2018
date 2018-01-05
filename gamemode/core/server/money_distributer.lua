@@ -56,8 +56,8 @@ function basewars.playerAddMoney(ply, amt)
 		end
 	end
 
-	basewars.loadPlayerVar(ply, var, function(_, _, val)
-		basewars.savePlayerVar(ply, "money", val + amt)
+	basewars.loadPlayerVar(id, var, function(_, _, val)
+		basewars.savePlayerVar(id, "money", val + amt)
 	end)
 end
 

@@ -1,6 +1,6 @@
 local ext = basewars.createExtension"core.important"
 
-ext.mat = CreateMaterial(ext:getTag() .. "2", "UnlitGeneric", {
+ext.mat = CreateMaterial(ext:getTag(), "UnlitGeneric", {
 	["$basetexture"] = "phoenix_storms/stripes",
 	["$model"] = "0"
 })

@@ -2,26 +2,10 @@
 	- Gameplay of bw15 was bloody obnoxious, the main redeeming features were stuff like mediaplayers
 	- GUI is gone, so is stuff like raids on the HUD, make as much responsive in a 3d environment as possible
 
-ENTITIES:
-	[X] Passive Generator
-	[ ] Active Generator
-	[ ] Printer
-	[ ] Turret
-	[X] Spawnpoint
-	[X] Core
-	[X] Core Control Panel
-	[ ] Radar
-	[ ] Health Dispenser
-	[ ] Armor Dispenser
-	[ ] Ammo Dispenser
-	[ ] Energy Field Generator
-
-
 Fixes:
 	[X] Cores dont handle players disconnecting, nothing does really
 	[-] Area tolerence causes overlaps, currently disabled
 	[X] Hands dont autoselect, maybe needs a 1 tick delay
-	[ ] Playervars need support for Doubles / string numbers
 	[X] Control panel works on literaly any entity, check if the entitiy is encompassed
 	[x] Cloning machine only works if p = 0 and y % 90 = whole, needs to be static
 
@@ -78,26 +62,7 @@ Friday:
 	[X] Basic purchasing / core spawner / we
 	[X] Item system
 
-...
-
-...
-
-...
-
-Tuesday:
-	[ ] Raid system frontend
-
 [X] Entity destruct effect (explosion for damage is done, but selling / packing should have its own method)
 [X] Add cam protection system, and console commands for gui\_cleanup and cam\_reset
 
-[ ] Faction system
-[ ] Chat / Command system
-
-[ ] Language system
-[#] Config system which allows overrides but doesn't force everything into 1 massive file
-	- Allows for people to change entity variables without breaking forward compat
-
-[ ] Finish every -- TODO: flag not covered in another point
-[ ] Finish every -- DOCUMENT: flag and create a small documentation file for hooks
-
-[ ] Packing system
+SEE PT 2

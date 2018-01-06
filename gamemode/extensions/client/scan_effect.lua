@@ -23,17 +23,18 @@ function ext:BW_DoScanEffect(core) -- doesn't actually get called yet
 	local check = (core:getProtectionRadius() * 2)
 	check = check*check
 
-	local p = {}
 	c = 0
 	for _, v in ipairs(player.GetAll()) do
 		if core:ownershipCheck(v) and v:GetPos():DistToSqr(core_pos) < check then
 			c = c + 1
-			p[c] = v
 		end
 	end
 
-	ext.plys = p
 	ext.plysCount = c
+
+	-- this actually prevents anything else using it since its for drawing the effects
+	-- to make your own scan effect, remove this file.
+	return true
 end
 
 local font = ext:getTag()
@@ -70,15 +71,6 @@ function ext:HUDPaint()
 		local ents = self.targetEnts
 		for i = 1, self.showAmt do
 			local v = ents[i][3]
-
-			if IsValid(v) then
-				v:DrawModel()
-			end
-		end
-
-		local plys = self.plys
-		for i = 1, self.plysCount do
-			local v = plys[i]
 
 			if IsValid(v) then
 				v:DrawModel()

@@ -117,15 +117,27 @@ if CLIENT then
 	local prot   = Color(120, 100, 170, 2)
 	local prot2  = Color(120, 100, 170, 4)
 
+	ext.debug = false
+
 	function ext:PostDrawTranslucentRenderables(d, s)
 		if s then return end
 
-		for i = 1, self.knownEntCount do
-			local v = self.knownEntities[i]
+		if self.debug then
+			for i = 1, self.knownEntCount do
+				local v = self.knownEntities[i]
 
-			render.SetColorMaterial()
-			render.DrawSphere(v:GetPos(),  v:getProtectionRadius(), 25, 25, prot)
-			render.DrawSphere(v:GetPos(), -v:getProtectionRadius(), 25, 25, prot2)
+				render.SetColorMaterial()
+				render.DrawSphere(v:GetPos(),  v:getProtectionRadius(), 25, 25, prot)
+				render.DrawSphere(v:GetPos(), -v:getProtectionRadius(), 25, 25, prot2)
+			end
+		else
+			local v = basewars.getCore(LocalPlayer())
+
+			if IsValid(v) then
+				render.SetColorMaterial()
+				render.DrawSphere(v:GetPos(),  v:getProtectionRadius(), 25, 25, prot)
+				render.DrawSphere(v:GetPos(), -v:getProtectionRadius(), 25, 25, prot2)
+			end
 		end
 	end
 

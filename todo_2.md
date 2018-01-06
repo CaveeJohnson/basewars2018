@@ -18,7 +18,7 @@ BUGS / NEEDS DOING:
 
 Improvements (mark as [-] if its dumb):
 	[ ] Alert when spawning fails in hostile area
-	[ ] Make blue bubble thing for range only show for own core
+	[X] Make blue bubble thing for range only show for own core
 	[ ] Way to find your core
 	[ ] Core control panel only for owner/faction
 	[ ] You can spawn entities inside of players (also stop toolgun/props from doing this)

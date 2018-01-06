@@ -6,5 +6,6 @@ end
 
 resource.AddFile("resource/fonts/DejaVuSans.ttf")
 resource.AddFile("resource/fonts/DejaVuSans-Bold.ttf")
+resource.AddFile("resource/fonts/DejaVuSans-Mono.ttf")
 
 resource.AddWorkshop("1132466603") -- stormfox

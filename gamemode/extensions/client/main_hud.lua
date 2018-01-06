@@ -130,9 +130,9 @@ timer.Create(ext:getTag(), 1, 0, function()
 end)
 
 function ext:HUDPaint()
-	self:updateParams()
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return end
+	self:updateParams()
 
 	local scrW = ScrW()
 	local scrH = ScrH()

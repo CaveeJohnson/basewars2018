@@ -30,9 +30,18 @@ If this content is not installed, the Gamemode will %s!]]
 			content,
 			howBad)
 
-		Derma_Query(txt, "Content Notification", "Alrighty", function() hook.Run("BW_PostContentNotification") end)
+		Derma_Query(txt, "Content Notification", "Alrighty", function()
+			hook.Run("BW_PostContentNotification")
+
+			basewars.doneStartup = true
+		end)
 	else
-		hook.Run("BW_PostContentNotification")
+		hook.Add("PlayerBindPress", "bw18-listenfirstinput", function()
+			hook.Remove("PlayerBindPress", "bw18-listenfirstinput")
+			hook.Run("BW_PostContentNotification")
+
+			basewars.doneStartup = true
+		end)
 	end
 
 	basewars.contentNotificationDone = true

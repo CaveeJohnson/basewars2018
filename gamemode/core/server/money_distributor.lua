@@ -56,25 +56,39 @@ function basewars.playerAddMoney(ply, amt)
 		end
 	end
 
-	if id == "BOT" then return end
+	if id:match("STEAM_") then
+		local s64 = util.SteamIDTo64(id)
+		if not s64 or s64 == "0" then
+			error("Failure to convert SID -> SID64: Complain to FPtje that he breaks the fucking CPPI standard (returns SteamID rather than UID BUT ONLY IF OWNER DISCONNECTED)")
+		end
+
+		id = s64
+	end
 
 	basewars.loadPlayerVar(id, "Money", function(_, _, val)
 		basewars.savePlayerVar(id, "Money", val + amt)
 	end)
 end
 
-function ext:payout(ply, owner, money)
-	if owner and owner ~= ply then
-		local split = money / 2
-
-		basewars.playerAddMoney(owner, split)
-		basewars.playerAddMoney(ply  , split)
-	else
-		basewars.playerAddMoney(ply  , money)
-	end
+function ext:payout(ent, ply, owner, money)
+	local pay = {}
 
 	-- TODO: Faction share?
-	-- TODO: Notify
+	if IsValid(ply) then
+		table.insert(pay, ply)
+	end
+	if owner then
+		table.insert(pay, owner)
+	end
+
+	local people = #pay
+	local split = money / people
+
+	for i = 1, people do
+		basewars.playerAddMoney(pay[i], split)
+
+		-- TODO: Notify
+	end
 end
 
 function ext:BW_DistributeSaleMoney(ent, ply, money)
@@ -89,5 +103,5 @@ function ext:BW_DistributeSaleMoney(ent, ply, money)
 		end
 	end
 
-	self:payout(ply, owner, money)
+	self:payout(ent, ply, owner, money)
 end

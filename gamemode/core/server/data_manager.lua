@@ -87,6 +87,7 @@ function basewars.initVarDefault(ply, var, initial)
 		file.CreateDir(dirName)
 	end
 
+	var = var:lower()
 	local varFile = string.format("%s/%s.txt", dirName, var)
 	if not file.Exists(varFile, "DATA") then
 		file.Write(varFile, initial)
@@ -105,6 +106,7 @@ function basewars.savePlayerVar(ply, var, val, callback)
 		error("mysql support is not yet implemented")
 	end
 
+	var = var:lower()
 	file.Write(string.format("%s/%s.txt", dirName, var), val)
 	if callback then callback(ply, var, val) end
 end
@@ -117,7 +119,9 @@ function basewars.loadPlayerVar(ply, var, callback)
 		error("mysql support is not yet implemented")
 	end
 
-	local val = file.Read(string.format("%s/%s.txt", dirName, var), val)
+	var = var:lower()
+	local val = file.Read(string.format("%s/%s.txt", dirName, var))
+
 	if not val then
 		error("attempting to load data before player database init", 2)
 	end

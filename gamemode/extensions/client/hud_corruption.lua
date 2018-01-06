@@ -34,10 +34,12 @@ function ext:HUDPaint()
 	if not self.started then return end
 
 	local elapsed = CurTime() - self.started
-	if elapsed > 2 then return end
+	local dur = 2
+
+	if elapsed > dur then return end
 
 	local alpha = 255
-	if elapsed < 1 then alpha = (1 - elapsed) * 255 end
+	if elapsed > 1 then alpha = (dur - elapsed) * 255 end
 
 	local x, y = ScrW()/2 + math.random(0, 1), 300
 

@@ -98,6 +98,16 @@ function ENT:setPlayerToSpawnPos(ply)
 	eye_ang.y = self:GetAngles().y
 
 	ply:SetEyeAngles(eye_ang)
+
+	timer.Simple(0, function()
+		if not IsValid(ply) then return end
+
+		if not hook.Run("BW_FixStuck", ply, eye_ang) then
+			-- TODO: notify
+			ply:ChatPrint("Warning: Cloner was obstructed, respawning you at spawn. If your cloner was clear please let a developer know as this may be a bug!")
+			ply:Spawn()
+		end
+	end)
 end
 
 function ENT:setupPlayerForRespawning(ply)

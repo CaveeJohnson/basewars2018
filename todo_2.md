@@ -12,7 +12,7 @@ Entities:
 
 BUGS / NEEDS DOING:
 	[X] Playervars need support for Doubles / string numbers
-	[ ] Players get stuck in cloner if y % 90 ~= 0
+	[X] Players get stuck in cloner if y % 90 ~= 0 and other situations
 	[X] extension 'core.money-distributer' hook 'BW_DistributeSaleMoney' failed: gamemodes/basewars2018/gamemode/core/server/money_distributer.lua:59: attempting to load data before player database init
 	[X] distributer -> distributor
 

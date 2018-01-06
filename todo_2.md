@@ -20,7 +20,6 @@ Improvements (mark as [-] if its dumb):
 	[ ] Alert when spawning fails in hostile area
 	[X] Make blue bubble thing for range only show for own core
 	[ ] Way to find your core
-	[ ] Core control panel only for owner/faction
 	[ ] You can spawn entities inside of players (also stop toolgun/props from doing this)
 	[-] HUD health = red (complained about by literally everybody)
 	[ ] Why have printer displays if the entity info shows everything / hide entity info for printers
@@ -30,8 +29,8 @@ Improvements (mark as [-] if its dumb):
 
 Minor Features:
 	[ ] Give money with a reason, feed on hud
-	[ ] HUD completion + optimization
-	[ ] Scanning + heartbeat like R6S
+	[#] HUD completion + optimization
+	[X] Scanning + heartbeat like R6S
 	[ ] Entity upgrading
 	[ ] RDM protection + raid grace for newer players
 
@@ -87,7 +86,13 @@ Feedback:
 
 
 Ghosty:
+	[ ] Repair tool (ask fru for the model, he made one)
+	[ ] Gun water effect (splash)
+	[ ] Core control panel only for owner/faction
+		- Only display the owners entities (cppi)
+		- Control panel only displays for owner of control panel
+		- Validate on server
+
+Ghosty large:
 	[ ] Raid + Faction panel (lets just make them one thing)
 	[ ] More weapons
-	[ ] Repair tool (ask fru for the model, he made one)
-	[ ] Gun water effect

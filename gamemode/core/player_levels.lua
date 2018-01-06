@@ -3,8 +3,8 @@ local ext = basewars.createExtension"core.levels"
 ext.levelRate = 500
 
 function ext:SetupPlayerDataTables(ply)
-	ply:netVar("Int", "Level", true, 1, nil, 0)
-	ply:netVar("Int", "XP", true, 0, nil, 0)
+	ply:netVar("Double", "Level", true, 1, nil, 0)
+	ply:netVar("Double", "XP", true, 0, nil, 0)
 
 	if SERVER then ply:netVarCallback("XP", ext.checkForLevels, true) end
 

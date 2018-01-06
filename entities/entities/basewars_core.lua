@@ -155,22 +155,6 @@ if CLIENT then
 	function ENT:Draw()
 		self:DrawModel()
 
-		local col = self.indicatorColor
-		if col then
-			render.SetMaterial(self.lightMat)
-
-			if self:isSequenceOngoing() then
-				local time = math.floor(CurTime() * 4)
-				if time % 2 == 0 then return end
-
-				col = yellow
-			end
-
-			local pos = self:LocalToWorld(self.lightOffset)
-			render.DrawSprite(pos, 50, 50, col)
-			render.DrawSprite(pos, 50, 50, col)
-		end
-
 		if self:isSelfDestructing() then
 			local len = self:getSelfDestructTime() - CurTime()
 			if len < 0.2 then return end
@@ -191,6 +175,22 @@ if CLIENT then
 				draw.SimpleText(time_str, font, 0, -50, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
 				draw.SimpleText("WARNING! Neural Interface: Offline", font_small, 0, 0, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
 			cam.End3D2D()
+		end
+
+		local col = self.indicatorColor
+		if col then
+			render.SetMaterial(self.lightMat)
+
+			if self:isSequenceOngoing() then
+				local time = math.floor(CurTime() * 4)
+				if time % 2 == 0 then return end
+
+				col = yellow
+			end
+
+			local pos = self:LocalToWorld(self.lightOffset)
+			render.DrawSprite(pos, 50, 50, col)
+			render.DrawSprite(pos, 50, 50, col)
 		end
 	end
 

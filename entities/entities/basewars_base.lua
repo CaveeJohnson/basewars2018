@@ -309,6 +309,7 @@ function ENT:spark(effect)
 end
 
 function ENT:explode(soft, mag)
+	if self.beingDestructed then return end
 	local pos = self:GetPos()
 
 	if soft then
@@ -330,9 +331,9 @@ function ENT:explode(soft, mag)
 
 	self:spark()
 	self:spark("cball_bounce")
-	self:Remove()
 
-	SafeRemoveEntityDelayed(ex, 0.1)
+	self.markedAsDestroyed = true
+	self:Remove()
 end
 
 function ENT:OnTakeDamage(dmginfo)

@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"core.money-distributer"
+local ext = basewars.createExtension"core.money-distributor"
 
 if not basewars.fuckUniqueID then
 	-- unfortunately addons are bad
@@ -56,8 +56,10 @@ function basewars.playerAddMoney(ply, amt)
 		end
 	end
 
-	basewars.loadPlayerVar(id, var, function(_, _, val)
-		basewars.savePlayerVar(id, "money", val + amt)
+	if id == "BOT" then return end
+
+	basewars.loadPlayerVar(id, "Money", function(_, _, val)
+		basewars.savePlayerVar(id, "Money", val + amt)
 	end)
 end
 

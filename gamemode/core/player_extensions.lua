@@ -30,6 +30,7 @@ do
 		["Float"] = true,
 		["String"] = true,
 		["Bool"] = true,
+		["Double"] = true,
 	}
 
 	function PLAYER:makeGSAT(type, name, databased, initial, max, min)
@@ -43,6 +44,8 @@ do
 			end
 		end
 
+		local numberString = type == "Double"
+
 		local getVar = function(minMax)
 			if self[minMax] and isfunction(self[minMax]) then return self[minMax](self) end
 			if self[minMax] and isnumber(self[minMax]) then return self[minMax] end
@@ -52,15 +55,22 @@ do
 		local bool = type == "Bool"
 		local getType = bool and "is" or "get"
 
-		local setter = self["SetNW2" .. type]
-		local getter = self["GetNW2" .. type]
+		local nw2Type = numberString and "String" or type
 
-		self[getType .. name] = function(self)
-			return getter(self, name)
-			--return self.dt[name]
+		local setter = self["SetNW2" .. nw2Type]
+		local getter = self["GetNW2" .. nw2Type]
+
+		if numberString then
+			self[getType .. name] = function(self)
+				return tonumber(getter(self, name)) or 0
+			end
+		else
+			self[getType .. name] = function(self)
+				return getter(self, name)
+			end
 		end
 
-		local numerical = type == "Int" or type == "Float"
+		local numerical = numberString or type == "Int" or type == "Float"
 
 		if numerical then
 			self["has" .. name] = function(_, amt)
@@ -79,12 +89,22 @@ do
 		end
 
 		if SERVER then
-			self["set" .. name] = function(self, var, noSave)
-				setter(self, name, var)
-				--self.dt[name] = var
+			if numberString then
+				self["set" .. name] = function(self, var)
+					local netvar = tostring(var)
+					setter(self, name, netvar)
 
-				if databased and not noSave then
-					basewars.savePlayerVar(self, name, var)
+					if databased and not noSave then
+						basewars.savePlayerVar(self, name, var)
+					end
+				end
+			else
+				self["set" .. name] = function(self, var, noSave)
+					setter(self, name, var)
+
+					if databased and not noSave then
+						basewars.savePlayerVar(self, name, var)
+					end
 				end
 			end
 
@@ -135,7 +155,7 @@ do
 		self.__dataTableCount = self.__dataTableCount or {}
 
 		local index
-		local indexType = type
+		local indexType = type == "Double" and "String" or type
 
 		if self.__dataTableCount[indexType] then
 			index = self.__dataTableCount[indexType]

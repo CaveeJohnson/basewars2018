@@ -27,6 +27,7 @@ Improvements (mark as [-] if its dumb):
 	[ ] Make a proper crypto-miner base with nice gui etc, links into this ^
 	[ ] Better vehicle spawning with vcmod support (requested)
 	[ ] Convars for build mode
+	[ ] Convar for how intense the core protection field is (alpha)
 
 Minor Features:
 	[ ] Give money with a reason, feed on hud
@@ -69,6 +70,7 @@ Fun / extra gameplay stuff:
 		- ?
 	[ ] Weapon factory
 	[ ] Loudout table
+	[ ] Random entity spawns (broken printers)
 
 Endgame:
 	[ ] Mediaplayer (as per the old endgame)

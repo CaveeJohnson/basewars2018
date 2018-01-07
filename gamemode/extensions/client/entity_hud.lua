@@ -15,7 +15,7 @@ local type_font      = ext:getTag() .. "_type"
 
 surface.CreateFont(main_font, {
 	font = "DejaVu Sans",
-	size = 16,
+	size = 15,
 })
 
 surface.CreateFont(type_font, {

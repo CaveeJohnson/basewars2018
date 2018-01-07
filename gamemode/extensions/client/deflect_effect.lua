@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"deflectEffect"
+local ext = basewars.createExtension"deflect-effect"
 
 ext.deflectSounds = {"weapons/physcannon/superphys_small_zap1.wav", "weapons/physcannon/superphys_small_zap2.wav", "weapons/physcannon/superphys_small_zap3.wav", "weapons/physcannon/superphys_small_zap4.wav"}
 ext.timeShown = 0.8

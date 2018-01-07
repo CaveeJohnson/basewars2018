@@ -1,11 +1,10 @@
-local ext = basewars.createExtension"buildMode"
+local ext = basewars.createExtension"build-mode"
 
-ext.mainFont = ext:getTag()
+local font_main = ext:getTag()
 
-surface.CreateFont(ext.mainFont, {
-	font = "Roboto",
+surface.CreateFont(font_main, {
+	font = "DejaVu Sans Bold",
 	size = 22,
-	weight = 800,
 })
 
 function ext:isBuilding(ply)
@@ -26,7 +25,7 @@ do
 	--local max, min = math.max, math.min
 
 	function drawString(str, x, y, col, a1, a2)
-		draw.SimpleTextOutlined(str, ext.mainFont, x, y, col, a1, a2, 1, shade)
+		draw.SimpleTextOutlined(str, font_main, x, y, col, a1, a2, 1, shade)
 
 		local w, h = surface.GetTextSize(str)
 		return h

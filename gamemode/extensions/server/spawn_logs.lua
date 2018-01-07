@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"spawnLogs"
+local ext = basewars.createExtension"spawn-logs"
 
 ext.cyan, ext.white, ext.grey = Color(0  , 255, 255), Color(255, 255, 255), Color(192, 192, 192)
 

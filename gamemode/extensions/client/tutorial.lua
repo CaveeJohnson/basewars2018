@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"tutorial.client"
+local ext = basewars.createExtension"tutorial-client"
 
 local font_large  = ext:getTag() .. "_large"
 local font_normal = ext:getTag() .. "_normal"

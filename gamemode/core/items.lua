@@ -16,7 +16,6 @@ function ext:OnInvalidateItems()
 	items_categories = {}
 end
 
-
 basewars.defaultItemParams = {
 
 }

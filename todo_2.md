@@ -15,6 +15,7 @@ BUGS / NEEDS DOING:
 	[X] Players get stuck in cloner if y % 90 ~= 0 and other situations
 	[X] extension 'core.money-distributer' hook 'BW_DistributeSaleMoney' failed: gamemodes/basewars2018/gamemode/core/server/money_distributer.lua:59: attempting to load data before player database init
 	[X] distributer -> distributor
+	[ ] Factions and raids lose all data on reload, by nature they cannot recover it so it must be stored elsewhere, WHERE?
 
 Improvements (mark as [-] if its dumb):
 	[ ] Alert when spawning fails in hostile area

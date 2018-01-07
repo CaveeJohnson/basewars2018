@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"core.buyMenu"
+local ext = basewars.createExtension"core.buy-menu"
 
 do
 	local grey  = Color(90 , 90 , 90 , 180)

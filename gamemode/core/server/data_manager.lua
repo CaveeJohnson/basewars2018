@@ -5,7 +5,7 @@ local dir = "basewars2018"
 
 file.CreateDir(dir)
 
-local ext = basewars.createExtension"core.dataManager"
+local ext = basewars.createExtension"core.data-manager"
 
 function ext:isPlayer(ply)
 	return isentity(ply) and ply:IsPlayer()

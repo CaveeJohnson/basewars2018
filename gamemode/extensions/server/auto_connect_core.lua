@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"autoConnectCore"
+local ext = basewars.createExtension"auto-connect-core"
 
 function ext:PostEntityCreated(ent)
 	if not ent.isPoweredEntity or ent.isCore then return end

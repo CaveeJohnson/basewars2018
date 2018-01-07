@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"easteregg.aerach"
+local ext = basewars.createExtension"core.easteregg-aerach"
 
 ext.maps = {
 	["^gm_excess_island$"] = {

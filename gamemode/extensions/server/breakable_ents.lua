@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"breakableEnts"
+local ext = basewars.createExtension"breakable-ents"
 
 function ext:PostEntityCreated(ent)
 	if IsValid(ent:CPPIGetOwner()) and not (ent.isBasewarsEntity or ent.indestructible) and hook.Run("BW_ShouldEntityBeBreakable", ent) ~= false then

@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"core.stuck"
+local ext = basewars.createExtension"core.player-stuck"
 
 local res = {}
 local t = {

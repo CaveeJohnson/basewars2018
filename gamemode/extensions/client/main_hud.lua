@@ -1,8 +1,8 @@
-local ext = basewars.createExtension"mainHUD"
+local ext = basewars.createExtension"main-hud"
 
-ext.mainFont = ext:getTag()
+local mainFont = ext:getTag()
 
-surface.CreateFont(ext.mainFont, {
+surface.CreateFont(mainFont, {
 	font = "Roboto",
 	size = 16,
 	weight = 800,
@@ -64,9 +64,7 @@ do
 	local max, min = math.max, math.min
 
 	function drawString(str, x, y, col, a1, a2)
-		draw.SimpleTextOutlined(str, ext.mainFont, x, y, col, a1, a2, 1, shade)
-
-		local w, h = surface.GetTextSize(str)
+		local w, h = draw.SimpleTextOutlined(str, mainFont, x, y, col, a1, a2, 1, shade)
 		return h
 	end
 

@@ -8,40 +8,43 @@ if not tbl then
 	end
 end
 
-hook.Hooks = tbl or {}
-function hook.GetTable() return hook.Hooks end
+local _hooks = tbl or {}
+hook.Hooks = _hooks
+
+function hook.GetTable() return _hooks end
 
 function hook.Add(event_name, name, func)
 	if not isfunction(func) then return end
 	if not isstring(event_name) then return end
 
-	if not hook.Hooks[event_name] then
-		hook.Hooks[event_name] = {}
+	if not _hooks[event_name] then
+		_hooks[event_name] = {}
 	end
 
-	hook.Hooks[event_name][name] = func
+	_hooks[event_name][name] = func
 end
 
 function hook.Remove(event_name, name)
 	if not isstring(event_name) then return end
-	if not hook.Hooks[event_name] then return end
+	if not _hooks[event_name] then return end
 
-	hook.Hooks[event_name][name] = nil
+	_hooks[event_name][name] = nil
 end
 
+local format = string.format
 function hook.Call(name, gm, ...)
-	local HookTable = hook.Hooks[name]
-	if HookTable then
+	local hook_table = _hooks[name]
+	if hook_table then
 		local a, b, c, d, e, f
 
-		for k, v in pairs(HookTable) do
+		for k, v in pairs(hook_table) do
 			if isstring(k) then
 				a, b, c, d, e, f = v(...)
 			else
 				if IsValid(k) then
 					a, b, c, d, e, f = v(k, ...)
 				else
-					HookTable[k] = nil
+					_hooks[k] = nil
 				end
 			end
 
@@ -63,7 +66,7 @@ function hook.Call(name, gm, ...)
 				if suc and a ~= nil or b then
 					return a, b, c, d, e, f
 				elseif not suc then
-					ErrorNoHalt(string.format("extension '%s' hook '%s' failed: %s\n", extName, name, a))
+					ErrorNoHalt(format("extension '%s' hook '%s' failed: %s\n", extName, name, a))
 				end
 			end
 		end
@@ -78,7 +81,7 @@ function hook.Call(name, gm, ...)
 end
 
 function hook.Run(name, ...)
-	return hook.Call(name, gmod and gmod.GetGamemode(), ...)
+	return hook.Call(name, GAMEMODE or GM, ...)
 end
 
 function hook.overwriteRegistry()

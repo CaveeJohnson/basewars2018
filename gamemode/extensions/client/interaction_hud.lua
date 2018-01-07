@@ -1,7 +1,7 @@
-local ext = basewars.createExtension"interactionHUD"
+local ext = basewars.createExtension"interaction-hud"
 
-ext.keyFont = ext:getTag() .. "key"
-ext.textFont = ext:getTag() .. "text"
+local font_key = ext:getTag() .. "_key"
+local text_font = ext:getTag() .. "_text"
 
 ext.visableDist = 120 ^ 2
 
@@ -18,15 +18,15 @@ ext.manual = {
 	-- nothing yet
 }
 
-surface.CreateFont(ext.keyFont, {
-	font = "Roboto",
+surface.CreateFont(font_key, {
+	font = "DejaVu Sans",
 	size = 28,
 	weight = 800,
 	antialias = false
 })
 
-surface.CreateFont(ext.textFont, {
-	font = "Roboto",
+surface.CreateFont(text_font, {
+	font = "DejaVu Sans",
 	size = 24,
 	weight = 800,
 })
@@ -65,10 +65,10 @@ function ext:HUDPaint()
 	local sW = ScrW()
 	local sH = ScrH()
 
-	surface.SetFont(self.keyFont)
+	surface.SetFont(font_key)
 	local keyW, keyH = surface.GetTextSize(self.keyBind)
 
-	surface.SetFont(self.textFont)
+	surface.SetFont(text_font)
 	local actionW, actionH = surface.GetTextSize(action)
 	local nameW, nameH = surface.GetTextSize(name)
 	local spaceW = surface.GetTextSize(" ")
@@ -83,7 +83,7 @@ function ext:HUDPaint()
 	surface.SetDrawColor(self.keyColor)
 	surface.DrawTexturedRect(x - 12, baseY, keySize, keySize)
 
-	surface.SetFont(self.keyFont)
+	surface.SetFont(font_key)
 	surface.SetTextColor(self.keyShadow)
 	surface.SetTextPos(x - 12 + (keyW / 2) + 2, y - 10)
 	surface.DrawText(self.keyBind)

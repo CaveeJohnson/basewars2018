@@ -1,0 +1,61 @@
+[12:22] Q2F2: okay
+[12:22] Q2F2: ids are
+[12:22] Q2F2: core.x-y-z
+[12:22] Q2F2: or
+[12:22] Q2F2: x-y-z
+[12:22] Q2F2: colors are local if defining a 'color' by name
+[12:22] Q2F2: local red
+[12:22] Q2F2: but in ext if defining a purpose
+[12:22] Q2F2: ext.color_purpose
+[12:23] Q2F2: local variables can either be camelCase or snake_case (but snake_case is prefered)
+[12:23] Q2F2: members and functions are camelCase
+[12:23] Q2F2: PascalCase
+[12:23] Q2F2: or
+[12:23] Q2F2: BW_PascalCase
+[12:23] pls code: yes
+[12:23] Q2F2: BW_ is something that ONLY MAKES SENSE in the context of basewars
+[12:24] Q2F2: custom hooks may exist without BW_ but are things like
+[12:24] Q2F2: PostNormalHook
+[12:24] Q2F2: PreSourceThing
+[12:24] Q2F2: and those kind of hooks only exist in the core
+[12:25] Q2F2: also paramaters are classed as local variables, but are perfered as camelCase
+
+[12:25] Q2F2: @pls code all good now?
+[12:25] pls code: yes
+[12:26] pls code: non-parameter variables in snake_case vs parameters in camelCase, a level of differentiation @Q2F2
+[12:26] Q2F2: yes
+[12:26] Q2F2: in general
+[12:26] Q2F2: but if you see my code using camelCase locals
+[12:26] Q2F2: that arent params
+[12:26] Q2F2: please dont touch it for style
+[12:26] Q2F2: since thats cancer
+
+[12:27] Q2F2: and as before mentioned
+[12:27] Q2F2: extensions are SELF CONTAINED
+[12:27] Q2F2: and must NOT add basewars.x
+[12:28] Q2F2: or global state
+[12:28] Q2F2: and files should AVOID CALLING EACHOTHER at all (except through basewars.x)
+[12:28] Q2F2: events should be used
+[12:28] Q2F2: eg
+[12:28] Q2F2: file1:
+[12:28] Q2F2: hook.Run"X"
+[12:28] Q2F2: file2:
+[12:28] Q2F2: ext:X
+[12:29] Q2F2: events should never have an 'always return' basis outside of the core
+[12:29] Q2F2: unless its for a very specific reason
+[12:29] Q2F2: and those should be annotated
+[12:29] Q2F2: -- this does everything we need it to, letting hooks run would interfere
+[12:29] Q2F2: or something of the kind
+[12:30] Q2F2: oh yeah and
+[12:30] Q2F2: for anything that concats .. more than .. once
+[12:30] Q2F2: use string.format
+[12:33] Q2F2: and for fonts
+[12:33] Q2F2: NEVER
+[12:33] Q2F2: USE
+[12:33] Q2F2: SPECIFIC FONTS
+[12:33] Q2F2: OTHER THAN
+[12:33] Q2F2: 'DejaVu Sans X'(edited)
+[12:33] Q2F2: since Dejavu is packaged
+[12:33] Q2F2: with the gamemode
+[12:34] Q2F2: avoid using weight for bold fonts
+[12:35] Q2F2: you can use DejaVu Sans Bold

@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"core.garryNewmansHairyBallsack"
+local ext = basewars.createExtension"core.garry-newmans-hairy-ballsack"
 
 local function ballsack(a)
 	return function(ent, ...)

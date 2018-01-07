@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"core.coreOwnership"
+local ext = basewars.createExtension"core.core-ownership"
 
 function basewars.getCore(ply)
 	if not IsValid(ply) then return false end

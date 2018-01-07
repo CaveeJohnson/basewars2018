@@ -1,9 +1,9 @@
-local ext = basewars.createExtension"raids"
+local ext = basewars.createExtension"core.raids"
 
 ext.ongoingRaids = {}
 
-ext.color_orange = Color(255, 165, 0, 255)
-ext.color_red    = Color(255,   0, 0, 255)
+ext.raidIndicatorColor = Color(255, 165, 0, 255) -- orange
+ext.raidOngoingColor   = Color(255,   0, 0, 255) -- red
 
 function ext:BW_ShouldSell(ply)
 	if self:getPlayerRaidTarget(ply) then return false, "You cannot sell during a raid!" end
@@ -15,7 +15,7 @@ end
 
 function ext:BW_GetCoreIndicatorColor(core)
 	if self.ongoingRaids[core] then
-		return self.color_orange
+		return self.raidIndicatorColor
 	end
 end
 
@@ -27,7 +27,7 @@ function ext:BW_GetCoreDisplayData(core, dt)
 		local m = math.floor(len / 60)
 		local s = math.floor(len - m * 60)
 
-		table.insert(dt, self.color_red)
+		table.insert(dt, self.raidOngoingColor)
 		table.insert(dt, string.format("Raid Status:  ONGOING!    Time Left:  %.2d:%.2d", m, s))
 	else
 		table.insert(dt, 0)

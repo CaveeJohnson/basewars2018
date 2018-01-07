@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"entityHUD"
+local ext = basewars.createExtension"entity-hud"
 
 ext.maxDrawDistance  = 200 ^ 2
 
@@ -6,24 +6,21 @@ ext.mainOutlineColor = Color(0  , 0  , 0  , 100)
 ext.mainColor        = Color(200, 200, 200, 200)
 ext.mainWidth        = 150
 ext.mainTextColor    = Color(0  , 0  , 0  , 255)
-ext.mainTextFont     = ext:getTag() .. "main"
+local main_font      = ext:getTag() .. "_main"
 
 ext.typeOutlineColor = Color(0  , 0  , 0  , 100)
 ext.typeColor        = Color(200, 200, 200, 200)
 ext.typeTextColor    = Color(0  , 0  , 0  , 255)
-ext.typeTextFont     = ext:getTag() .. "type"
+local type_font      = ext:getTag() .. "_type"
 
-local linux = jit.os ~= "Windows"
-surface.CreateFont(ext.mainTextFont, {
-	font = linux and "Arial" or "Tahoma",
+surface.CreateFont(main_font, {
+	font = "DejaVu Sans",
 	size = 16,
-	antialias = true,
 })
 
-surface.CreateFont(ext.typeTextFont, {
-	font = linux and "Arial" or "Tahoma",
+surface.CreateFont(type_font, {
+	font = "DejaVu Sans",
 	size = 15,
-	antialias = true,
 })
 
 function ext:drawStructureInfo(ent) -- OPT:
@@ -33,7 +30,7 @@ function ext:drawStructureInfo(ent) -- OPT:
 	do
 		local data = ent:getStructureInformation()
 
-		surface.SetFont(self.mainTextFont)
+		surface.SetFont(main_font)
 		local _, th = surface.GetTextSize("W")
 
 		local w, h = self.mainWidth, #data * (th + 1) + 4
@@ -46,8 +43,8 @@ function ext:drawStructureInfo(ent) -- OPT:
 		for k, v in ipairs(data) do
 			local t1 = v[1] .. ": "
 			local tw = surface.GetTextSize(t1)
-			draw.SimpleText(t1, self.mainTextFont, x + 1.5, y + oh, self.mainTextColor, TEXT_ALIGN_LEFT)
-			draw.SimpleText(tostring(v[2]), self.mainTextFont, x + 1.5 + tw, y + oh, v[3] or self.mainTextColor, TEXT_ALIGN_LEFT)
+			draw.text(t1, main_font, x + 1.5, y + oh, self.mainTextColor, TEXT_ALIGN_LEFT)
+			draw.text(tostring(v[2]), main_font, x + 1.5 + tw, y + oh, v[3] or self.mainTextColor, TEXT_ALIGN_LEFT)
 
 			oh = oh + th + 1
 		end
@@ -58,7 +55,7 @@ function ext:drawStructureInfo(ent) -- OPT:
 	do
 		local type = ent.PrintName or ent:GetClass()
 
-		surface.SetFont(self.typeTextFont)
+		surface.SetFont(type_font)
 		local sx, sy = surface.GetTextSize(type)
 
 		local w, h = sx + 8, sy + 4
@@ -67,14 +64,14 @@ function ext:drawStructureInfo(ent) -- OPT:
 		draw.RoundedBox(4, x    , y    , w    , h    , self.typeOutlineColor)
 		draw.RoundedBox(4, x + 1, y + 1, w - 2, h - 2, self.typeColor)
 
-		draw.SimpleText(type, self.typeTextFont, x + (w / 2) - .5, y + (h / 2), self.typeTextColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		draw.text(type, type_font, x + (w / 2) - .5, y + (h / 2), self.typeTextColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 	end
 
 	local lvw
 	do
 		local lv = "LV " .. basewars.nformat(ent:getUpgradeLevel() or 0)
 
-		surface.SetFont(self.typeTextFont)
+		surface.SetFont(type_font)
 		local sx, sy = surface.GetTextSize(lv)
 
 		local w, h = sx + 8, sy + 4
@@ -83,7 +80,7 @@ function ext:drawStructureInfo(ent) -- OPT:
 		draw.RoundedBox(4, x    , y    , w    , h    , self.typeOutlineColor)
 		draw.RoundedBox(4, x + 1, y + 1, w - 2, h - 2, self.typeColor)
 
-		draw.SimpleText(lv, self.typeTextFont, x + (w / 2) - .5, y + (h / 2), self.typeTextColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		draw.text(lv, type_font, x + (w / 2) - .5, y + (h / 2), self.typeTextColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
 		lvw = w
 	end
@@ -91,7 +88,7 @@ function ext:drawStructureInfo(ent) -- OPT:
 	do
 		local lv = "XP " .. basewars.nformat(ent:getXP() or 0)
 
-		surface.SetFont(self.typeTextFont)
+		surface.SetFont(type_font)
 		local sx, sy = surface.GetTextSize(lv)
 
 		local w, h = sx + 8, sy + 4
@@ -100,7 +97,7 @@ function ext:drawStructureInfo(ent) -- OPT:
 		draw.RoundedBox(4, x    , y    , w    , h    , self.typeOutlineColor)
 		draw.RoundedBox(4, x + 1, y + 1, w - 2, h - 2, self.typeColor)
 
-		draw.SimpleText(lv, self.typeTextFont, x + (w / 2) - .5, y + (h / 2), self.typeTextColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		draw.text(lv, type_font, x + (w / 2) - .5, y + (h / 2), self.typeTextColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 	end
 end
 

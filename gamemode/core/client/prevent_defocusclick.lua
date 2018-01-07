@@ -1,7 +1,9 @@
+local ext = basewars.createExtension"core.prevent-defocusclick"
+
 local a
 local b
 
-hook.Add("Think", "preventdefocusclick", function()
+function ext:Think()
 	if system.HasFocus() and not a then
 		a = true
 		b = false
@@ -13,4 +15,4 @@ hook.Add("Think", "preventdefocusclick", function()
 
 		gui.EnableScreenClicker(true)
 	end
-end)
+end

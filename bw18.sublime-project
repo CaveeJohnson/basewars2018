@@ -44,5 +44,8 @@
 	{
 		"tab_size": 4,
 		"translate_tabs_to_spaces": false,
+		"trailing_spaces_enabled" : true,
+		"trailing_spaces_include_empty_lines" : true,
+		"trailing_spaces_trim_on_save": true,
 	}
 }

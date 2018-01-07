@@ -9,7 +9,7 @@ fast_clamp : 13.944μs
 fast_clamp_rev : 15.983μs
 ]]
 do
-	local max, min = math.max, math.min
+	local abs, min, max = math.abs, math.min, math.max
 
 	math.ShitClamp = math.ShitClamp or math.Clamp
 
@@ -19,6 +19,16 @@ do
 
 	function math.ClampRev(x, a, b)
 		return min(max(x, min(a, b)), max(b, a))
+	end
+
+	local function sgn(i)
+		return min(max(i, -1), 1)
+	end
+
+	math.ShitApproach = math.ShitApproach or math.Approach
+
+	function math.Approach(cur, target, inc)
+		return cur + sgn(target - cur) * (min(abs(inc), abs(target - cur)))
 	end
 end
 

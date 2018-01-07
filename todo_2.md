@@ -16,6 +16,8 @@ BUGS / NEEDS DOING:
 	[X] extension 'core.money-distributer' hook 'BW_DistributeSaleMoney' failed: gamemodes/basewars2018/gamemode/core/server/money_distributer.lua:59: attempting to load data before player database init
 	[X] distributer -> distributor
 	[ ] Factions and raids lose all data on reload, by nature they cannot recover it so it must be stored elsewhere, WHERE?
+	[ ] Core area count/ents includes non-encompassed / non-owned entities (cant sell if someone puts shit nearby)
+	[ ] Optimize entity netvars (localize method names to avoid concat, move branching outside of functions, should allow for JIT)
 
 Improvements (mark as [-] if its dumb):
 	[ ] Alert when spawning fails in hostile area

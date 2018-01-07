@@ -101,6 +101,7 @@ do
 		end
 	end
 
+	-- OPT:
 	function ENT:makeGSAT(type, name, max, min)
 		local numberString = type == "Double"
 
@@ -177,7 +178,7 @@ do
 				self["set" .. name](self, not self["is" .. name](self))
 			end
 		elseif type == "Entity" then
-			self["valid" .. name] = function(_, amt)
+			self["valid" .. name] = function(_)
 				return IsValid(self["get" .. name](self))
 			end
 		end

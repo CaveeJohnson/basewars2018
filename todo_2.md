@@ -18,6 +18,7 @@ BUGS / NEEDS DOING:
 	[ ] Factions and raids lose all data on reload, by nature they cannot recover it so it must be stored elsewhere, WHERE?
 	[ ] Core area count/ents includes non-encompassed / non-owned entities (cant sell if someone puts shit nearby)
 	[ ] Optimize entity netvars (localize method names to avoid concat, move branching outside of functions, should allow for JIT)
+	[ ] Stuff to optimize on SV https://b.catgirlsare.sexy/GuGY.png
 
 Improvements (mark as [-] if its dumb):
 	[ ] Alert when spawning fails in hostile area

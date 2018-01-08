@@ -683,7 +683,7 @@ if LINUX then
 	logf("Hooked penicillin to provide anti-lag.")
 end
 
-do
+if false then
 	local maxExecTime = 10
 	local instructionInterval = 2^24
 

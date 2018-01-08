@@ -18,7 +18,7 @@ SWEP.Slot          = 1
 SWEP.SlotPos       = 0
 
 SWEP.Spawnable     = true
-SWEP.Category      = "BaseWars"
+SWEP.Category      = "Basewars"
 
 SWEP.ViewModel     = "models/weapons/c_arms.mdl"
 SWEP.WorldModel    = ""

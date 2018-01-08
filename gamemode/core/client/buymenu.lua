@@ -93,7 +93,7 @@ function ext:buildCategory(layout, data)
 
 		local cost_text
 		if cost > 0 then
-			cost_text = "£" .. basewars.nformat(cost)
+			cost_text = basewars.currency(cost)
 		else
 			cost_text = "FREE"
 		end

@@ -1,8 +1,8 @@
 local ext = basewars.createExtension"core.factions"
 
-ext.factionCount = 0
-ext.factions     = {}
-ext.factionTable = {}
+ext.factions     = ext:extablishGlobalTable("factions")
+ext.factionTable = ext:extablishGlobalTable("factionTable")
+ext.factionCount = table.Count(ext.factionTable)
 
 function ext:cleanTables()
 	local count = 0
@@ -22,8 +22,8 @@ function ext:cleanTables()
 	end
 
 	self.factionCount = count
-	self.factions = new_names
-	self.factionTable = new
+	self.factions     = self:overwriteGlobalTable("factions", new_names)
+	self.factionTable = self:overwriteGlobalTable("factionTable", new)
 
 	return new, count
 end

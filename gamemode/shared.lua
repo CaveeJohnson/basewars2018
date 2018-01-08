@@ -1,6 +1,6 @@
 DeriveGamemode("sandbox")
 
-GM.Name      = "BaseWars"
+GM.Name      = "Basewars"
 GM.Author    = "Hexahedron Studios"
 GM.Website   = "http://hexahedron.pw/"
 
@@ -19,7 +19,8 @@ GM.Copyright = "Copyright \xc2\xa9 2017-2018 Hexahedron Studios"
 
 
 basewars = basewars or {}
-basewars.__ext = basewars.__ext or {}
+basewars.__ext    = basewars.__ext    or {} -- For extensions
+basewars.__global = basewars.__global or {} -- For preserved state (eg factions, ongoing raids)
 
 do
 	local titleCol = CLIENT and Color(55, 205 , 135) or Color(200, 50 , 120)
@@ -41,6 +42,68 @@ do
 		return self.__tag
 	end
 
+	function basewars.extBase:extablishGlobalTable(name)
+		basewars.__global[self.name] = basewars.__global[self.name] or {}
+		basewars.__global[self.name][name] = basewars.__global[self.name][name] or {}
+
+		return basewars.__global[self.name][name]
+	end
+
+	function basewars.extBase:overwriteGlobalTable(name, tbl)
+		basewars.__global[self.name] = basewars.__global[self.name] or {}
+		basewars.__global[self.name][name] = tbl
+	end
+
+	do
+		function basewars.extBase:receiveEntityCreate(ent)
+			if not self.__entTrackers then return end
+
+			for name, check in ipairs(self.__entTrackers) do
+				if self[check](self, ent) then
+					table.insert(self[name .. "_list"], ent)
+					self[name .. "_count"] = self[name .. "_count"] + 1
+
+					ent.__entTrackers = ent.__entTrackers or {}
+					ent.__entTrackers[self:getTag() .. "_" .. name] = true
+				end
+			end
+		end
+
+		function basewars.extBase:receiveEntityRemove(ent)
+			if not self.__entTrackers then return end
+
+			for name, check in ipairs(self.__entTrackers) do
+				if ent.__entTrackers and ent.__entTrackers[self:getTag() .. "_" .. name] then
+					table.RemoveByValue(self[name .. "_list"], ent)
+					self[name .. "_count"] = self[name .. "_count"] - 1
+				end
+			end
+		end
+
+		function basewars.extBase:onEntitiesReloaded()
+			for _, v in ipairs(ents.GetAll()) do
+				self:receiveEntityCreate(v)
+			end
+		end
+
+		function basewars.extBase:addEntityTracker(name, check)
+			if not self.__entTrackers then
+				self.__entTrackers = {}
+
+				self.PostEntityCreated = self.PostEntityCreated or self.receiveEntityCreate
+				self.EntityRemoved = self.EntityRemoved or self.receiveEntityRemove
+
+				self.PostReloaded = self.PostReloaded or self.onEntitiesReloaded
+				self.OnFullUpdate = self.OnFullUpdate or self.onEntitiesReloaded
+			end
+
+			self.__entTrackers[name] = check
+
+			self[name .. "_list"] = {}
+			self[name .. "_count"] = 0
+		end
+	end
+
 	local meta = {__index = basewars.extBase, __tostring = function(o) return string.format("basewars_extension [%s]", o:getTag()) end}
 	function basewars.createExtension(name)
 		local new = setmetatable({name = name}, meta)
@@ -58,6 +121,7 @@ do
 
 	-- For those of you wondering, this returns a virtual interface to
 	-- the extension so that it is readonly and always can be refreshed by luarefresh.
+	-- NOTE: due to this, anyt MUTATOR you may call must be aware ext = extension, self = INSTANCE, keep this in mind!
 	function basewars.getExtension(name)
 		if not basewars.__ext[name] then return end
 		return setmetatable({}, {__index = function(t, k) return basewars.__ext[name][k] end, __tostring = function(o) return string.format("basewars_extension [%s] (INSTANCE)", o:getTag()) end})
@@ -97,6 +161,10 @@ do
 
 	function basewars.nsigned(num)
 		return num > 0 and "+"..basewars.nformat(num) or basewars.nformat(num)
+	end
+
+	function basewars.currency(num)
+		return "£" .. basewars.nformat(num) -- TODO: hardcoded since I don't want language formats everywhere, use this
 	end
 end
 

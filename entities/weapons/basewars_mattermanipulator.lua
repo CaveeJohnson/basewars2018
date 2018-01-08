@@ -20,7 +20,7 @@ SWEP.Instructions  = ([=[
 SWEP.Slot          = 0
 SWEP.SlotPos       = 3
 
-SWEP.Category      = "BaseWars"
+SWEP.Category      = "Basewars"
 SWEP.Spawnable     = true
 
 SWEP.HoldType      = "ar2"
@@ -286,7 +286,7 @@ if CLIENT then
 			self.icon:PaintManual()
 
 			y = y + drawString(item.name, mediumFont, x, y)
-			y = y + drawString(item.cost > 0 and string.format("Cost: £%s", basewars.nformat(item.cost)) or "Cost: FREE", smallFont, x, y)
+			y = y + drawString(item.cost > 0 and string.format("Cost: %s", basewars.currency(item.cost)) or "Cost: FREE", smallFont, x, y)
 
 			y = h - 2
 
@@ -318,7 +318,7 @@ if CLIENT then
 				value = value or 0
 
 				y = y + drawString(basewars.getEntPrintName(ent), mediumFont, x, y)
-				y = y + drawString(value > 0 and string.format("Return: £%s", basewars.nformat(value)) or "Return: NONE", smallFont, x, y)
+				y = y + drawString(value > 0 and string.format("Return: %s", basewars.currency(value)) or "Return: NONE", smallFont, x, y)
 
 				y = h - 2
 

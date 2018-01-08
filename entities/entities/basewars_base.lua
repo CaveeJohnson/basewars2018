@@ -6,7 +6,7 @@ DEFINE_BASECLASS(ENT.Base)
 
 ENT.RenderGroup = RENDERGROUP_BOTH
 
-ENT.PrintName = "BaseWars2018 Base Entity"
+ENT.PrintName = "Basewars 2018 Base Entity"
 
 ENT.Model = "models/props_interiors/pot02a.mdl"
 ENT.Skin = 0
@@ -60,7 +60,7 @@ do
 			end
 		end
 
-		net.Receive(net_tag, function() -- sums this up perfectly
+		net.Receive(net_tag, function()
 			local eidx  = net.ReadUInt(16)
 			local count = net.ReadUInt(8 )
 
@@ -111,30 +111,33 @@ do
 			return minMax or 0
 		end
 
-		local bool = type == "Bool"
+		local bool    = type == "Bool"
 		local getType = bool and "is" or "get"
 
-		local setter = self["SetNW2" .. type]
-		local getter = self["GetNW2" .. type]
+		local setter  = self["SetNW2" .. type]
+		local getter  = self["GetNW2" .. type]
+
+		local getName = getType .. name
+		local setName = "set"   .. name
 
 		if numberString then
-			self[getType .. name] = function(self)
+			self[getName] = function(self)
 				return tonumber(self.dt[name]) or 0
 			end
 		else
-			self[getType .. name] = function(self)
+			self[getName] = function(self)
 				return self.dt[name]
 			end
 		end
 
 		if numberString then
-			self["set" .. name] = function(self, var)
+			self[setName] = function(self, var)
 				--self:SetNW2String(name, var)
 				self:queueDtvChange(name, self.dt[name], var)
 				self.dt[name] = tostring(var)
 			end
 		else
-			self["set" .. name] = function(self, var)
+			self[setName] = function(self, var)
 				--setter(self, name, var)
 				self:queueDtvChange(name, self.dt[name], var)
 				self.dt[name] = var
@@ -144,47 +147,58 @@ do
 		local numerical = numberString or type == "Int" or type == "Float"
 
 		if numerical or type == "Vector" or type == "Angle" then
-			self["add" .. name] = function(_, var)
-				local val = self["get" .. name](self) + var
-
-				if min and max then
+			if min and max then
+				self["add" .. name] = function(self, var)
+					local val = self[getName](self) + var
 					val = clamp(val, getVar(min), getVar(max))
-				elseif min then
-					val = max(val, getVar(min))
+
+					self[setName](self, val)
 				end
-
-				self["set" .. name](self, val)
-			end
-
-			self["take" .. name] = function(_, var)
-				local val = self["get" .. name](self) - var
-
-				if min and max then
+				self["take" .. name] = function(self, var)
+					local val = self[getName](self) - var
 					val = clamp(val, getVar(min), getVar(max))
-				elseif min then
-					val = max(val, getVar(min))
-				end
 
-				self["set" .. name](self, val)
+					self[setName](self, val)
+				end
+			elseif min then
+				self["add" .. name] = function(self, var)
+					local val = self[getName](self) + var
+					val = max(val, getVar(min))
+
+					self[setName](self, val)
+				end
+				self["take" .. name] = function(self, var)
+					local val = self[getName](self) - var
+					val = max(val, getVar(min))
+
+					self[setName](self, val)
+				end
+			else
+				self["add" .. name] = function(self, var)
+					self[setName](self, self[getName](self) + var)
+				end
+				self["take" .. name] = function(self, var)
+					self[setName](self, self[getName](self) - var)
+				end
 			end
 		end
 
 		if numerical then
 			self["has" .. name] = function(_, amt)
-				return self["get" .. name](self) >= amt
+				return self[getName](self) >= amt
 			end
 		elseif bool then
 			self["toggle" .. name] = function(_)
-				self["set" .. name](self, not self["is" .. name](self))
+				self[setName](self, not self[getName](self))
 			end
 		elseif type == "Entity" then
 			self["valid" .. name] = function(_)
-				return IsValid(self["get" .. name](self))
+				return self[getName](self):IsValid()
 			end
 		end
 
 		if numberString then
-			self["set" .. name](self, "0")
+			self[setName](self, "0")
 		end
 	end
 

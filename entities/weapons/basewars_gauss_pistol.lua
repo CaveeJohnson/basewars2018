@@ -18,7 +18,7 @@ SWEP.Instructions  = ([=[
 SWEP.Slot         = 1
 SWEP.SlotPos      = 2
 
-SWEP.Category     = "BaseWars"
+SWEP.Category     = "Basewars"
 SWEP.Spawnable    = true
 
 SWEP.weaponSelectionLetter = "e"

@@ -14,7 +14,7 @@ function EFFECT:Init(data)
 
 	self.inverse = amt < 0
 
-	local str = "£" .. basewars.nformat(math.abs(amt))
+	local str = basewars.currency(math.abs(amt))
 	if self.inverse then str = "-" .. str end
 	self.str = str
 	self.font = "DermaLarge"

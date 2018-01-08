@@ -619,6 +619,9 @@ function ENT:Think()
 	else
 		self:addEnergy(total)
 	end
+
+	self:NextThink(CurTime() + 0.5)
+	return true
 end
 
 function ENT:networkContainsEnt(ent)

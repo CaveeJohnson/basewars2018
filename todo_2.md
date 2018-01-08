@@ -6,8 +6,9 @@ Entities:
 	[X] Cloner (spawnpoint)
 	[X] Core
 	[X] Core Control Panel
-	[ ] Health Dispenser
-	[ ] Armor Dispenser
+	[ ] Dispenser base
+		[ ] Health Dispenser
+		[ ] Armor Dispenser
 	[ ] Energy Field Generator
 
 BUGS / NEEDS DOING:
@@ -15,10 +16,16 @@ BUGS / NEEDS DOING:
 	[X] Players get stuck in cloner if y % 90 ~= 0 and other situations
 	[X] extension 'core.money-distributer' hook 'BW_DistributeSaleMoney' failed: gamemodes/basewars2018/gamemode/core/server/money_distributer.lua:59: attempting to load data before player database init
 	[X] distributer -> distributor
-	[ ] Factions and raids lose all data on reload, by nature they cannot recover it so it must be stored elsewhere, WHERE?
+	[X] Factions and raids lose all data on reload, by nature they cannot recover it so it must be stored elsewhere
 	[ ] Core area count/ents includes non-encompassed / non-owned entities (cant sell if someone puts shit nearby)
-	[ ] Optimize entity netvars (localize method names to avoid concat, move branching outside of functions, should allow for JIT)
-	[ ] Stuff to optimize on SV https://b.catgirlsare.sexy/GuGY.png
+	[X] Optimize entity netvars (localize method names to avoid concat, move branching outside of functions, should allow for JIT)
+	[#] Stuff to optimize on SV https://b.catgirlsare.sexy/GuGY.png related to below V
+	[ ] Make generic 'entity tracker' system for extensions
+		- ext:addEntityTracker("tbl", "tbl_count", "wantEntity")
+		- This code is cloned throughout the code base in an optimization effort
+		- Will make it easier to implement custom entity lists, hence making optimization easier moving forward
+	[X] Replace hardcoded £ with basewars.currency(num)
+	[X] Unify name style (BaseWars, Basewars2018, etc)
 
 Improvements (mark as [-] if its dumb):
 	[ ] Alert when spawning fails in hostile area
@@ -38,6 +45,8 @@ Minor Features:
 	[X] Scanning + heartbeat like R6S
 	[ ] Entity upgrading
 	[ ] RDM protection + raid grace for newer players
+	[ ] Playtime tracking
+	[ ] Deployed value tracking
 
 Big stuff:
 	[ ] Drug/buff system
@@ -69,7 +78,7 @@ Fun / extra gameplay stuff:
 		- drugs as mentioned above
 		- meth lab
 	[ ] PVE content
-		- boses (zeni)
+		- bosses (zeni)
 		- ?
 	[ ] Weapon factory
 	[ ] Loudout table
@@ -89,16 +98,3 @@ Feedback:
 		- defense is lackluster at best
 		- midgame is afk simulator
 		- endgame is mediaplayer simulator
-
-
-Ghosty:
-	[ ] Repair tool (ask fru for the model, he made one)
-	[ ] Gun water effect (splash)
-	[ ] Core control panel only for owner/faction
-		- Only display the owners entities (cppi)
-		- Control panel only displays for owner of control panel
-		- Validate on server
-
-Ghosty large:
-	[ ] Raid + Faction panel (lets just make them one thing)
-	[ ] More weapons

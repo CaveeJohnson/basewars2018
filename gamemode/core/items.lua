@@ -238,7 +238,7 @@ function ext:BW_OnEntityDestroyed(ent, attack, inflic, violent)
 
 	hook.Run("BW_EntitySold", ent, ply, violent or false)
 end
-ext.BW_OnNonBaseWarsEntityDestroyed = ext.BW_OnEntityDestroyed
+ext.BW_OnNonBasewarsEntityDestroyed = ext.BW_OnEntityDestroyed
 
 function basewars.onEntitySale(ent, ply, violent)
 	if ent.markedAsDestroyed then return end
@@ -247,7 +247,7 @@ function basewars.onEntitySale(ent, ply, violent)
 	if ent.isBasewarsEntity then
 		hook.Run("BW_OnEntityDestroyed", ent, ply, ply, violent or false)
 	else
-		hook.Run("BW_OnNonBaseWarsEntityDestroyed", ent, ply, ply, violent or false)
+		hook.Run("BW_OnNonBasewarsEntityDestroyed", ent, ply, ply, violent or false)
 	end
 end
 

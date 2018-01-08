@@ -26,7 +26,7 @@ do
 		return {
 			{
 				"Stored Money",
-				"£" .. basewars.nformat(self:getStoredMoney()),
+				basewars.currency(self:getStoredMoney()),
 				black
 			},
 			{
@@ -93,7 +93,7 @@ if CLIENT then
 		surface.SetDrawColor(0, 0, 0, 255)
 		surface.DrawRect(0, 0, w, h)
 
-		local money = "£" .. basewars.nformat(self:getStoredMoney())
+		local money = basewars.currency(self:getStoredMoney())
 		draw.SimpleText(money, "crypto_font", w / 2, h / 2, self.fontColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 	end
 

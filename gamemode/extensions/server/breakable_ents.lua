@@ -19,7 +19,7 @@ function ext:SharedEntityTakeDamage(ent, dmginfo)
 		if newHealth <= 0 then
 			ent.markedAsDestroyed = true
 
-			hook.Run("BW_OnNonBaseWarsEntityDestroyed", ent, dmginfo:GetAttacker(), dmginfo:GetInflictor(), true) -- DOCUMENT:
+			hook.Run("BW_OnNonBasewarsEntityDestroyed", ent, dmginfo:GetAttacker(), dmginfo:GetInflictor(), true) -- DOCUMENT:
 			SafeRemoveEntity(ent)
 		else
 			ent:SetHealth(newHealth)

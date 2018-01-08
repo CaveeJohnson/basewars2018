@@ -1,6 +1,6 @@
 local ext = basewars.createExtension"core.raids"
 
-ext.ongoingRaids = {}
+ext.ongoingRaids = ext:extablishGlobalTable("ongoingRaids")
 
 ext.raidIndicatorColor = Color(255, 165, 0, 255) -- orange
 ext.raidOngoingColor   = Color(255,   0, 0, 255) -- red
@@ -112,7 +112,7 @@ function ext:cleanOngoing()
 		end
 	end
 
-	ext.ongoingRaids = new
+	ext.ongoingRaids = self:overwriteGlobalTable("ongoingRaids", new)
 	return new, count
 end
 ext.getOngoing = ext.cleanOngoing

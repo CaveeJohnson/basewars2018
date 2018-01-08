@@ -1,9 +1,9 @@
 "basewars2018"
 {
 	"base"        "sandbox"
-	"title"       "BaseWars"
-	"version"     "0"
-	"description" "Hexahedron BaseWars redesigned."
+	"title"       "Basewars"
+	"version"     "GIT"
+	"description" "Hexahedron BaseWwars redesigned, 2018 edition."
 
 	"author_name" "hexahedron"
 	"author_url"  "http://hexahedron.pw/, http://hexahedronic.github.io/"

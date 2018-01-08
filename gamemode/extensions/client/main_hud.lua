@@ -157,7 +157,7 @@ function ext:HUDPaint()
 			cury = cury - bar_height
 			cury = cury - drawBar(curx, cury, bar_width, bar_height, col2, col1, hp / max_hp)
 
-			local money_string = string.format("Bank:  £%s    Deployed:  £%s", basewars.nformat(ply:getMoney()), basewars.nformat(0))
+			local money_string = string.format("Bank:  %s    Deployed:  %s", basewars.currency(ply:getMoney()), basewars.currency(0))
 			cury = cury - drawString(money_string, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
 
 			local level = ply:getLevel()

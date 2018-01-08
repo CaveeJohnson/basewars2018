@@ -56,7 +56,7 @@ surface.CreateFont(font_small2, {
 	size = 12,
 })
 
-local former = "%s - £%s"
+local former = "%s - %s"
 local blue   = Color(100, 150, 255, 128)
 local red    = Color(255, 0  , 0  , 128)
 local white  = Color(255, 255, 255, 128)
@@ -92,6 +92,6 @@ function ext:HUDPaint()
 
 	for i = 1, self.showAmt do
 		local v = ents[i]
-		y = y + draw.text(string.format(former, v[1], basewars.nformat(v[2])), font_small, x, y, white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+		y = y + draw.text(string.format(former, v[1], basewars.currency(v[2])), font_small, x, y, white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 	end
 end

@@ -22,6 +22,11 @@ basewars = basewars or {}
 basewars.__ext    = basewars.__ext    or {} -- For extensions
 basewars.__global = basewars.__global or {} -- For preserved state (eg factions, ongoing raids)
 
+
+basewars.version = 20180108
+basewars.versionString = "ALPHA " .. tostring(basewars.version)
+
+
 do
 	local titleCol = CLIENT and Color(55, 205 , 135) or Color(200, 50 , 120)
 	local title = CLIENT and "[bw18-cl] " or "[bw18-sv] "
@@ -42,7 +47,7 @@ do
 		return self.__tag
 	end
 
-	function basewars.extBase:extablishGlobalTable(name)
+	function basewars.extBase:establishGlobalTable(name)
 		basewars.__global[self.name] = basewars.__global[self.name] or {}
 		basewars.__global[self.name][name] = basewars.__global[self.name][name] or {}
 
@@ -58,7 +63,7 @@ do
 		function basewars.extBase:receiveEntityCreate(ent)
 			if not self.__entTrackers then return end
 
-			for name, check in ipairs(self.__entTrackers) do
+			for name, check in pairs(self.__entTrackers) do
 				if self[check](self, ent) then
 					table.insert(self[name .. "_list"], ent)
 					self[name .. "_count"] = self[name .. "_count"] + 1
@@ -72,7 +77,7 @@ do
 		function basewars.extBase:receiveEntityRemove(ent)
 			if not self.__entTrackers then return end
 
-			for name, check in ipairs(self.__entTrackers) do
+			for name, check in pairs(self.__entTrackers) do
 				if ent.__entTrackers and ent.__entTrackers[self:getTag() .. "_" .. name] then
 					table.RemoveByValue(self[name .. "_list"], ent)
 					self[name .. "_count"] = self[name .. "_count"] - 1

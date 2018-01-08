@@ -1,11 +1,17 @@
 local ext = basewars.createExtension"main-hud"
 
-local mainFont = ext:getTag()
+local main_font = ext:getTag()
+local version_font = ext:getTag() .. "_version"
 
-surface.CreateFont(mainFont, {
+surface.CreateFont(main_font, {
 	font = "Roboto",
 	size = 16,
 	weight = 800,
+})
+
+surface.CreateFont(version_font, {
+	font = "DejaVu Sans Mono",
+	size = 15,
 })
 
 ext.is3d = true
@@ -63,8 +69,8 @@ do
 	local shade = Color(20, 20, 20, 200)
 	local max, min = math.max, math.min
 
-	function drawString(str, x, y, col, a1, a2)
-		local w, h = draw.SimpleTextOutlined(str, mainFont, x, y, col, a1, a2, 1, shade)
+	function drawString(str, x, y, col, a1, a2, font)
+		local w, h = draw.SimpleTextOutlined(str, font or main_font, x, y, col, a1, a2, 1, shade)
 		return h
 	end
 
@@ -168,6 +174,8 @@ function ext:HUDPaint()
 			local xp_text          = string.format("XP:  %d/ %d" , xp, next_xp)
 			local level_text_final = string.format("%s    %s", level_text, xp_text)
 			cury = cury - drawString(level_text_final, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+
+			cury = cury - drawString(basewars.versionString .. " | not representative of release version", curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM, version_font)
 		else
 			cury = cury - drawString("FATAL ERROR", curx, cury, pure_red, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
 		end

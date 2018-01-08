@@ -47,6 +47,8 @@ Minor Features:
 	[ ] RDM protection + raid grace for newer players
 	[ ] Playtime tracking
 	[ ] Deployed value tracking
+	[ ] Damage numbers
+	[ ] Spawn protection
 
 Big stuff:
 	[ ] Drug/buff system

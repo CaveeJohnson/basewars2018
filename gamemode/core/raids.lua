@@ -1,9 +1,17 @@
 local ext = basewars.createExtension"core.raids"
 
-ext.ongoingRaids = ext:extablishGlobalTable("ongoingRaids")
+ext.ongoingRaids = ext:establishGlobalTable("ongoingRaids")
 
 ext.raidIndicatorColor = Color(255, 165, 0, 255) -- orange
 ext.raidOngoingColor   = Color(255,   0, 0, 255) -- red
+
+do
+	local PLAYER = debug.getregistry().Player
+
+	function PLAYER:getRaidTarget()
+		return ext:getPlayerRaidTarget(self)
+	end
+end
 
 function ext:BW_ShouldSell(ply)
 	if self:getPlayerRaidTarget(ply) then return false, "You cannot sell during a raid!" end
@@ -72,7 +80,7 @@ function ext:getRaidInfo(ent)
 	end
 end
 
-function ext:canStartRaid(ply, core)
+function basewars.canStartRaid(ply, core)
 	if not basewars.hasCore(ply) then return false, "You must have a core to raid!" end
 	if not IsValid(core) then return false, "Invalid raid target!" end
 
@@ -318,6 +326,12 @@ if CLIENT then -- GUI (temp)
 		button:SetEnabled(self:checkLineValidity(line))
 	end
 
+	function basewars.startRaid(_, core)
+		net.Start(ext:getTag() .. "interaction")
+			net.WriteEntity(core)
+		net.SendToServer()
+	end
+
 	function PANEL:handleButtonClick()
 		local list     = self.list
 		local sel_i    = list:GetSelectedLine()
@@ -329,12 +343,10 @@ if CLIENT then -- GUI (temp)
 		local sel_core = sel_line.ent
 		if not sel_core and sel_core:IsValid() then self:displayError("Something has gone horribly wrong! (invalid core??)") return end
 
-		local ok, why = ext:canStartRaid(LocalPlayer(), sel_core)
+		local ok, why = basewars.canStartRaid(LocalPlayer(), sel_core)
 		if not ok then self:displayError(why) return end
 
-		net.Start(ext:getTag() .. "interaction")
-			net.WriteEntity(sel_core)
-		net.SendToServer()
+		basewars.startRaid(_, core)
 	end
 
 	function PANEL:displayError(msg)
@@ -410,8 +422,8 @@ function ext:PostPlayerInitialSpawn(ply)
 	self:transmitRaids(ply)
 end
 
-function ext:startRaid(ply, core)
-	local can, ownCore, core = self:canStartRaid(ply, core)
+function basewars.startRaid(ply, core)
+	local can, ownCore, core = basewars.canStartRaid(ply, core)
 	if not can then return false, ownCore end
 
 	self:cleanOngoing()
@@ -470,7 +482,7 @@ function ext.readNetworkInteraction(_, ply)
 	if not core:IsValid() then return end
 
 	local t
-	local ok, why = ext:startRaid(ply, core)
+	local ok, why = basewars.startRaid(ply, core)
 	if ok == false then
 		print("GAMEMODE ERROR!!! Raid verification passed on client but failed on server: " .. why)
 		t = true

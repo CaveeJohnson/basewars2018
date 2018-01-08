@@ -10,18 +10,27 @@ function basewars.hasCore(ply)
 	return IsValid(basewars.getCore(ply))
 end
 
-ext.knownEntities = {}
-ext.knownEntCount = 0
+function ext:wantEntity(ent)
+	return ent.isCore
+end
+
+ext:addEntityTracker("core", "wantEntity")
+
+function ext:PostEntityCreated(ent)
+	self:receiveEntityCreate(ent)
+
+	if CLIENT and ent.isCore then ent:requestAreaTransmit() end
+end
 
 function basewars.getCores()
-	return ext.knownEntities, ext.knownEntCount
+	return ext.core_list, ext.core_count
 end
 
 function basewars.getEncompassingCoreForPos(pos)
 	pos = isvector(pos) and pos or pos:GetPos()
 
-	for i = 1, ext.knownEntCount do
-		local v = ext.knownEntities[i]
+	for i = 1, ext.core_count do
+		local v = ext.core_list[i]
 
 		if v:encompassesPos(pos) then
 			return v
@@ -30,54 +39,6 @@ function basewars.getEncompassingCoreForPos(pos)
 
 	return nil
 end
-
-function ext:PostEntityCreated(ent)
-	if not ent.isCore then return end
-	if CLIENT then ent:requestAreaTransmit() end
-
-	self.knownEntCount = self.knownEntCount + 1
-	self.knownEntities[self.knownEntCount] = ent
-
-	ent.__coreOwnershipID = self.knownEntCount
-end
-
-function ext:EntityRemoved(ent)
-	if not ent.__coreOwnershipID then return end
-
-	local new = {}
-	local count = 0
-
-	for i = 1, self.knownEntCount do
-		local v = self.knownEntities[i]
-
-		if v ~= ent and IsValid(ent) then
-			count = count + 1
-			new[count] = v
-
-			v.__coreOwnershipID = count
-		end
-	end
-
-	self.knownEntCount = count
-	self.knownEntities = new
-end
-
-function ext:PostReloaded()
-	local i = 0
-
-	for _, v in ipairs(ents.GetAll()) do
-		if v.isCore then
-			i = i + 1
-			self.knownEntities[i] = v
-
-			v.__coreOwnershipID = i
-		end
-	end
-
-	self.knownEntCount = i
-end
-ext.InitPostEntity = ext.PostReloaded
-ext.OnFullUpdate   = ext.PostReloaded
 
 function basewars.canSpawnCore(ply, pos, class)
 	if not IsValid(ply) then return false, "Invalid player!" end
@@ -99,8 +60,8 @@ function basewars.canSpawnCore(ply, pos, class)
 		if not a then return false, "This area is not on the navigation mesh!" end
 	end]]
 
-	for i = 1, ext.knownEntCount do
-		local v = ext.knownEntities[i]
+	for i = 1, ext.core_count do
+		local v = ext.core_list[i]
 
 		local combined_rad = v:getProtectionRadius() + rad
 		if v:encompassesPos(pos) or v:GetPos():DistToSqr(pos) <= combined_rad*combined_rad then
@@ -123,8 +84,8 @@ if CLIENT then
 		if s then return end
 
 		if self.debug then
-			for i = 1, self.knownEntCount do
-				local v = self.knownEntities[i]
+			for i = 1, self.core_count do
+				local v = self.core_list[i]
 
 				render.SetColorMaterial()
 				render.DrawSphere(v:GetPos(),  v:getProtectionRadius(), 25, 25, prot)
@@ -153,8 +114,8 @@ function ext:ShouldPlayerSpawnObject(ply, trace)
 	local pos2 = ply:GetPos()
 	local core = basewars.getCore(ply)
 
-	for i = 1, ext.knownEntCount do
-		local v = ext.knownEntities[i]
+	for i = 1, ext.core_count do
+		local v = ext.core_list[i]
 
 		if not (core == v or basewars.sameOwner(v, ply)) and ((pos and v:encompassesPos(pos)) or v:encompassesPos(pos2)) then
 			return false
@@ -170,8 +131,8 @@ end
 
 function ext:EntityTakeDamageFinal(ent, info)
 	local core
-	for i = 1, ext.knownEntCount do
-		local v = ext.knownEntities[i]
+	for i = 1, ext.core_count do
+		local v = ext.core_list[i]
 
 		if v:protectsEntity(ent) and not hook.Run("BW_ShouldDamageProtectedEntity", ent, info) then
 			info:SetDamage(0)
@@ -196,8 +157,8 @@ function ext:BW_PreEntityDestroyed(ent, dmginfo)
 end
 
 function ext:PlayerInitialSpawn(ply)
-	for i = 1, ext.knownEntCount do
-		local v = ext.knownEntities[i]
+	for i = 1, ext.core_count do
+		local v = ext.core_list[i]
 
 		if basewars.sameOwner(v, ply) or hook.Run("BW_ShouldCoreBelongToPlayer", v, ply) then -- DOCUMENT:
 			ply:SetNW2Entity("baseCore", v)

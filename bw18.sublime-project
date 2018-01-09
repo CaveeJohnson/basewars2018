@@ -1,14 +1,33 @@
+// For your linter please use the following settings
+// you may also need to map "gmod lua" to "lua"
+// garry specific syntax is not allowed in this project
+// so lua / luajit linters will work fine
+
+// "lint_mode": "background",
+// "show_errors_on_save": true,
+
 {
 	"folders":
 	[
 		{
 			"folder_exclude_patterns":
 			[
-				"config",
-				"items"
+				"*"
 			],
-			"name": "Gamemode",
+			"name": "GM Loader",
 			"path": "gamemode"
+		},
+		{
+			"name": "GM Core",
+			"path": "gamemode/core"
+		},
+		{
+			"name": "GM Extensions",
+			"path": "gamemode/extensions"
+		},
+		{
+			"name": "GM Thirdparty",
+			"path": "gamemode/thirdparty"
 		},
 		{
 			"name": "Items",
@@ -39,11 +58,14 @@
 			"path": "."
 		}
 	],
-	// Just make sure we are all on the same page
+
 	"settings":
 	{
+		// Intendation and style
 		"tab_size": 4,
 		"translate_tabs_to_spaces": false,
+
+		// Remove whitespace
 		"trailing_spaces_enabled" : true,
 		"trailing_spaces_include_empty_lines" : true,
 		"trailing_spaces_trim_on_save": true,

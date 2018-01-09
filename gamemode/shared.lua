@@ -63,13 +63,13 @@ do
 		function basewars.extBase:receiveEntityCreate(ent)
 			if not self.__entTrackers then return end
 
-			for name, check in pairs(self.__entTrackers) do
-				if self[check](self, ent) then
-					table.insert(self[name .. "_list"], ent)
-					self[name .. "_count"] = self[name .. "_count"] + 1
+			for name, data in pairs(self.__entTrackers) do
+				if self[data[1]](self, ent) then
+					table.insert(self[data[2]], ent)
+					self[data[3]] = self[data[3]] + 1
 
 					ent.__entTrackers = ent.__entTrackers or {}
-					ent.__entTrackers[self:getTag() .. "_" .. name] = true
+					ent.__entTrackers[data[4]] = true
 				end
 			end
 		end
@@ -77,10 +77,10 @@ do
 		function basewars.extBase:receiveEntityRemove(ent)
 			if not self.__entTrackers then return end
 
-			for name, check in pairs(self.__entTrackers) do
-				if ent.__entTrackers and ent.__entTrackers[self:getTag() .. "_" .. name] then
-					table.RemoveByValue(self[name .. "_list"], ent)
-					self[name .. "_count"] = self[name .. "_count"] - 1
+			for name, data in pairs(self.__entTrackers) do
+				if ent.__entTrackers and ent.__entTrackers[data[4]] then
+					table.RemoveByValue(self[data[2]], ent)
+					self[data[3]] = self[data[3]] - 1
 				end
 			end
 		end
@@ -102,10 +102,13 @@ do
 				self.OnFullUpdate = self.OnFullUpdate or self.onEntitiesReloaded
 			end
 
-			self.__entTrackers[name] = check
+			local list  = name .. "_list"
+			local count = name .. "_count"
 
-			self[name .. "_list"] = {}
-			self[name .. "_count"] = 0
+			self.__entTrackers[name] = {check, list, count, self:getTag() .. "_" .. name}
+
+			self[list] = {}
+			self[count] = 0
 		end
 	end
 

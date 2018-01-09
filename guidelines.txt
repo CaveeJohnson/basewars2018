@@ -1,0 +1,107 @@
+Style Guidelines.
+To contribute code you must follow these guidelines.
+
+File naming:
+	lower_snake.lua
+	- There are no exceptions to this excluding where
+	  files are required to be named in a specific way
+	- .md is preferred over .markdown
+
+Extension naming:
+	core.lower-kebab
+	lower-kebab-not-core
+	- Extensions inside of GM Core must start with core.
+	  and all extensions are lower-kebab cased
+
+Variables:
+	local local_variable
+	ext.memberVariable
+	function(paramOne, paramTwo)
+	ENUM_VARIABLE
+	globaltable
+	- There should never be anything global that isn't a table
+	- Local variables may be in camelCase but it is preferred as lower_snake
+	- Member variables may be in lower_snake but it is preferred as camelCase
+
+Events / hooks:
+	ext:HookCallback
+	ext:BW_HookCallback
+	- Events and hooks are PascalCase
+
+
+Code best practices.
+Once again, these must be followed.
+
+Networking:
+	Do not send entities using net.WriteEntity unless you are sure that the
+	  receivers will all be active and have received a full update.
+	If you are unsure if a player will know of an entities existence, write
+	  the entindex and handle it however on the client.
+
+	NEVER WRITE LOCALPLAYER.
+	NEVER WRITE 'shared' RESULTS.
+	If a result can be generated shared, only send what was used to generate
+	  it and NOT what the RESULT was.
+
+	NEVER. TRUST. THE. CLIENT.
+
+Fonts:
+	Use Roboto, DejaVu Sans X or built-in fonts. These all come packaged
+	(dejavu with the gamemode, roboto with gmod) and are the only fonts
+	we can guarantee will exist across all operating systems.
+
+Events / file interaction:
+	The hook system exists for a reason, DO NOT CALL OTHER EXTENSIONS
+	  UNLESS THAT EXTENSION HAS A DIRECT RETURN.
+
+	Events should never have an 'always return' basis outside of the core.
+
+	Events that make sense only in the context of basewars should be
+	  BW_Event, calling non-standard events that do not start with BW_
+	  must be part of the core. Listening for them is fine.
+
+Optimization:
+	Optimization is IMPORTANT.
+	Consider optimization when DESIGNING THE CODE, and after the fact.
+	DO NOT TURN YOUR CODE INTO UNREADABLE TRASH TO OPTIMIZE.
+
+	'ipairs' is used for lists/arrays, 'pairs' for dictionaries/hash tables
+	  this is not a matter of optimization, but rather a matter of knowing
+	  what type of table it operates on. (also it IS slightly faster)
+
+	If something doesn't NEED to respond in the next frame, don't make
+	  it respond in the next frame, make it check for a change every 1-2 seconds.
+
+	Where possible when cleaning or sorting a table, return tbl, count so that
+	  the count can be used to avoid doing #tbl.
+
+	Do not localize or cache or do anything else until after you have profiled
+	  your code.
+
+	Micro-optimization is reserved for things where macro-optimization cannot be done
+	  further or methods that are likely to be called in the range of > 100 times per
+	  frame, and once again, only after profiling.
+
+	Micro-optimization is things like localizing math functions on something called 5
+	  times per entity per frame and not localizing Entity.SetHealth for a call every
+	  	(22 * 5 * edict (lets say 1000) = 110000 table lookups at 22tps)
+	  few seconds, that's not an optimization, it's just fucking stupid.
+
+	PROFILE EVERYTHING ON CLIENT AND SERVER.
+
+	Something that takes more than 2ms and gets called more than once per second is
+	  unacceptable.
+	Something that takes more than 0.5ms and get called per frame is unacceptable.
+	ANYTHING that takes more than 5ms is unacceptable, full stop.
+
+General:
+	Never iterate ents.GetAll() per frame. EVER. THIS IS UNACCEPTABLE!
+	Never use ents. ANYTHING PER FRAME. Track entities and then use DistToSqr etc.
+
+	Track entities using the extensions tracker system or by yourself,
+	  track the bare minimum you can.
+
+
+IF YOU HAVE SOMETHING TO ADD PLEASE CONSULT @Basewars Core OR @Q2F2 FIRST
+AND JUST BECAUSE YOU READ THIS DOENS'T MEAN YOU GET TO MAKE STYLE CHANGES TO OTHER
+PEOPLES CODE. ONLY I GET TO DO THAT WHEN I CLEAN UP TECHNICAL DEBT AND DO UNIFICATION.

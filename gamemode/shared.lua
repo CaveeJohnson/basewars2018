@@ -23,7 +23,7 @@ basewars.__ext    = basewars.__ext    or {} -- For extensions
 basewars.__global = basewars.__global or {} -- For preserved state (eg factions, ongoing raids)
 
 
-basewars.version = 20180108
+basewars.version = 20180109
 basewars.versionString = "ALPHA " .. tostring(basewars.version)
 
 
@@ -49,14 +49,20 @@ do
 
 	function basewars.extBase:establishGlobalTable(name)
 		basewars.__global[self.name] = basewars.__global[self.name] or {}
-		basewars.__global[self.name][name] = basewars.__global[self.name][name] or {}
 
-		return basewars.__global[self.name][name]
+		local res = basewars.__global[self.name][name] or {}
+		basewars.__global[self.name][name] = res
+
+		return res
 	end
 
 	function basewars.extBase:overwriteGlobalTable(name, tbl)
 		basewars.__global[self.name] = basewars.__global[self.name] or {}
-		basewars.__global[self.name][name] = tbl
+
+		local res = tbl or basewars.__global[self.name][name] or {}
+		basewars.__global[self.name][name] = res
+
+		return res
 	end
 
 	do

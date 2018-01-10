@@ -109,7 +109,7 @@ function ext:cleanOngoing()
 	local new = {}
 
 	local count = 0
-	for k, v in pairs(ext.ongoingRaids) do
+	for k, v in pairs(self.ongoingRaids) do
 		if
 			IsValid(k) and IsValid(v.vs) and
 			v.started + v.time > CurTime()
@@ -120,7 +120,7 @@ function ext:cleanOngoing()
 		end
 	end
 
-	ext.ongoingRaids = self:overwriteGlobalTable("ongoingRaids", new)
+	self.ongoingRaids = self:overwriteGlobalTable("ongoingRaids", new)
 	return new, count
 end
 ext.getOngoing = ext.cleanOngoing

@@ -20,7 +20,7 @@ BUGS / NEEDS DOING:
 	[ ] Core area count/ents includes non-encompassed / non-owned entities (cant sell if someone puts shit nearby)
 	[X] Optimize entity netvars (localize method names to avoid concat, move branching outside of functions, should allow for JIT)
 	[#] Stuff to optimize on SV https://b.catgirlsare.sexy/GuGY.png related to below V
-	[ ] Make generic 'entity tracker' system for extensions
+	[#] Make generic 'entity tracker' system for extensions
 		- ext:addEntityTracker("tbl", "tbl_count", "wantEntity")
 		- This code is cloned throughout the code base in an optimization effort
 		- Will make it easier to implement custom entity lists, hence making optimization easier moving forward
@@ -81,6 +81,7 @@ Fun / extra gameplay stuff:
 		- meth lab
 	[ ] PVE content
 		- bosses (zeni)
+		- fishing (aer)
 		- ?
 	[ ] Weapon factory
 	[ ] Loudout table

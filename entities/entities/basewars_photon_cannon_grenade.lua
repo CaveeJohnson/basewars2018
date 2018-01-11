@@ -88,11 +88,15 @@ if SERVER then
 	end
 
 	function ENT:explode(normal)
+		if self.exploded then return end
+
+		self.exploded = true
+
 		self:doExplodeEffects(normal, 10, true)
 		self:doExplodeSounds()
 
 		self:dealDamage(normal)
-		self:Remove()
+		self:removeSafe()
 	end
 
 	function ENT:doExplodeEffects(normal, magnitude, extra)
@@ -125,7 +129,8 @@ if SERVER then
 	do
 		local tr = {output = res}
 
-		local up = Vector(0, 0, 256)
+		local up = Vector(0, 0, 62)
+		local up2 = Vector(0, 0, 2)
 		function ENT:dealDamage(normal)
 			local e = ents.FindInSphere(self:GetPos(), self.damageRadius)
 
@@ -136,7 +141,7 @@ if SERVER then
 				local ent = e[i]
 
 				if ent:IsValid() and ent.TakeDamageInfo then
-					tr.start  = self:GetPos()
+					tr.start  = self:GetPos() + up2
 					tr.endpos = ent:GetPos()
 					tr.filter = self
 					util.TraceLine(tr)
@@ -168,9 +173,17 @@ if SERVER then
 	end
 
 	function ENT:dissipate()
+		if self.exploded then return end
+
+		self.exploded = true
+
 		self:doExplodeEffects()
 		self:EmitSound(self.dissipateSound)
 		SafeRemoveEntity(self)
+	end
+
+	function ENT:removeSafe()
+		SafeRemoveEntityDelayed(self, 0)
 	end
 else
 	ENT.lightMat = Material("sprites/light_glow02_add")

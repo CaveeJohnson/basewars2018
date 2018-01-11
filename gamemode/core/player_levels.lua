@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"core.levels"
+local ext = basewars.createExtension"core.player-levels"
 
 ext.levelRate = 500
 

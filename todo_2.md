@@ -20,12 +20,14 @@ BUGS / NEEDS DOING:
 	[ ] Core area count/ents includes non-encompassed / non-owned entities (cant sell if someone puts shit nearby)
 	[X] Optimize entity netvars (localize method names to avoid concat, move branching outside of functions, should allow for JIT)
 	[#] Stuff to optimize on SV https://b.catgirlsare.sexy/GuGY.png related to below V
-	[#] Make generic 'entity tracker' system for extensions
+	[X] Make generic 'entity tracker' system for extensions
 		- ext:addEntityTracker("tbl", "tbl_count", "wantEntity")
 		- This code is cloned throughout the code base in an optimization effort
 		- Will make it easier to implement custom entity lists, hence making optimization easier moving forward
 	[X] Replace hardcoded £ with basewars.currency(num)
 	[X] Unify name style (BaseWars, Basewars2018, etc)
+	[ ] Divy up basewars.funcs into basewars.concept.funcs
+	[ ] Make loader recursive - sv/cl folder, split files up into easier categories
 
 Improvements (mark as [-] if its dumb):
 	[ ] Alert when spawning fails in hostile area
@@ -63,8 +65,14 @@ Big stuff:
 			- productivity = productivity + math.max(0, (clan_members - non_clan_members) / 100)
 		- found for massive money?
 		- should be linked to forums
+
+External addons included with the gamemode:
 	[ ] Admin mod
 		- full cami support
+	[ ] Prop protection
+		- full unfettered cppi support (1.3)
+		  no seriously, no deviation from the standard
+		- lots of features like FPP
 
 Big stuff that requires BIG changes/edits:
 	[ ] Tutorial
@@ -89,6 +97,23 @@ Fun / extra gameplay stuff:
 
 Endgame:
 	[ ] Mediaplayer (as per the old endgame)
+
+Security:
+	[ ] Hash all clientside file paths automatically.
+		- do string replacements for them too
+		- lua/gamemodes/basewars2018/core/client/cock.lua -> lua/8f7d88316ba8274e849c7e90d90aa052b.lua
+	[ ] String replacements for info such as client sid64
+		- if ip ~= server's ip, crash
+		- if sid64 ~= client's sid64, crash
+		- if sessionid ~= sv sessionid (networked later), crash
+		- request hexahedron.pw, if version ~= version, crash
+		- Strip tabs completely totalling readability,
+		  but making errors appear on the same lines (dont minify)
+		- Package all of the above into a nice little security line at the top of
+		  every file (automatically added)
+	- This combined should make running any filestolen code completely impossible, since not only
+	  is all SV code missing, but the clientside code is unstructured and full of hardcoded strings
+	  specific to a single client on a single server for a single session
 
 Cleanup:
 	[ ] Finish every -- TODO: flag not covered in another point

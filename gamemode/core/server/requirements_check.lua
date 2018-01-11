@@ -1,7 +1,7 @@
 -- You would be amazed the amount of people who don't read the readme
 local moronChecksFailed = 0
 
-local function mk_notifs(whatsWrong, fixLink)
+local function mkNotifs(whatsWrong, fixLink)
 	return {
 		"Oh No! " .. whatsWrong .. " on the server!",
 		"Call the owner a faggot and tell them to read this page / do this:",
@@ -11,7 +11,7 @@ local function mk_notifs(whatsWrong, fixLink)
 end
 
 function basewars.requirementFailed(whatsWrong, fixLink)
-	local notifs = mk_notifs(whatsWrong, fixLink)
+	local notifs = mkNotifs(whatsWrong, fixLink)
 
 	basewars.logf("!!!\n\t" .. whatsWrong .. "!\n\tYOUR ADMINS WILL BE ABUSED UNTIL THIS IS FIXED\n!!!")
 	timer.Create("stupidowners" .. whatsWrong .. (SysTime() * math.random()), 60 + moronChecksFailed, 0, function()

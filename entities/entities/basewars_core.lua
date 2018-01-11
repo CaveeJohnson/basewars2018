@@ -251,48 +251,57 @@ function ENT.readNetwork(_, ply)
 end
 net.Receive(net_tag, ENT.readNetwork)
 
-function ENT:transmitAreaEnts(ply)
-	self.areaEnts = {}
+do
+	local ext = basewars.createExtension"core.base-core-area-tracker"
+	ext:addEntityTracker("ents", "wantEntity")
 
-	local oldCount = self.area_count or 0
-	self.area_count = 0
-
-	local inverse = {}
-	local oldInverse = self.__areaEntsInverse or inverse
-
-	local newEnt = false
-	for _, v in ipairs(ents.GetAll()) do
-		if not v.isCore and v.isPoweredEntity and self:encompassesEntity(v) then
-			self.area_count = self.area_count + 1
-			self.areaEnts[self.area_count] = v
-
-			inverse[v] = true
-			if not oldInverse[v] then
-				newEnt = true
-			end
-
-			if v.isControlPanel and not self:networkContainsEnt(v) then
-				self:attachEntToNetwork(v)
-			end
-		end
+	function ext:wantEntity(ent)
+		return not v.isCore and v.isPoweredEntity
 	end
 
-	if not ply and (self.area_count == 0 and oldCount == 0) then return end
-	if not ply and (oldCount == self.area_count and not newEnt) then return end
+	function ENT:transmitAreaEnts(ply)
+		self.areaEnts = {}
 
-	self.__areaEntsInverse = inverse
+		local oldCount = self.area_count or 0
+		self.area_count = 0
 
-	net.Start(net_tag)
-		net.WriteEntity(self)
+		local inverse = {}
+		local oldInverse = self.__areaEntsInverse or inverse
 
-		net.WriteUInt(self.area_count, 16)
-		for i = 1, self.area_count do
-			net.WriteEntity(self.areaEnts[i])
+		local newEnt = false
+		for _, v in ipairs(ext.ents_list) do
+			if self:encompassesEntity(v) then
+				self.area_count = self.area_count + 1
+				self.areaEnts[self.area_count] = v
+
+				inverse[v] = true
+				if not oldInverse[v] then
+					newEnt = true
+				end
+
+				if v.isControlPanel and not self:networkContainsEnt(v) then
+					self:attachEntToNetwork(v)
+				end
+			end
 		end
-	if ply then
-		net.Send(ply)
-	else
-		net.Broadcast()
+
+		if not ply and (self.area_count == 0 and oldCount == 0) then return end
+		if not ply and (oldCount == self.area_count and not newEnt) then return end
+
+		self.__areaEntsInverse = inverse
+
+		net.Start(net_tag)
+			net.WriteEntity(self)
+
+			net.WriteUInt(self.area_count, 16)
+			for i = 1, self.area_count do
+				net.WriteEntity(self.areaEnts[i])
+			end
+		if ply then
+			net.Send(ply)
+		else
+			net.Broadcast()
+		end
 	end
 end
 

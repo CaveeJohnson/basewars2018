@@ -11,11 +11,11 @@ ext:addEntityTracker("prop", "wantProp")
 ext:addEntityTracker("ent" , "wantEntity")
 
 function ext:wantEntity(ent)
-	return ent.isBasewarsEntity and ent:CPPIGetOwner() == LocalPlayer()
+	return ent.isPoweredEntity and ent:CPPIGetOwner() == LocalPlayer()
 end
 
 function ext:wantProp(ent)
-	return ((ent.Type == "anim" and not ent.isBasewarsEntity) or ent:GetClass() == "prop_physics") and ent:CPPIGetOwner() == LocalPlayer()
+	return ((ent.Type == "anim" and not ent.isPoweredEntity) or ent:GetClass() == "prop_physics") and ent:CPPIGetOwner() == LocalPlayer()
 end
 
 function ext:isBuilding(ply)

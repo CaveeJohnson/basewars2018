@@ -36,10 +36,7 @@ do
 	--local max, min = math.max, math.min
 
 	function drawString(str, x, y, col, a1, a2)
-		draw.SimpleTextOutlined(str, font_main, x, y, col, a1, a2, 1, shade)
-
-		local w, h = surface.GetTextSize(str)
-		return h
+		return draw.text(str, font_main, x, y, col, a1, a2, 1, shade)
 	end
 end
 

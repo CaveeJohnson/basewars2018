@@ -23,7 +23,7 @@ basewars.__ext    = basewars.__ext    or {} -- For extensions
 basewars.__global = basewars.__global or {} -- For preserved state (eg factions, ongoing raids)
 
 
-basewars.version = 20180110
+basewars.version = 20180111
 basewars.versionString = "ALPHA " .. tostring(basewars.version)
 
 

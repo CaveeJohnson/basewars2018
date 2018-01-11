@@ -40,12 +40,12 @@ do
 		if enabled then return end
 			enabled = true
 
-		local ang = ang * 1 -- copies
-			ang:RotateAroundAxis(ang:Right(), yaw)
+		local ang_c = ang * 1 -- copies
+			ang_c:RotateAroundAxis(ang_c:Right(), yaw)
 
 		local ratio = ScrW() * 0.000088
 		cam.Start3D(EyePos(), eye_ang, 90)
-		cam.Start3D2D(pos - (ang:Up() * yaw * ratio), ang, 0.01)
+		cam.Start3D2D(pos - (ang_c:Up() * yaw * ratio), ang_c, 0.01)
 	end
 
 	function ext:ex()
@@ -70,8 +70,7 @@ do
 	local max, min = math.max, math.min
 
 	function drawString(str, x, y, col, a1, a2, font)
-		local w, h = draw.SimpleTextOutlined(str, font or main_font, x, y, col, a1, a2, 1, shade)
-		return h
+		return draw.text(str, font or main_font, x, y, col, a1, a2, 1, shade)
 	end
 
 	function drawBar(x, y, w, h, col1, col2, frac)
@@ -153,13 +152,13 @@ function ext:HUDPaint()
 		if ply:Alive() then
 			local armor = ply:Armor()
 			local max_armor = 100
-			drawString(armor, curx + bar_width + 4, cury - bar_height/2 - 1, armor > max_armor and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+			drawString(armor, curx + bar_width + 4, cury - bar_height / 2 - 1, armor > max_armor and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 			cury = cury - bar_height
 			cury = cury - drawBar(curx, cury, bar_width, bar_height, stupid2, stupid1, armor / max_armor)
 
 			local hp = math.max(ply:Health(), 0)
 			local max_hp = ply:GetMaxHealth()
-			drawString(hp, curx + bar_width + 4, cury - bar_height/2 - 1, hp > max_hp and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+			drawString(hp, curx + bar_width + 4, cury - bar_height / 2 - 1, hp > max_hp and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 			cury = cury - bar_height
 			cury = cury - drawBar(curx, cury, bar_width, bar_height, col2, col1, hp / max_hp)
 

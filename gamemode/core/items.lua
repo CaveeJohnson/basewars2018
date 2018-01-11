@@ -281,12 +281,12 @@ if SERVER then
 
 	ext.limiter = {}
 
-	local function onRemoveLimitHandler(_, self, id, class)
-		if self.limiter[id] and self.limiter[id][class] then
-			self.limiter[id][class] = self.limiter[id][class] - 1
+	local function onRemoveLimitHandler(_, ent, id, class)
+		if ent.limiter[id] and ent.limiter[id][class] then
+			ent.limiter[id][class] = ent.limiter[id][class] - 1
 
 			local ply = player.GetBySteamID64(id)
-			if ply then ply:SetNW2Int("bw18_limit_" .. class, self.limiter[id][class]) end
+			if ply then ply:SetNW2Int("bw18_limit_" .. class, ent.limiter[id][class]) end
 		end
 	end
 
@@ -335,7 +335,7 @@ if SERVER then
 		if norm then
 			local dot_maxs = norm:Dot(ent:LocalToWorld(ent:OBBMaxs()))
 			local dot_mins = norm:Dot(ent:LocalToWorld(ent:OBBMins()))
-			local off = math.max(dot_maxs, dot_mins)*norm
+			local off = math.max(dot_maxs, dot_mins) * norm
 
 			ent:SetPos(pos + off)
 		else

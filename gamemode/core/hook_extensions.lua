@@ -22,8 +22,8 @@ if SERVER then
 	util.AddNetworkString("sharedTakeDamage")
 
 	function GM:EntityTakeDamage(targ, info, ...)
-		if targ.PreTakeDamage then
-			if targ:PreTakeDamage(info) then return true end
+		if targ.PreTakeDamage and targ:PreTakeDamage(info) then
+			return true
 		end
 
 		local res = self.BaseClass.EntityTakeDamage(self, targ, info, ...)

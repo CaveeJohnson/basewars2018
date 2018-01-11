@@ -174,7 +174,7 @@ do
 	end
 
 	function basewars.nsigned(num)
-		return num > 0 and "+"..basewars.nformat(num) or basewars.nformat(num)
+		return num > 0 and "+" .. basewars.nformat(num) or basewars.nformat(num)
 	end
 
 	function basewars.currency(num)

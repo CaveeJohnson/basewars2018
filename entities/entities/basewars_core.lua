@@ -103,25 +103,25 @@ function ENT:shouldSell(ply)
 end
 
 function ENT.readNetwork()
-	local self = net.ReadEntity()
-	if not IsValid(self) then return end
+	local ent = net.ReadEntity()
+	if not IsValid(ent) then return end
 
-	self.area_count = net.ReadUInt(16) or 0
-	self.areaEnts = {}
+	ent.area_count = net.ReadUInt(16) or 0
+	ent.areaEnts = {}
 
-	for i = 1, self.area_count do
-		self.areaEnts[i] = net.ReadEntity()
+	for i = 1, ent.area_count do
+		ent.areaEnts[i] = net.ReadEntity()
 	end
 
-	for i = 1, self.area_count do
-		local ent = self.areaEnts[i]
+	for i = 1, ent.area_count do
+		local v = ent.areaEnts[i]
 
-		if ent.onCoreAreaEntsUpdated then
-			ent:onCoreAreaEntsUpdated(self, self.areaEnts, self.area_count)
+		if v.onCoreAreaEntsUpdated then
+			v:onCoreAreaEntsUpdated(ent, ent.areaEnts, ent.area_count)
 		end
 	end
 
-	hook.Run("BW_CoreAreaEntsUpdated", self, self.areaEnts, self.area_count) -- DOCUMENT:
+	hook.Run("BW_CoreAreaEntsUpdated", ent, ent.areaEnts, ent.area_count) -- DOCUMENT:
 end
 net.Receive(net_tag, ENT.readNetwork)
 
@@ -238,15 +238,15 @@ if CLIENT then return end
 util.AddNetworkString(net_tag)
 
 function ENT.readNetwork(_, ply)
-	local self = net.ReadEntity()
-	if not IsValid(self) or not self.isCore then return end
+	local ent = net.ReadEntity()
+	if not IsValid(ent) or not ent.isCore then return end
 
-	self.plyRequests = self.plyRequests or {}
+	ent.plyRequests = ent.plyRequests or {}
 
-	if not self.plyRequests[ply] then
-		self.plyRequests[ply] = true
+	if not ent.plyRequests[ply] then
+		ent.plyRequests[ply] = true
 
-		self:transmitAreaEnts(ply)
+		ent:transmitAreaEnts(ply)
 	end
 end
 net.Receive(net_tag, ENT.readNetwork)
@@ -256,7 +256,7 @@ do
 	ext:addEntityTracker("ents", "wantEntity")
 
 	function ext:wantEntity(ent)
-		return not v.isCore and v.isPoweredEntity
+		return not ent.isCore and ent.isPoweredEntity
 	end
 
 	function ENT:transmitAreaEnts(ply)
@@ -393,7 +393,7 @@ function ENT:setRadius(rad)
 			local v = t[i]
 			local check = rad + v:getProtectionRadius()
 
-			if v ~= self and pos:DistToSqr(v:GetPos()) < check*check then
+			if v ~= self and pos:DistToSqr(v:GetPos()) < check * check then
 				return false, "New size would conflict with another core's claim"
 			end
 		end

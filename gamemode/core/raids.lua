@@ -52,7 +52,7 @@ function ext:getPlayerRaidTarget(ply)
 end
 
 function ext:getEntRaidTarget(ent)
-	if ent.isCore then return ext.ongoingRaids[core] and ext.ongoingRaids[core].vs end
+	if ent.isCore then return ext.ongoingRaids[ent] and ext.ongoingRaids[ent].vs end
 
 	if not ent:validCore() then return false end
 
@@ -84,7 +84,7 @@ function basewars.canStartRaid(ply, core)
 	if not basewars.hasCore(ply) then return false, "You must have a core to raid!" end
 	if not IsValid(core) then return false, "Invalid raid target!" end
 
-	if IsValid(self:getPlayerRaidTarget(ply)) then return false, "You are already participating in a raid!" end
+	if IsValid(ext:getPlayerRaidTarget(ply)) then return false, "You are already participating in a raid!" end
 
 	if core:IsPlayer() then
 		core = basewars.getCore(core)
@@ -92,7 +92,7 @@ function basewars.canStartRaid(ply, core)
 		if not IsValid(core) then return false, "Invalid raid target!" end
 	end
 	if not core.isCore then return false, "Invalid raid target!" end
-	if IsValid(self:getEntRaidTarget(core)) then return false, "Your target is already participating in a raid!" end
+	if IsValid(ext:getEntRaidTarget(core)) then return false, "Your target is already participating in a raid!" end
 
 	local ownCore = basewars.getCore(ply)
 	if ownCore == core then return false, "You cannot raid yourself!" end
@@ -346,7 +346,7 @@ if CLIENT then -- GUI (temp)
 		local ok, why = basewars.canStartRaid(LocalPlayer(), sel_core)
 		if not ok then self:displayError(why) return end
 
-		basewars.startRaid(_, core)
+		basewars.startRaid(_, sel_core)
 	end
 
 	function PANEL:displayError(msg)
@@ -390,12 +390,7 @@ function ext:transmitRaidSingle(own, vs, time, started)
 		net.WriteEntity(vs)
 		net.WriteUInt(time, 16)
 		net.WriteUInt(math.floor(started), 24)
-
-	if ply then
-		net.Send(ply)
-	else
-		net.Broadcast()
-	end
+	net.Broadcast()
 end
 
 function ext:transmitRaids(ply)
@@ -423,10 +418,11 @@ function ext:PostPlayerInitialSpawn(ply)
 end
 
 function basewars.startRaid(ply, core)
-	local can, ownCore, core = basewars.canStartRaid(ply, core)
+	local can, ownCore
+	can, ownCore, core = basewars.canStartRaid(ply, core)
 	if not can then return false, ownCore end
 
-	self:cleanOngoing()
+	ext:cleanOngoing()
 
 	local time = hook.Run("BW_GetRaidTime", ownCore, core, ply) or 300 -- TODO: Config -- DOCUMENT:
 	local started = CurTime()
@@ -435,20 +431,20 @@ function basewars.startRaid(ply, core)
 	ext.ongoingRaids[core]    = {vs = ownCore, time = time, started = started}
 
 	core:raidEffect()
-	self:transmitRaidSingle(ownCore, core, time, started)
+	ext:transmitRaidSingle(ownCore, core, time, started)
 
 	hook.Run("BW_RaidStart", ownCore, core)
-	self:transmitRaidStartEnd(false, ownCore, core)
+	ext:transmitRaidStartEnd(false, ownCore, core)
 
 	local raidOver = function()
 		ext.ongoingRaids[ownCore] = nil
 		ext.ongoingRaids[core] = nil
 
-		self:cleanOngoing()
-		self:transmitRaids()
+		ext:cleanOngoing()
+		ext:transmitRaids()
 
 		hook.Run("BW_RaidEnd", ownCore, core)
-		self:transmitRaidStartEnd(true, ownCore, core)
+		ext:transmitRaidStartEnd(true, ownCore, core)
 	end
 
 	local tid = string.format("raid%s%s", tostring(ownCore), tostring(core))
@@ -459,8 +455,8 @@ function basewars.startRaid(ply, core)
 
 		function()
 			if not (IsValid(ownCore) and IsValid(core)) then
-				timer.Destroy(tid.."tick")
-				timer.Destroy(tid)
+				timer.Remove(tid .. "tick")
+				timer.Remove(tid)
 
 				basewars.logf("raid ended earlier due to validity failure: %s vs %s", tostring(ownCore), tostring(core))
 				raidOver()

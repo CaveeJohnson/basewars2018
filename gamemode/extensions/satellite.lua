@@ -32,7 +32,7 @@ function ext:PostDrawSkyBox()
 
 	if IsValid(self.ent) then
 		self.fn = FrameNumber()
-		self.angles.y = (CurTime() * 0.06)
+		self.angles.y = CurTime() * 0.06
 
 		local pos = self.pos + self.angles:Forward() * -10000
 
@@ -74,7 +74,7 @@ function ext:PostDrawTranslucentRenderables(depth, sky)
 	if CurTime() > self.fireUntil or FrameNumber() - self.fn > 1 then return end
 
 	render.SetMaterial(self.beamMat)
-	local rem = (self.fireUntil - CurTime())
+	local rem = self.fireUntil - CurTime()
 	self.beamMat:SetFloat("$alpha", rem)
 
 	render.DrawBeam(self.satPos, self.hitPos, 1000, 0, 1, color_white)

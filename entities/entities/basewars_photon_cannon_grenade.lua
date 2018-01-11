@@ -127,7 +127,7 @@ if SERVER then
 	end
 
 	do
-		local tr = {output = res}
+		local tr2 = {output = res}
 
 		local up = Vector(0, 0, 62)
 		local up2 = Vector(0, 0, 2)
@@ -141,20 +141,20 @@ if SERVER then
 				local ent = e[i]
 
 				if ent:IsValid() and ent.TakeDamageInfo then
-					tr.start  = self:GetPos() + up2
-					tr.endpos = ent:GetPos()
-					tr.filter = self
-					util.TraceLine(tr)
+					tr2.start  = self:GetPos() + up2
+					tr2.endpos = ent:GetPos()
+					tr2.filter = self
+					util.TraceLine(tr2)
 
 					local res1 = res.HitWorld
 
-					tr.start = tr.start + up
-					util.TraceLine(tr)
+					tr2.start = tr2.start + up
+					util.TraceLine(tr2)
 
 					local res2 = res.HitWorld
 
 					if not (res1 or res2) then
-						local f = math.max(0, self.damageRadiusSqr - tr.start:DistToSqr(tr.endpos)) / self.damageRadiusSqr
+						local f = math.max(0, self.damageRadiusSqr - tr2.start:DistToSqr(tr2.endpos)) / self.damageRadiusSqr
 						local b = math.Clamp(ent:Health(), self.damage * self.damageLowerBoundMult, self.damage * self.damageUpperBoundMult)
 
 						local dmg = DamageInfo()

@@ -51,7 +51,7 @@ if CLIENT then
 			self.pseudoWeapon:ckInit()
 		end
 
-		local res, err = pcall(self.pseudoDraw, self.pseudoWeapon)
+		local res--[[, err]] = pcall(self.pseudoDraw, self.pseudoWeapon)
 		if not res then
 			self.pseudoWeapon:Remove()
 

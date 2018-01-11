@@ -57,11 +57,11 @@ function hook.Call(name, gm, ...)
 	if basewars and basewars.__ext then
 		local a, b, c, d, e, f
 
-		for extName, tbl in pairs(basewars.__ext) do
-			local func = tbl[name]
+		for extName, t in pairs(basewars.__ext) do
+			local func = t[name]
 
 			if isfunction(func) then
-				suc, a, b, c, d, e, f = pcall(func, tbl, ...)
+				suc, a, b, c, d, e, f = pcall(func, t, ...)
 
 				if suc and a ~= nil or b then
 					return a, b, c, d, e, f

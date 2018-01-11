@@ -23,7 +23,6 @@ end
 
 do
 	local clamp = math.ClampRev
-	local max = math.max
 
 	local net_tag = "bw18-dtv_transmit"
 	if SERVER then
@@ -69,19 +68,19 @@ do
 				data[net.ReadString()] = {net.ReadType(), net.ReadType()}
 			end
 
-			local self = Entity(eidx)
-			if not (IsValid(self) and self.queueDtvChange) then
+			local ent = Entity(eidx)
+			if not (IsValid(ent) and ent.queueDtvChange) then
 				local timer_id = net_tag .. "_" .. tostring(eidx)  .. "_" .. tostring(math.random()) -- just has to be unique
 
 				timer.Create(timer_id, 2, 5, function()
-					self = Entity(eidx)
-					if not (IsValid(self) and self.queueDtvChange) then return end
+					ent = Entity(eidx)
+					if not (IsValid(ent) and ent.queueDtvChange) then return end
 
-					timer.Destroy(timer_id)
-					callChanges(self, data)
+					timer.Remove(timer_id)
+					callChanges(ent, data)
 				end)
 			else
-				callChanges(self, data)
+				callChanges(ent, data)
 			end
 		end)
 	end
@@ -114,33 +113,33 @@ do
 		local bool    = type == "Bool"
 		local getType = bool and "is" or "get"
 
-		local setter  = self["SetNW2" .. type]
-		local getter  = self["GetNW2" .. type]
+		--local setter  = self["SetNW2" .. type]
+		--local getter  = self["GetNW2" .. type]
 
 		local getName = getType .. name
 		local setName = "set"   .. name
 
 		if numberString then
-			self[getName] = function(self)
-				return tonumber(self.dt[name]) or 0
+			self[getName] = function(ent)
+				return tonumber(ent.dt[name]) or 0
 			end
 		else
-			self[getName] = function(self)
-				return self.dt[name]
+			self[getName] = function(ent)
+				return ent.dt[name]
 			end
 		end
 
 		if numberString then
-			self[setName] = function(self, var)
-				--self:SetNW2String(name, var)
-				self:queueDtvChange(name, self.dt[name], var)
-				self.dt[name] = tostring(var)
+			self[setName] = function(ent, var)
+				--ent:SetNW2String(name, var)
+				ent:queueDtvChange(name, ent.dt[name], var)
+				ent.dt[name] = tostring(var)
 			end
 		else
-			self[setName] = function(self, var)
-				--setter(self, name, var)
-				self:queueDtvChange(name, self.dt[name], var)
-				self.dt[name] = var
+			self[setName] = function(ent, var)
+				--setter(ent, name, var)
+				ent:queueDtvChange(name, ent.dt[name], var)
+				ent.dt[name] = var
 			end
 		end
 
@@ -148,52 +147,52 @@ do
 
 		if numerical or type == "Vector" or type == "Angle" then
 			if min and max then
-				self["add" .. name] = function(self, var)
-					local val = self[getName](self) + var
+				self["add" .. name] = function(ent, var)
+					local val = ent[getName](ent) + var
 					val = clamp(val, getVar(min), getVar(max))
 
-					self[setName](self, val)
+					ent[setName](ent, val)
 				end
-				self["take" .. name] = function(self, var)
-					local val = self[getName](self) - var
+				self["take" .. name] = function(ent, var)
+					local val = ent[getName](ent) - var
 					val = clamp(val, getVar(min), getVar(max))
 
-					self[setName](self, val)
+					ent[setName](ent, val)
 				end
 			elseif min then
-				self["add" .. name] = function(self, var)
-					local val = self[getName](self) + var
+				self["add" .. name] = function(ent, var)
+					local val = ent[getName](ent) + var
 					val = max(val, getVar(min))
 
-					self[setName](self, val)
+					ent[setName](ent, val)
 				end
-				self["take" .. name] = function(self, var)
-					local val = self[getName](self) - var
+				self["take" .. name] = function(ent, var)
+					local val = ent[getName](ent) - var
 					val = max(val, getVar(min))
 
-					self[setName](self, val)
+					ent[setName](ent, val)
 				end
 			else
-				self["add" .. name] = function(self, var)
-					self[setName](self, self[getName](self) + var)
+				self["add" .. name] = function(ent, var)
+					ent[setName](ent, ent[getName](ent) + var)
 				end
-				self["take" .. name] = function(self, var)
-					self[setName](self, self[getName](self) - var)
+				self["take" .. name] = function(ent, var)
+					ent[setName](ent, ent[getName](ent) - var)
 				end
 			end
 		end
 
 		if numerical then
-			self["has" .. name] = function(_, amt)
-				return self[getName](self) >= amt
+			self["has" .. name] = function(ent, amt)
+				return ent[getName](ent) >= amt
 			end
 		elseif bool then
-			self["toggle" .. name] = function(_)
-				self[setName](self, not self[getName](self))
+			self["toggle" .. name] = function(ent)
+				self[setName](ent, not ent[getName](ent))
 			end
 		elseif type == "Entity" then
-			self["valid" .. name] = function(_)
-				return self[getName](self):IsValid()
+			self["valid" .. name] = function(ent)
+				return ent[getName](ent):IsValid()
 			end
 		end
 

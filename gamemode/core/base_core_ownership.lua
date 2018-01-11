@@ -64,7 +64,7 @@ function basewars.canSpawnCore(ply, pos, class)
 		local v = ext.core_list[i]
 
 		local combined_rad = v:getProtectionRadius() + rad
-		if v:encompassesPos(pos) or v:GetPos():DistToSqr(pos) <= combined_rad*combined_rad then
+		if v:encompassesPos(pos) or v:GetPos():DistToSqr(pos) <= combined_rad * combined_rad then
 			return false, "Core conflicts with another core's claim!"
 		elseif a and v.area and a:intersects(v.area) then
 			return false, "Core conflicts with another core's claim!"
@@ -130,7 +130,6 @@ function ext:EntityTakeDamage(ent, info)
 end
 
 function ext:EntityTakeDamageFinal(ent, info)
-	local core
 	for i = 1, ext.core_count do
 		local v = ext.core_list[i]
 

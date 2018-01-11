@@ -20,8 +20,8 @@ function ext:BW_DoScanEffect(core) -- doesn't actually get called yet
 	ext.showAmt = math.min(c, 10)
 
 	local core_pos = core:GetPos()
-	local check = (core:getProtectionRadius() * 2)
-	check = check*check
+	local check = core:getProtectionRadius() * 2
+	check = check * check
 
 	c = 0
 	for _, v in ipairs(player.GetAll()) do
@@ -68,9 +68,9 @@ function ext:HUDPaint()
 	cam.Start3D()
 	cam.IgnoreZ(true)
 	render.SetColorModulation(1, 0.2, 0.2)
-		local ents = self.targetEnts
+		local targs = self.targetEnts
 		for i = 1, self.showAmt do
-			local v = ents[i][3]
+			local v = targs[i][3]
 
 			if IsValid(v) then
 				v:DrawModel()
@@ -91,7 +91,7 @@ function ext:HUDPaint()
 	y = y + draw.text("Top 10 valuables", font_small2, x, y, blue, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 
 	for i = 1, self.showAmt do
-		local v = ents[i]
+		local v = targs[i]
 		y = y + draw.text(string.format(former, v[1], basewars.currency(v[2])), font_small, x, y, white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 	end
 end

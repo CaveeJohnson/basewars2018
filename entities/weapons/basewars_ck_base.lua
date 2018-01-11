@@ -222,10 +222,10 @@ if CLIENT then
 					local tocheck = {"nocull", "additive", "vertexalpha", "vertexcolor", "ignorez"}
 					for _, j in pairs(tocheck) do
 						if v[j] then
-							params["$"..j] = 1
-							name = name.."1"
+							params["$" .. j] = 1
+							name = name .. "1"
 						else
-							name = name.."0"
+							name = name .. "0"
 						end
 					end
 
@@ -243,7 +243,7 @@ if CLIENT then
 		if v.type == "Model" and IsValid(model) then
 			model:SetPos(pos + ang:Forward() * v.pos.x + ang:Right() * v.pos.y + ang:Up() * v.pos.z)
 
-			ang = ang*1
+			ang = ang * 1
 			ang:RotateAroundAxis(ang:Up(), v.angle.y)
 			ang:RotateAroundAxis(ang:Right(), v.angle.p)
 			ang:RotateAroundAxis(ang:Forward(), v.angle.r)
@@ -284,8 +284,8 @@ if CLIENT then
 			end
 
 				local color = self:getElementColor(name) or v.color
-				render.SetColorModulation(color.r/255, color.g/255, color.b/255)
-				render.SetBlend(color.a/255)
+				render.SetColorModulation(color.r / 255, color.g / 255, color.b / 255)
+				render.SetBlend(color.a / 255)
 
 					model:DrawModel()
 
@@ -304,7 +304,7 @@ if CLIENT then
 		elseif v.type == "Quad" and v.draw_func then
 			local drawpos = pos + ang:Forward() * v.pos.x + ang:Right() * v.pos.y + ang:Up() * v.pos.z
 
-			ang = ang*1
+			ang = ang * 1
 			ang:RotateAroundAxis(ang:Up(), v.angle.y)
 			ang:RotateAroundAxis(ang:Right(), v.angle.p)
 			ang:RotateAroundAxis(ang:Forward(), v.angle.r)

@@ -41,7 +41,7 @@ function ext:HUDPaint()
 	local alpha = 255
 	if elapsed > 1 then alpha = (dur - elapsed) * 255 end
 
-	local x, y = ScrW()/2 + math.random(0, 1), 300
+	local x, y = ScrW() / 2 + math.random(0, 1), 300
 
 	draw.SimpleText(self.form,  font, x,      y,      Color(255, 255, 255, alpha), TEXT_ALIGN_CENTER)
 	draw.SimpleText(self.form2, font, x + 49, y + 10, Color(255, 255, 255, alpha), TEXT_ALIGN_CENTER)

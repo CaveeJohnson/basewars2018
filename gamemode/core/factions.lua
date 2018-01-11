@@ -10,7 +10,7 @@ function ext:cleanTables()
 	local new_names = {}
 
 	for core, data in pairs(self.factionTable) do
-		if IsValid(v) and data.flat_member_count > 0 then
+		if IsValid(core) and data.flat_member_count > 0 then
 			count = count + 1
 
 			new[core] = data
@@ -61,7 +61,7 @@ function basewars.canStartFaction(ply, name, password, color)
 		return false, "You must have a core to start a faction"
 	end
 
-	if self.factions[name] or self.factions[name:lower()] or self.factions[name:upper()] then
+	if ext.factions[name] or ext.factions[name:lower()] or ext.factions[name:upper()] then
 		return false, "A faction with this name already exists"
 	end
 
@@ -181,7 +181,7 @@ function ext:startFaction(ply, name, password, color)
 	name = utf8.force(name:Trim()) or name
 
 	if SERVER then -- CLIENT calls this when server says, failing would make no sense
-		local res, err = basewars.canStartFaction(ply, name, password, color)
+		local res = basewars.canStartFaction(ply, name, password, color)
 		if res == false then return end
 	end
 

@@ -69,8 +69,8 @@ function ext:HUDPaint()
 	local keyW, keyH = surface.GetTextSize(self.keyBind)
 
 	surface.SetFont(text_font)
-	local actionW, actionH = surface.GetTextSize(action)
-	local nameW, nameH = surface.GetTextSize(name)
+	local actionW--[[, actionH]] = surface.GetTextSize(action)
+	local nameW--[[, nameH]] = surface.GetTextSize(name)
 	local spaceW = surface.GetTextSize(" ")
 
 	local wholeW = actionW + nameW + 6

@@ -9,7 +9,7 @@ fast_clamp : 13.944μs
 fast_clamp_rev : 15.983μs
 ]]
 do
-	local abs, min, max = math.abs, math.min, math.max
+	local --[[abs,]] min, max = --[[math.abs,]] math.min, math.max
 
 	math.ShitClamp = math.ShitClamp or math.Clamp
 
@@ -21,7 +21,7 @@ do
 		return min(max(x, min(a, b)), max(b, a))
 	end
 
-	local function sgn(i)
+	--[[local function sgn(i)
 		return min(max(i, -1), 1)
 	end
 
@@ -29,7 +29,7 @@ do
 
 	function math.Approach(cur, target, inc)
 		return cur + sgn(target - cur) * (min(abs(inc), abs(target - cur)))
-	end
+	end]]
 end
 
 local PLAYER  = debug.getregistry().Player
@@ -43,18 +43,18 @@ do
 	local model = ENTITY.GetModel
 
 	function cachedSequence(ply, seq)
-		local model       = model(ply)
-		cache[model]      = cache[model] or {}
-		cache[model][seq] = cache[model][seq] or look(ply, seq)
+		local mdl       = model(ply)
+		cache[mdl]      = cache[mdl] or {}
+		cache[mdl][seq] = cache[mdl][seq] or look(ply, seq)
 
-		return cache[model][seq]
+		return cache[mdl][seq]
 	end
 end
 
 do
 	local cachedSit = {}
 	local function cacheSit(holdType) -- ddeath with concat
-		cachedSit[holdType] = cachedSit[holdType] or "sit_" .. holdtype
+		cachedSit[holdType] = cachedSit[holdType] or "sit_" .. holdType
 		return cachedSit[holdType]
 	end
 
@@ -128,13 +128,14 @@ function GM:CalcMainActivity(ply, velocity)
 
 	self:HandlePlayerLanding(ply, velocity, ply.m_bWasOnGround)
 
-	if self:HandlePlayerNoClipping(ply, velocity) or
-		self:HandlePlayerDriving  (ply)           or
-		self:HandlePlayerVaulting (ply, velocity) or
-		self:HandlePlayerJumping  (ply, velocity) or
-		self:HandlePlayerSwimming (ply, velocity) or
-		self:HandlePlayerDucking  (ply, velocity) then
-	else
+	if not (
+		self:HandlePlayerNoClipping(ply, velocity) or
+		self:HandlePlayerDriving   (ply)           or
+		self:HandlePlayerVaulting  (ply, velocity) or
+		self:HandlePlayerJumping   (ply, velocity) or
+		self:HandlePlayerSwimming  (ply, velocity) or
+		self:HandlePlayerDucking   (ply, velocity)
+	) then
 		local len2dsqr = velocity:Length2DSqr()
 
 		if len2dsqr > 22500 then
@@ -363,6 +364,20 @@ if CLIENT then
 		local r_cullMode = render.CullMode
 		local runClass = player_manager.RunClass
 
+		local function drawHands(self, hands, vm, ply, weapon)
+			if not hook.Call("PreDrawPlayerHands", self, hands, vm, ply, weapon) then
+				if weapon.ViewModelFlip then
+					r_cullMode(MATERIAL_CULLMODE_CW)
+						hands:DrawModel()
+					r_cullMode(MATERIAL_CULLMODE_CCW)
+				else
+					hands:DrawModel()
+				end
+			end
+
+			hook.Call("PostDrawPlayerHands", self, hands, vm, ply, weapon)
+		end
+
 		function GM:PostDrawViewModel(vm, ply, weapon)
 			if not IsValid(weapon) then return false end
 
@@ -370,17 +385,7 @@ if CLIENT then
 				local hands = ply:GetHands()
 
 				if IsValid(hands) then
-					if not hook.Call("PreDrawPlayerHands", self, hands, vm, ply, weapon) then
-						if weapon.ViewModelFlip then
-							r_cullMode(MATERIAL_CULLMODE_CW)
-								hands:DrawModel()
-							r_cullMode(MATERIAL_CULLMODE_CCW)
-						else
-							hands:DrawModel()
-						end
-					end
-
-					hook.Call("PostDrawPlayerHands", self, hands, vm, ply, weapon)
+					drawHands(self, hands, vm, ply, weapon)
 				end
 			end
 
@@ -392,9 +397,9 @@ if CLIENT then
 	end
 
 	do
-		local output = {}
-		local trace = {
-			output = output,
+		local output_t = {}
+		local trace_t = {
+			output = output_t,
 		}
 
 		local s_setFont = surface.SetFont
@@ -405,15 +410,15 @@ if CLIENT then
 		function GM:HUDDrawTargetID()
 			local ply = LocalPlayer()
 
-			trace.start = ply:EyePos()
-			trace.endpos = trace.start + (ply:GetAimVector() * 32768)
-			trace.filter = ply
-			util.TraceLine(trace)
+			trace_t.start = ply:EyePos()
+			trace_t.endpos = trace_t.start + (ply:GetAimVector() * 32768)
+			trace_t.filter = ply
+			util.TraceLine(trace_t)
 
-			if not output.Hit then return end
-			if not output.HitNonWorld then return end
+			if not output_t.Hit then return end
+			if not output_t.HitNonWorld then return end
 
-			local ent = output.Entity
+			local ent = output_t.Entity
 			local text = "ERROR"
 
 			if ent:IsPlayer() then

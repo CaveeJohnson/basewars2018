@@ -83,7 +83,7 @@ function ext:mmRender(ply)
 				render.SetColorModulation(1, 0, 0, 1)
 				v:DrawModel()
 			elseif basewars.getSaleMult(v, ply, false) == 1.0 then
-				local alpha = (10 - spawned_time)/10 -- TODO: config, see items.lua
+				local alpha = (10 - spawned_time) / 10 -- TODO: config, see items.lua
 				render.SetColorModulation(0, 1, 0, alpha)
 				render.SetBlend(alpha)
 				v:DrawModel()

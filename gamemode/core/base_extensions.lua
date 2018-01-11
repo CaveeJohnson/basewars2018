@@ -69,7 +69,7 @@ do
 	end
 
 	function utf8.sub(str, start, send)
-	  local send = send or -1
+		send = send or -1
 
 		local pos = 1
 		local bytes = string.len(str)
@@ -106,8 +106,10 @@ do
 	function utf8.totable(str)
 		local tbl = {}
 
+		local i = 0
 		for uchar in string.gmatch(str, "([%z\1-\127\194-\244][\128-\191]*)") do
-			tbl[#tbl+1] = uchar
+			i = i + 1
+			tbl[i] = uchar
 		end
 
 		return tbl

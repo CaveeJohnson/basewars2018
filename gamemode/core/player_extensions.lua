@@ -61,12 +61,12 @@ do
 		local getter = self["GetNW2" .. nw2Type]
 
 		if numberString then
-			self[getType .. name] = function(self)
-				return tonumber(getter(self, name)) or 0
+			self[getType .. name] = function(ply)
+				return tonumber(getter(ply, name)) or 0
 			end
 		else
-			self[getType .. name] = function(self)
-				return getter(self, name)
+			self[getType .. name] = function(ply)
+				return getter(ply, name)
 			end
 		end
 
@@ -90,27 +90,27 @@ do
 
 		if SERVER then
 			if numberString then
-				self["set" .. name] = function(self, var)
+				self["set" .. name] = function(ply, var, noSave)
 					local netvar = tostring(var)
-					setter(self, name, netvar)
+					setter(ply, name, netvar)
 
 					if databased and not noSave then
-						basewars.savePlayerVar(self, name, var)
+						basewars.savePlayerVar(ply, name, var)
 					end
 				end
 			else
-				self["set" .. name] = function(self, var, noSave)
-					setter(self, name, var)
+				self["set" .. name] = function(ply, var, noSave)
+					setter(ply, name, var)
 
 					if databased and not noSave then
-						basewars.savePlayerVar(self, name, var)
+						basewars.savePlayerVar(ply, name, var)
 					end
 				end
 			end
 
 			if numerical or type == "Vector" or type == "Angle" then
-				self["add" .. name] = function(_, var)
-					local val = self["get" .. name](self) + var
+				self["add" .. name] = function(ply, var)
+					local val = ply["get" .. name](ply) + var
 
 					if min and max then
 						val = clamp(val, getVar(min), getVar(max))
@@ -118,11 +118,11 @@ do
 						val = m_max(val, getVar(min))
 					end
 
-					self["set" .. name](self, val)
+					ply["set" .. name](ply, val)
 				end
 
-				self["take" .. name] = function(_, var)
-					local val = self["get" .. name](self) - var
+				self["take" .. name] = function(ply, var)
+					local val = ply["get" .. name](ply) - var
 
 					if min and max then
 						val = clamp(val, getVar(min), getVar(max))
@@ -130,20 +130,20 @@ do
 						val = m_max(val, getVar(min))
 					end
 
-					self["set" .. name](self, val)
+					ply["set" .. name](ply, val)
 				end
 			end
 
 			if databased then
 				self.__varsToLoad = self.__varsToLoad or {}
-				self.__varsToLoad[name] = {initial, function(self, _, val)
+				self.__varsToLoad[name] = {initial, function(ply, _, val)
 					if numerical then
 						val = tonumber(val)
 					elseif bool then
 						val = tobool(val)
 					end
 
-					self["set" .. name](self, val, true)
+					ply["set" .. name](ply, val, true)
 				end}
 			elseif initial then
 				self["set" .. name](self, initial)

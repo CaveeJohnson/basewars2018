@@ -10,6 +10,8 @@ Entities:
 		[ ] Health Dispenser
 		[ ] Armor Dispenser
 	[ ] Energy Field Generator
+	[ ] Money sink generator (power grid node, tax based on throughput)
+	[ ] Telepad, massive money sink, fucking expensive, costs 1mil + 0.5% of your money to teleport
 
 BUGS / NEEDS DOING:
 	[X] Playervars need support for Doubles / string numbers
@@ -28,6 +30,8 @@ BUGS / NEEDS DOING:
 	[X] Unify name style (BaseWars, Basewars2018, etc)
 	[ ] Divy up basewars.funcs into basewars.concept.funcs
 	[ ] Make loader recursive - sv/cl folder, split files up into easier categories
+	[ ] Moving weapon container doesn't move render
+	[ ] Bw items no longer have deflect effect
 
 Improvements (mark as [-] if its dumb):
 	[ ] Alert when spawning fails in hostile area
@@ -53,8 +57,9 @@ Minor Features:
 	[ ] Spawn protection
 
 Big stuff:
+	[ ] Crypto market
 	[ ] Drug/buff system
-	[ ] Faction system
+	[#] Faction system
 		- Faction button
 		- Flags for factions
 		- Faction owner + admin + user, function to get highest ranking user, owner only changes on core reclaim
@@ -73,6 +78,9 @@ External addons included with the gamemode:
 		- full unfettered cppi support (1.3)
 		  no seriously, no deviation from the standard
 		- lots of features like FPP
+	[ ] ChatEXP remake from scratch
+		- Base on warframe chat
+	[ ] Titles + COH + Nametags
 
 Big stuff that requires BIG changes/edits:
 	[ ] Tutorial

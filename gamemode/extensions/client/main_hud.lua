@@ -70,7 +70,8 @@ do
 	local max, min = math.max, math.min
 
 	function drawString(str, x, y, col, a1, a2, font)
-		return draw.text(str, font or main_font, x, y, col, a1, a2, 1, shade)
+		local _, h = draw.SimpleTextOutlined(str, font or main_font, x, y, col, a1, a2, 1, shade)
+		return h
 	end
 
 	function drawBar(x, y, w, h, col1, col2, frac)

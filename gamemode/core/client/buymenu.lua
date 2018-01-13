@@ -60,16 +60,16 @@ do
 				local item_name = item.name
 
 				surface.SetFont(smallFont)
-				local w = surface.GetTextSize(item_name)
+				local tw = surface.GetTextSize(item_name)
 				local total_w = 92 - 9
 				local dots = 0
 				local dot = "."
 
-				while w > total_w do
+				while tw > total_w do
 					dots = math.min(dots + 1, 3)
 
 					item_name = utf8.sub(item_name, 1, utf8.len(item_name) - 1)
-					w = surface.GetTextSize(item_name .. dot:rep(dots))
+					tw = surface.GetTextSize(item_name .. dot:rep(dots))
 				end
 
 				item.displayName = item_name .. dot:rep(dots)
@@ -130,7 +130,7 @@ function ext:buildItems(pnl)
 		cats:Dock(FILL)
 		function cats:Paint() end
 
-	local items = basewars.getItemsCategorized()
+	local items = basewars.items.getCategorized()
 	for catName, data in SortedPairs(items) do
 		local layout = vgui.Create("DIconLayout")
 			layout:Dock(FILL)

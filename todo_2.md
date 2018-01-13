@@ -19,19 +19,18 @@ BUGS / NEEDS DOING:
 	[X] extension 'core.money-distributer' hook 'BW_DistributeSaleMoney' failed: gamemodes/basewars2018/gamemode/core/server/money_distributer.lua:59: attempting to load data before player database init
 	[X] distributer -> distributor
 	[X] Factions and raids lose all data on reload, by nature they cannot recover it so it must be stored elsewhere
-	[ ] Core area count/ents includes non-encompassed / non-owned entities (cant sell if someone puts shit nearby)
+	[X] Core area count/ents includes non-encompassed / non-owned entities (cant sell if someone puts shit nearby)
 	[X] Optimize entity netvars (localize method names to avoid concat, move branching outside of functions, should allow for JIT)
-	[#] Stuff to optimize on SV https://b.catgirlsare.sexy/GuGY.png related to below V
+	[X] Stuff to optimize on SV https://b.catgirlsare.sexy/GuGY.png related to below V
 	[X] Make generic 'entity tracker' system for extensions
 		- ext:addEntityTracker("tbl", "tbl_count", "wantEntity")
 		- This code is cloned throughout the code base in an optimization effort
 		- Will make it easier to implement custom entity lists, hence making optimization easier moving forward
 	[X] Replace hardcoded £ with basewars.currency(num)
 	[X] Unify name style (BaseWars, Basewars2018, etc)
-	[ ] Divy up basewars.funcs into basewars.concept.funcs
+	[X] Divy up basewars.funcs into basewars.concept.funcs
 	[ ] Make loader recursive - sv/cl folder, split files up into easier categories
-	[ ] Moving weapon container doesn't move render
-	[ ] Bw items no longer have deflect effect
+	[X] Moving weapon container doesn't move render
 
 Improvements (mark as [-] if its dumb):
 	[ ] Alert when spawning fails in hostile area

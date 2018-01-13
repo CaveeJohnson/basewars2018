@@ -1,4 +1,5 @@
 -- TODO: load sql config
+basewars.data = {}
 
 local useSQL = false
 local dir = "basewars2018"
@@ -7,12 +8,8 @@ file.CreateDir(dir)
 
 local ext = basewars.createExtension"core.data-manager"
 
-function ext:isPlayer(ply)
-	return isentity(ply) and ply:IsPlayer()
-end
-
-function basewars.getPlayerDataDir(ply)
-	return string.format("%s/%s", dir, ext:isPlayer(ply) and ply:SteamID64() or ply)
+function basewars.data.getPlayerDir(ply)
+	return string.format("%s/%s", dir, isentity(ply) and ply:IsPlayer() and ply:SteamID64() or ply)
 end
 
 function ext:Initialize()
@@ -63,24 +60,24 @@ function ext:LoadPlayerData(ply)
 		basewars.logf("loading databased netvars for player '%s'", ply)
 
 		for var, v in pairs(ply.__varsToLoad) do
-			local set = basewars.initVarDefault(ply, var, v[1])
+			local set = basewars.data.initVarDefault(ply, var, v[1])
 
 			if set then
 				ply["set" .. var](ply, v[1], true)
 			else
-				basewars.loadPlayerVar(ply, var, v[2])
+				basewars.data.loadPlayerVar(ply, var, v[2])
 			end
 		end
 	end
 end
 
-function basewars.initVarDefault(ply, var, initial)
+function basewars.data.initVarDefault(ply, var, initial)
 	if useSQL then
 		error("mysql support is not yet implemented")
 		return false
 	end
 
-	local dirName = basewars.getPlayerDataDir(ply)
+	local dirName = basewars.data.getPlayerDir(ply)
 	if not dirName then return false end
 
 	if not file.IsDir(dirName, "DATA") then
@@ -98,8 +95,8 @@ function basewars.initVarDefault(ply, var, initial)
 	return false
 end
 
-function basewars.savePlayerVar(ply, var, val, callback)
-	local dirName = basewars.getPlayerDataDir(ply)
+function basewars.data.savePlayerVar(ply, var, val, callback)
+	local dirName = basewars.data.getPlayerDir(ply)
 	if not dirName then return end
 
 	if useSQL then
@@ -111,8 +108,8 @@ function basewars.savePlayerVar(ply, var, val, callback)
 	if callback then callback(ply, var, val) end
 end
 
-function basewars.loadPlayerVar(ply, var, callback)
-	local dirName = basewars.getPlayerDataDir(ply)
+function basewars.data.loadPlayerVar(ply, var, callback)
+	local dirName = basewars.data.getPlayerDir(ply)
 	if not dirName then return end
 
 	if useSQL then

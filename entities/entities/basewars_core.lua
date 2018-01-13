@@ -203,13 +203,13 @@ if CLIENT then
 end
 
 function ENT:encompassesPos(pos)
-	if self.area then
+	--[[if self.area then
 		--if not self.area:containsWithinTolSqr(pos) then return false end
 		if not self.area:containsNoTol(pos) then return false end -- TODO: Tolerence overlap
-	else
+	else]]
 		local rad = self:getProtectionRadius()
 		if self:GetPos():DistToSqr(pos) > rad * rad then return false end
-	end
+	--end
 
 	return true
 end
@@ -373,19 +373,19 @@ function ENT:removeEntFromNetwork(ent)
 end
 
 function ENT:genArea(regen)
-	if self.areasExt and (not self.area or regen) then
+	--[[if self.areasExt and (not self.area or regen) then
 		self.area = self.areasExt:new(tostring(self), self:GetPos(), self:getProtectionRadius())
-	end
+	end]]
 end
 
 function ENT:OnRemove()
-	if self.areasExt then
+	--[[if self.areasExt then
 		self.areasExt:removeAreaByID(self.area.id)
-	end
+	end]]
 end
 
 function ENT:setRadius(rad)
-	local t, c = basewars.getCores()
+	local t, c = basewars.basecore.getList()
 
 	if c > 1 then
 		local pos = self:GetPos()
@@ -585,7 +585,7 @@ function ENT:Think()
 	if self.nextAreaTransmit <= CurTime() then
 		self:transmitAreaEnts()
 
-		self.nextAreaTransmit = CurTime() + 2
+		self.nextAreaTransmit = CurTime() + 3
 	end
 
 	self.nextSelfDestructCheck = self.nextSelfDestructCheck or 0

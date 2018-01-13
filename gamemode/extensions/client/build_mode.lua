@@ -51,7 +51,7 @@ function ext:HUDPaint()
 end
 
 function ext:buildingRender(ply)
-	local core = basewars.getCore(ply)
+	local core = basewars.basecore.get(ply)
 	if not IsValid(core) then return end
 
 	cam.IgnoreZ(true)
@@ -70,7 +70,7 @@ function ext:buildingRender(ply)
 end
 
 function ext:mmRender(ply)
-	local core = basewars.getCore(ply)
+	local core = basewars.basecore.get(ply)
 	local invalid = not IsValid(core)
 
 	cam.IgnoreZ(true)
@@ -83,7 +83,7 @@ function ext:mmRender(ply)
 			if invalid or not core:encompassesEntity(v) then
 				render.SetColorModulation(1, 0, 0, 1)
 				v:DrawModel()
-			elseif basewars.getSaleMult(v, ply, false) == 1.0 then
+			elseif basewars.items.getSaleMult(v, ply, false) == 1.0 then
 				local alpha = (10 - spawned_time) / 10 -- TODO: config, see items.lua
 				render.SetColorModulation(0, 1, 0, alpha)
 				render.SetBlend(alpha)

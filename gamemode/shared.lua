@@ -23,7 +23,7 @@ basewars.__ext    = basewars.__ext    or {} -- For extensions
 basewars.__global = basewars.__global or {} -- For preserved state (eg factions, ongoing raids)
 
 
-basewars.version = 20180112
+basewars.version = 20180113
 basewars.versionString = "ALPHA " .. tostring(basewars.version)
 
 
@@ -195,7 +195,7 @@ function basewars.sameOwner(e1, e2)
 
 	if e1.ownershipCheck and (e1:ownershipCheck(e2) or e1:ownershipCheck(o2)) then
 		return true
-	elseif e2.ownershipCheck and (e2:ownershipCheck(e1) or e1:ownershipCheck(o1)) then
+	elseif e2.ownershipCheck and (e2:ownershipCheck(e1) or e2:ownershipCheck(o1)) then
 		return true
 	end
 
@@ -250,6 +250,38 @@ function basewars.getCleanupTime()
 	return (hook.Run("GetPlayerCleanupTime") or def) - 10 -- -10 since we can't take risks of a slow frame or two causing us to be too late
 end
 
+function basewars.moneyPopout(ent, money)
+	if not (money and money ~= 0) then return end
+
+	local ed = EffectData()
+		ed:SetOrigin(ent:LocalToWorld(ent:OBBCenter()))
+		ed:SetEntity(ent)
+
+		ed:SetRadius(ent:BoundingRadius() + 10)
+		ed:SetScale(money)
+	util.Effect("basewars_money_popout", ed, true, true)
+end
+
+function basewars.destructWithEffect(ent, time, money)
+	if ent.beingDestructed then return end
+	time = time or 0.8
+
+	local ed = EffectData()
+		ed:SetOrigin(ent:GetPos())
+		ed:SetEntity(ent)
+
+		ed:SetFlags(time)
+	util.Effect("basewars_destruct", ed, true, true)
+
+	ent:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
+	ent:EmitSound(string.format("weapons/physcannon/energy_disintegrate%d.wav", math.random(4, 5)))
+
+	ent.beingDestructed = true
+	if SERVER then
+		ent:SetHealth(1e9)
+		SafeRemoveEntityDelayed(ent, time)
+	end
+end
 
 concommand.Add("gamemode_reload", function(p)
 	if SERVER and IsValid(p) and not p:IsAdmin() then return end

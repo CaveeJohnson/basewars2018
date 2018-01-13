@@ -1,4 +1,5 @@
 local ext = basewars.createExtension"core.factions"
+basewars.factions = {}
 
 ext.factions     = ext:establishGlobalTable("factions")
 ext.factionTable = ext:establishGlobalTable("factionTable")
@@ -52,12 +53,12 @@ function ext:getDefaultTagFromName(name)
 	return utf8.sub(name:upper(), 1, 4)
 end
 
-function basewars.canStartFaction(ply, name, password, color)
+function basewars.factions.canStartFaction(ply, name, password, color)
 	if utf8.len(name) < 2 then
 		return false, "Your faction name must be 2 or more characters"
 	end
 
-	if not basewars.hasCore(ply) then
+	if not basewars.basecore.has(ply) then
 		return false, "You must have a core to start a faction"
 	end
 
@@ -82,7 +83,7 @@ function ext:BW_ShouldSell(ply, ent)
 	if ent.isCore and self.factionTable[ent] then return false, "Faction core cannot be sold, you must disband!" end
 end
 
-function basewars.playerLeaveFaction(ply)
+function basewars.factions.playerLeaveFaction(ply)
 	local fac = nil-- TODO:
 	if not fac then return end
 
@@ -99,7 +100,7 @@ function basewars.playerLeaveFaction(ply)
 	end
 end
 
-function basewars.playerJoinFaction()
+function basewars.factions.playerJoinFaction()
 	-- TODO:
 end
 
@@ -161,9 +162,9 @@ function ext:handleStartNetworking(ply, name, password, color)
 	end
 end
 
-function basewars.startFaction(ply, name, password, color)
+function basewars.factions.startFaction(ply, name, password, color)
 	assert(name and password, "startFaction: missing required data")
-	color = color or HSVToColor(math.random(359), 0.8 + 0.2*math.random(), 0.8 + 0.2*math.random())
+	color = color or HSVToColor(math.random(359), 0.8 + 0.2 * math.random(), 0.8 + 0.2 * math.random())
 
 	if SERVER then
 		ext:startFaction(ply, name, password, color)
@@ -185,7 +186,7 @@ function ext:startFaction(ply, name, password, color)
 		if res == false then return end
 	end
 
-	local core = basewars.getCore(ply)
+	local core = basewars.basecore.get(ply)
 
 	local fac_data = {
 		name     = name,

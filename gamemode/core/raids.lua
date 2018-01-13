@@ -1,4 +1,5 @@
 local ext = basewars.createExtension"core.raids"
+basewars.raids = {}
 
 ext.ongoingRaids = ext:establishGlobalTable("ongoingRaids")
 
@@ -45,9 +46,9 @@ end
 
 function ext:getPlayerRaidTarget(ply)
 	if not ply:IsPlayer() then return false end
-	if not basewars.hasCore(ply) then return false end
+	if not basewars.basecore.has(ply) then return false end
 
-	local core = basewars.getCore(ply)
+	local core = basewars.basecore.get(ply)
 	return ext.ongoingRaids[core] and ext.ongoingRaids[core].vs or false
 end
 
@@ -64,9 +65,9 @@ function ext:getRaidInfo(ent)
 	if not IsValid(ent) then return false end
 
 	if ent:IsPlayer() then
-		if not basewars.hasCore(ent) then return false end
+		if not basewars.basecore.has(ent) then return false end
 
-		local core = basewars.getCore(ent)
+		local core = basewars.basecore.get(ent)
 		return ext.ongoingRaids[core]
 	elseif ent.isCore then
 		return ext.ongoingRaids[ent]
@@ -80,21 +81,21 @@ function ext:getRaidInfo(ent)
 	end
 end
 
-function basewars.canStartRaid(ply, core)
-	if not basewars.hasCore(ply) then return false, "You must have a core to raid!" end
+function basewars.raids.canStartRaid(ply, core)
+	if not basewars.basecore.has(ply) then return false, "You must have a core to raid!" end
 	if not IsValid(core) then return false, "Invalid raid target!" end
 
 	if IsValid(ext:getPlayerRaidTarget(ply)) then return false, "You are already participating in a raid!" end
 
 	if core:IsPlayer() then
-		core = basewars.getCore(core)
+		core = basewars.basecore.get(core)
 
 		if not IsValid(core) then return false, "Invalid raid target!" end
 	end
 	if not core.isCore then return false, "Invalid raid target!" end
 	if IsValid(ext:getEntRaidTarget(core)) then return false, "Your target is already participating in a raid!" end
 
-	local ownCore = basewars.getCore(ply)
+	local ownCore = basewars.basecore.get(ply)
 	if ownCore == core then return false, "You cannot raid yourself!" end
 
 	local res, why = hook.Run("BW_ShouldRaid", ownCore, core, ply) -- DOCUMENT:
@@ -241,7 +242,7 @@ if CLIENT then -- GUI (temp)
 	end
 
 	function PANEL:populateList()
-		local cores, l = basewars.getCores()
+		local cores, l = basewars.basecore.getList()
 		local list = self.list
 
 		local sel_i    = list:GetSelectedLine()
@@ -308,7 +309,7 @@ if CLIENT then -- GUI (temp)
 	function PANEL:handleButtonState(line)
 		local button = self.rbutton
 
-		local ourCore = basewars.getCore(LocalPlayer())
+		local ourCore = basewars.basecore.get(LocalPlayer())
 		if not ourCore and ourCore:IsValid() then button:SetEnabled(false) return end
 		if ext.ongoingRaids[ourCore] then button:SetEnabled(false) return end
 
@@ -326,7 +327,7 @@ if CLIENT then -- GUI (temp)
 		button:SetEnabled(self:checkLineValidity(line))
 	end
 
-	function basewars.startRaid(_, core)
+	function basewars.raids.startRaid(_, core)
 		net.Start(ext:getTag() .. "interaction")
 			net.WriteEntity(core)
 		net.SendToServer()
@@ -343,10 +344,10 @@ if CLIENT then -- GUI (temp)
 		local sel_core = sel_line.ent
 		if not sel_core and sel_core:IsValid() then self:displayError("Something has gone horribly wrong! (invalid core??)") return end
 
-		local ok, why = basewars.canStartRaid(LocalPlayer(), sel_core)
+		local ok, why = basewars.raids.canStartRaid(LocalPlayer(), sel_core)
 		if not ok then self:displayError(why) return end
 
-		basewars.startRaid(_, sel_core)
+		basewars.raids.startRaid(_, sel_core)
 	end
 
 	function PANEL:displayError(msg)
@@ -417,9 +418,9 @@ function ext:PostPlayerInitialSpawn(ply)
 	self:transmitRaids(ply)
 end
 
-function basewars.startRaid(ply, core)
+function basewars.raids.startRaid(ply, core)
 	local can, ownCore
-	can, ownCore, core = basewars.canStartRaid(ply, core)
+	can, ownCore, core = basewars.raids.canStartRaid(ply, core)
 	if not can then return false, ownCore end
 
 	ext:cleanOngoing()
@@ -478,7 +479,7 @@ function ext.readNetworkInteraction(_, ply)
 	if not core:IsValid() then return end
 
 	local t
-	local ok, why = basewars.startRaid(ply, core)
+	local ok, why = basewars.raids.startRaid(ply, core)
 	if ok == false then
 		print("GAMEMODE ERROR!!! Raid verification passed on client but failed on server: " .. why)
 		t = true

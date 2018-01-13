@@ -95,7 +95,7 @@ do
 					setter(ply, name, netvar)
 
 					if databased and not noSave then
-						basewars.savePlayerVar(ply, name, var)
+						basewars.data.savePlayerVar(ply, name, var)
 					end
 				end
 			else
@@ -103,7 +103,7 @@ do
 					setter(ply, name, var)
 
 					if databased and not noSave then
-						basewars.savePlayerVar(ply, name, var)
+						basewars.data.savePlayerVar(ply, name, var)
 					end
 				end
 			end

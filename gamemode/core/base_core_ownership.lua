@@ -1,13 +1,14 @@
 local ext = basewars.createExtension"core.base-core-ownership"
+basewars.basecore = basewars.basecore or {}
 
-function basewars.getCore(ply)
+function basewars.basecore.get(ply)
 	if not IsValid(ply) then return false end
 
 	return hook.Run("BW_GetPlayerCore", ply) or ply:GetNW2Entity("baseCore") -- DOCUMENT:
 end
 
-function basewars.hasCore(ply)
-	return IsValid(basewars.getCore(ply))
+function basewars.basecore.has(ply)
+	return IsValid(basewars.basecore.get(ply))
 end
 
 function ext:wantEntity(ent)
@@ -22,11 +23,11 @@ function ext:PostEntityCreated(ent)
 	if CLIENT and ent.isCore then ent:requestAreaTransmit() end
 end
 
-function basewars.getCores()
+function basewars.basecore.getList()
 	return ext.core_list, ext.core_count
 end
 
-function basewars.getEncompassingCoreForPos(pos)
+function basewars.basecore.getForPos(pos)
 	pos = isvector(pos) and pos or pos:GetPos()
 
 	for i = 1, ext.core_count do
@@ -40,10 +41,10 @@ function basewars.getEncompassingCoreForPos(pos)
 	return nil
 end
 
-function basewars.canSpawnCore(ply, pos, class)
+function basewars.basecore.canSpawn(ply, pos, class)
 	if not IsValid(ply) then return false, "Invalid player!" end
 	if not pos then return false, "Invalid position!" end
-	if basewars.hasCore(ply) then return false, "You already have a core!" end
+	if basewars.basecore.has(ply) then return false, "You already have a core!" end
 
 	class = class or "basewars_core"
 
@@ -92,7 +93,7 @@ if CLIENT then
 				render.DrawSphere(v:GetPos(), -v:getProtectionRadius(), 25, 25, prot2)
 			end
 		else
-			local v = basewars.getCore(LocalPlayer())
+			local v = basewars.basecore.get(LocalPlayer())
 
 			if IsValid(v) then
 				render.SetColorMaterial()
@@ -101,92 +102,4 @@ if CLIENT then
 			end
 		end
 	end
-
-	return
-end
-
-function basewars.assignPlayerCore(ply, core)
-	ply:SetNW2Entity("baseCore", core)
-end
-
-function ext:ShouldPlayerSpawnObject(ply, trace)
-	local pos  = trace.HitPos
-	local pos2 = ply:GetPos()
-	local core = basewars.getCore(ply)
-
-	for i = 1, ext.core_count do
-		local v = ext.core_list[i]
-
-		if not (core == v or basewars.sameOwner(v, ply)) and ((pos and v:encompassesPos(pos)) or v:encompassesPos(pos2)) then
-			return false
-		end
-	end
-end
-
-function ext:EntityTakeDamage(ent, info)
-	if info:GetDamage() <= 0.01 or ent.indestructible then
-		return true
-	end
-end
-
-function ext:EntityTakeDamageFinal(ent, info)
-	for i = 1, ext.core_count do
-		local v = ext.core_list[i]
-
-		if v:protectsEntity(ent) and not hook.Run("BW_ShouldDamageProtectedEntity", ent, info) then
-			info:SetDamage(0)
-			break
-		end
-	end
-end
-
-function ext:BW_ShouldCoreOwnEntity(core, ent)
-	local owner = ent:CPPIGetOwner()
-	if not IsValid(owner) then return nil end
-
-	if basewars.getCore(owner) ~= core and not basewars.sameOwner(ent, owner) then return false end
-end
-
-function ext:BW_PreEntityDestroyed(ent, dmginfo)
-	if ent.isCore then
-		ent:selfDestruct(dmginfo)
-
-		return false
-	end
-end
-
-function ext:PlayerInitialSpawn(ply)
-	for i = 1, ext.core_count do
-		local v = ext.core_list[i]
-
-		if basewars.sameOwner(v, ply) or hook.Run("BW_ShouldCoreBelongToPlayer", v, ply) then -- DOCUMENT:
-			ply:SetNW2Entity("baseCore", v)
-
-			break
-		end
-	end
-end
-
-function basewars.spawnCore(ply, pos, ang, class)
-	class = class or "basewars_core"
-	ang = ang or Angle()
-
-	local res, err = basewars.canSpawnCore(ply, pos, class)
-	if not res then return res, err end
-
-	local core = ents.Create(class)
-	if not IsValid(core) then return false, "Failed to create core!" end
-	core:Spawn()
-	core:Activate()
-
-	core:SetPos(pos + Vector(0, 0, core:BoundingRadius() * 2))
-	core:DropToFloor()
-	core:SetAngles(ang)
-
-	basewars.assignPlayerCore(ply, core)
-
-	core:CPPISetOwner(ply)
-	core:setAbsoluteOwner(ply:SteamID64())
-
-	return core, "Success!"
 end

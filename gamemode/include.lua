@@ -105,7 +105,7 @@ function basewars.loadItemFolder(dirName)
 			ITEM = {}
 
 			includeCS(dir .. name)
-			if not ITEM.discard and next(ITEM) then basewars.createItemEx(name:gsub("%.lua", ""), ITEM) end
+			if not ITEM.discard and next(ITEM) then basewars.items.createItemEx(name:gsub("%.lua", ""), ITEM) end
 		end
 	end
 

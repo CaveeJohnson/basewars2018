@@ -70,10 +70,10 @@ if CLIENT then
 		self.pseudoWeapon:SetAngles(self:GetAngles())
 		self.pseudoWeapon:SetColor(self:GetColor())
 
-		if not self.rendered then
+		-- Doesn't update pos without
+		render.SetBlend(0)
 			pcall(self.pseudoWeapon.DrawModel, self.pseudoWeapon)
-			self.rendered = true
-		end
+		render.SetBlend(1)
 
 		local res, err = pcall(self.pseudoDraw, self.pseudoWeapon)
 		if not res then

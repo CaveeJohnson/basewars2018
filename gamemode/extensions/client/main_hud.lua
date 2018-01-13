@@ -114,8 +114,8 @@ timer.Create(ext:getTag(), 1, 0, function()
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return end
 
-	core = basewars.getCore(ply)
-	encompassing_core = basewars.getEncompassingCoreForPos(ply)
+	core = basewars.basecore.get(ply)
+	encompassing_core = basewars.basecore.getForPos(ply)
 
 	if IsValid(core) then
 		valid_core_past = CurTime()

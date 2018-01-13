@@ -74,7 +74,7 @@ function ext:buyItem(ply, res)
 	local id = ply:GetInfo("bw18_mm_creation_item", "error") or "error"
 	if id == "error" then return false end
 
-	return basewars.spawnItem(id, ply, res.HitPos, self:getAngles(ply), res.HitNormal)
+	return basewars.items.spawn(id, ply, res.HitPos, self:getAngles(ply), res.HitNormal)
 end
 
 if CLIENT then
@@ -121,7 +121,7 @@ if CLIENT then
 		local id = self.creationItemCVar:GetString()
 
 		self.creationItemId   = id
-		self.creationItem     = basewars.getItem(id)
+		self.creationItem     = basewars.items.get(id)
 	end
 
 	function ext:setCreationItem(id, dontSwap)
@@ -134,7 +134,7 @@ if CLIENT then
 		end
 
 		self.creationItemId = id
-		self.creationItem = basewars.getItem(id)
+		self.creationItem = basewars.items.get(id)
 
 		RunConsoleCommand("bw18_mm_creation_item", id)
 	end
@@ -211,7 +211,7 @@ if CLIENT then
 			self.ghostAngs = ang
 
 			local col = item.color or white
-			if not basewars.canSpawnItem(item.item_id, owner, pos, ang) then
+			if not basewars.items.canSpawn(item.item_id, owner, pos, ang) then
 				col = red
 			end
 
@@ -290,7 +290,7 @@ if CLIENT then
 
 			y = h - 2
 
-			local res, err = basewars.canSpawnItem(item.item_id, self:GetOwner(), self.ghostPos, self.ghostAngs)
+			local res, err = basewars.items.canSpawn(item.item_id, self:GetOwner(), self.ghostPos, self.ghostAngs)
 			err = err or "Spawn OK!"
 
 			local col = res and Color(0, 200, 0) or Color(200, 0, 0)
@@ -311,8 +311,8 @@ if CLIENT then
 
 			y = y - drawString("Reload to toggle mode!", smallFont, x, y, nil, nil, TEXT_ALIGN_BOTTOM)
 		else
-			local value    = basewars.getEntitySaleValue(ent, self:GetOwner(), false)
-			local res, err = basewars.canSellEntity(ent, self:GetOwner())
+			local value    = basewars.items.getSaleValue(ent, self:GetOwner(), false)
+			local res, err = basewars.items.canSell(ent, self:GetOwner())
 
 			if value or res or ent.isBasewarsEntity then
 				value = value or 0
@@ -495,7 +495,7 @@ end
 
 function SWEP:Attack2(tr_res)
 	if IsValid(tr_res.Entity) then
-		return basewars.sellEntity(tr_res.Entity, self:GetOwner())
+		return basewars.items.sell(tr_res.Entity, self:GetOwner())
 	else
 		return false
 	end

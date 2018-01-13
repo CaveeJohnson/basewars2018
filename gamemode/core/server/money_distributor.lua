@@ -21,7 +21,7 @@ if not basewars.fuckUniqueID then
 
 	function ext:PostReloaded()
 		for _, v in ipairs(player.GetAll()) do
-			self:PlayerInitialSpawn(ply)
+			self:PlayerInitialSpawn(v)
 		end
 	end
 
@@ -65,8 +65,8 @@ function basewars.playerAddMoney(ply, amt)
 		id = s64
 	end
 
-	basewars.loadPlayerVar(id, "Money", function(_, _, val)
-		basewars.savePlayerVar(id, "Money", val + amt)
+	basewars.data.loadPlayerVar(id, "Money", function(_, _, val)
+		basewars.data.savePlayerVar(id, "Money", val + amt)
 	end)
 end
 

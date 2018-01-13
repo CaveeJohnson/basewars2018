@@ -3,6 +3,10 @@ AddCSLuaFile("cl_init.lua")
 include("shared.lua")
 DEFINE_BASECLASS(ENT.Base)
 
+function ENT:UpdateTransmitState()
+	return TRANSMIT_ALWAYS
+end
+
 local net_tag = "bw18-core-area"
 
 util.AddNetworkString(net_tag)

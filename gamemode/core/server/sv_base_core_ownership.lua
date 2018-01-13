@@ -67,27 +67,3 @@ function ext:PlayerInitialSpawn(ply)
 		end
 	end
 end
-
-function basewars.basecore.spawn(ply, pos, ang, class)
-	class = class or "basewars_core"
-	ang = ang or Angle()
-
-	local res, err = basewars.basecore.canSpawn(ply, pos, class)
-	if not res then return res, err end
-
-	local core = ents.Create(class)
-	if not IsValid(core) then return false, "Failed to create core!" end
-	core:Spawn()
-	core:Activate()
-
-	core:SetPos(pos + Vector(0, 0, core:BoundingRadius() * 2))
-	core:DropToFloor()
-	core:SetAngles(ang)
-
-	basewars.basecore.assign(ply, core)
-
-	core:CPPISetOwner(ply)
-	core:setAbsoluteOwner(ply:SteamID64())
-
-	return core, "Success!"
-end

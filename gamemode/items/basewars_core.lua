@@ -10,6 +10,6 @@ function ITEM:checkSpawnable(ply, pos)
 	return basewars.basecore.canSpawn(ply, pos)
 end
 
-function ITEM:spawn(ply, pos, ang)
-	return basewars.basecore.spawn(ply, pos, ang)
+function ITEM:postSpawn(ply, core)
+	basewars.basecore.assign(ply, core)
 end

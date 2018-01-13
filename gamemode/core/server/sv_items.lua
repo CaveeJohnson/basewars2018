@@ -44,6 +44,25 @@ function ext.spawnWeaponItem(item, ply, pos, ang, norm)
 	ext:spawnGenericItem    (item, ply, pos, ang, norm, item.class)
 end
 
+local function DropToFloor(ent)
+	local obb_mins   = ent:OBBMins()
+	local obb_maxs   = ent:OBBMaxs()
+
+	local res = util.TraceHull{
+		start  = ent:GetPos(),
+		endpos = ent:GetPos() - Vector(0, 0, 256),
+		filter = ent,
+		mins   = obb_mins,
+		maxs   = obb_maxs,
+	}
+
+	if res.Hit and res.HitTexture ~= "**empty**" then -- .hit is always true :v
+		ent:SetPos(res.HitPos)
+
+		return res.HitPos
+	end
+end
+
 function ext:spawnGenericItem(item, ply, pos, ang, norm, wep)
 	local ent = ents.Create(wep and "basewars_weapon_container" or item.class)
 	if not IsValid(ent) then return "ents.Create failed" end
@@ -63,7 +82,7 @@ function ext:spawnGenericItem(item, ply, pos, ang, norm, wep)
 	else
 		ent:SetPos(pos)
 	end
-	ent:DropToFloor()
+	DropToFloor(ent)
 
 	ent:CPPISetOwner(ply)
 	if ent.setAbsoluteOwner then ent:setAbsoluteOwner(ply:SteamID64()) end

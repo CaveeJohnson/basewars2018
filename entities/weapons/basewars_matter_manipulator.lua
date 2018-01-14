@@ -52,7 +52,7 @@ local ext = basewars.createExtension"matter-manipulator"
 SWEP.ext  = ext
 
 function ext:PlayerLoadout(ply)
-	ply:Give("basewars_mattermanipulator")
+	ply:Give("basewars_matter_manipulator")
 end
 
 ext.rtName = "bw18_matter_manipulator_rt"
@@ -126,7 +126,7 @@ if CLIENT then
 
 	function ext:setCreationItem(id, dontSwap)
 		if not dontSwap then
-			local wep = LocalPlayer():GetWeapon("basewars_mattermanipulator")
+			local wep = LocalPlayer():GetWeapon("basewars_matter_manipulator")
 
 			if IsValid(wep) then
 				input.SelectWeapon(wep)
@@ -331,7 +331,12 @@ if CLIENT then
 				end
 			else
 				y = y + drawString("Deconstructor", largeFont, x, y)
-				y = y + drawString("AIM AT AN ENTITY", smallFont, x, y)
+				y = y + drawString("AIM AT AN ENTITY TO SEE MORE", smallFont, x, y)
+				y = y + drawString("INFORMATION AND DESTROY IT", xsmallFont, x, y)
+
+				y = h - 2
+
+				y = y - drawString("Reload to toggle mode!", smallFont, x, y, nil, nil, TEXT_ALIGN_BOTTOM)
 			end
 		end
 	end
@@ -468,14 +473,13 @@ function SWEP:DoShootEffect(hitpos, hitnormal, entity, physbone, firstTimePredic
 end
 
 function SWEP:PrimaryAttack()
-	local tr_res = self:trace()
-	if not tr_res then return end
+	if not self:trace() then return end
 
 	local res
 	if self:GetFireMode() then
-		res = self:Attack2(tr_res)
+		res = self:Attack2(trace_res)
 	else
-		res = self:Attack1(tr_res)
+		res = self:Attack1(trace_res)
 	end
 	if res then
 		self:DoShootEffect(trace_res.HitPos, trace_res.HitNormal, trace_res.Entity, trace_res.PhysicsBone, IsFirstTimePredicted())

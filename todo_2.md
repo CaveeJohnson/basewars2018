@@ -13,6 +13,9 @@ Entities:
 	[ ] Money sink generator (power grid node, tax based on throughput)
 	[ ] Telepad, massive money sink, fucking expensive, costs 1mil + 0.5% of your money to teleport
 
+Weapons:
+	[#] Repair / upgrade tool
+
 BUGS / NEEDS DOING:
 	[X] Playervars need support for Doubles / string numbers
 	[X] Players get stuck in cloner if y % 90 ~= 0 and other situations
@@ -31,6 +34,7 @@ BUGS / NEEDS DOING:
 	[X] Divy up basewars.funcs into basewars.concept.funcs
 	[X] Make loader recursive - sv/cl folder, split files up into easier categories
 	[X] Moving weapon container doesn't move render
+	[ ] I may have broken the area ents update when fixing stuff
 
 Improvements (mark as [-] if its dumb):
 	[ ] Alert when spawning fails in hostile area
@@ -43,13 +47,12 @@ Improvements (mark as [-] if its dumb):
 	[ ] Better vehicle spawning with vcmod support (requested)
 	[ ] Convars for build mode
 	[ ] Convar for how intense the core protection field is (alpha)
-	[ ] Stop shit happening in spawn / spawn protection
 
 Minor Features:
 	[ ] Give money with a reason, feed on hud
 	[#] HUD completion + optimization
 	[X] Scanning + heartbeat like R6S
-	[ ] Entity upgrading
+	[#] Entity upgrading
 	[ ] RDM protection + raid grace for newer players
 	[ ] Playtime tracking
 	[ ] Deployed value tracking

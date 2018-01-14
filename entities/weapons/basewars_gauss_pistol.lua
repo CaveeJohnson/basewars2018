@@ -224,14 +224,14 @@ function SWEP:doSecondaryAttackSounds()
 end
 
 local res = {}
-local tr = {mins = Vector(-16, -16, -16), maxs = Vector(16, 16, 16), output = res}
+local _tr = {mins = Vector(-16, -16, -16), maxs = Vector(16, 16, 16), output = res}
 function SWEP:trace(range)
 	local owner = self:GetOwner()
 
-	tr.start  = owner:EyePos()
-	tr.endpos = tr.start + owner:GetAimVector() * range
-	tr.filter = owner
-	util.TraceHull(tr)
+	_tr.start  = owner:EyePos()
+	_tr.endpos = _tr.start + owner:GetAimVector() * range
+	_tr.filter = owner
+	util.TraceHull(_tr)
 
 	return res
 end
@@ -314,7 +314,7 @@ if CLIENT then
 	end
 
 	local function angle_rotated(ang, amount)
-		local ang = Angle(ang)
+		ang = Angle(ang)
 		ang:RotateAroundAxis(ang:Up(), amount)
 		return ang
 	end

@@ -69,8 +69,6 @@ function SWEP:Deploy()
 				ErrorNoHalt("hands received invalid 'seq_admire' from viewmodel.\n")
 			end
 		end
-	else
-		-- admired
 	end
 
 	return BaseClass.Deploy(self)

@@ -61,9 +61,9 @@ ext.rtMatName = "!" .. ext.rtName .. "_mat"
 function ext:getAngles(ply)
 	local yaw = tonumber(ply:GetInfoNum("bw18_mm_creation_yaw", 0)) or 0
 	local snap = tonumber(ply:GetInfoNum("gm_snapangles", 0)) or 0
-	if ply:KeyDown(IN_SPEED) then yaw = (math.Round(yaw/snap))*snap end
+	if ply:KeyDown(IN_SPEED) then yaw = math.Round(yaw / snap) * snap end
 
-	local ang = Angle()--res.HitNormal:Angle()
+	local ang = Angle() --res.HitNormal:Angle()
 		ang.y = ang.y + yaw
 	ang:Normalize()
 
@@ -88,7 +88,7 @@ if CLIENT then
 		elseif self.clampYawNext then
 			local cur = ext.yawCVar:GetFloat()
 			local snap = ext.snapCVar:GetFloat()
-			cur = (math.Round(cur/snap))*snap
+			cur = math.Round(cur / snap) * snap
 
 			RunConsoleCommand("bw18_mm_creation_yaw", cur)
 			self.clampYawNext = nil
@@ -197,7 +197,7 @@ if CLIENT then
 
 			local dot_maxs = res.HitNormal:Dot(self.csEnt:OBBMaxs())
 			local dot_mins = res.HitNormal:Dot(self.csEnt:OBBMins())
-			local off = math.max(dot_maxs, dot_mins)*res.HitNormal
+			local off = math.max(dot_maxs, dot_mins) * res.HitNormal
 
 			local pos = res.HitPos + off
 			self.csEnt:SetPos(pos)
@@ -265,10 +265,7 @@ if CLIENT then
 	})
 
 	local function drawString(str, font, x, y, col, a, b)
-		draw.SimpleText(str, font, x, y, col, a, b)
-
-		local w, h = surface.GetTextSize(str)
-		return h
+		return draw.text(str, font, x, y, col, a, b)
 	end
 
 	function SWEP:renderCreate(trace, item, w, h)
@@ -352,8 +349,8 @@ if CLIENT then
 			if not self.icon then
 				self.icon = vgui.Create("SpawnIcon")
 			end
-				self.icon:SetSize(h/2, h/2)
-				self.icon:SetPos (w - h/2 - 2, h/4)
+				self.icon:SetSize(h / 2, h / 2)
+				self.icon:SetPos (w - h / 2 - 2, h / 4)
 				self.icon:SetPaintedManually(true)
 				self.icon:SetModel(item.model)
 				self.icon:SetMouseInputEnabled(false)
@@ -379,7 +376,7 @@ if CLIENT then
 	local crosshairMat = surface.GetTextureID("sprites/hud/v_crosshair2")
 
 	function SWEP:DrawHUD()
-		local x, y = ScrW()/2, ScrH()/2
+		local x, y = ScrW() / 2, ScrH() / 2
 		local fire_mode = self:GetFireMode()
 
 		surface.SetTexture(crosshairMat)
@@ -462,7 +459,7 @@ function SWEP:DoShootEffect(hitpos, hitnormal, entity, physbone, firstTimePredic
 		effectdata:SetAttachment(physbone)
 	util.Effect("selection_indicator", effectdata)
 
-	local effectdata = EffectData()
+	effectdata = EffectData()
 		effectdata:SetOrigin(hitpos)
 		effectdata:SetStart(self.Owner:GetShootPos())
 		effectdata:SetAttachment(1)

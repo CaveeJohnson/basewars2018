@@ -29,7 +29,7 @@ BUGS / NEEDS DOING:
 	[X] Replace hardcoded £ with basewars.currency(num)
 	[X] Unify name style (BaseWars, Basewars2018, etc)
 	[X] Divy up basewars.funcs into basewars.concept.funcs
-	[ ] Make loader recursive - sv/cl folder, split files up into easier categories
+	[X] Make loader recursive - sv/cl folder, split files up into easier categories
 	[X] Moving weapon container doesn't move render
 
 Improvements (mark as [-] if its dumb):
@@ -43,6 +43,7 @@ Improvements (mark as [-] if its dumb):
 	[ ] Better vehicle spawning with vcmod support (requested)
 	[ ] Convars for build mode
 	[ ] Convar for how intense the core protection field is (alpha)
+	[ ] Stop shit happening in spawn / spawn protection
 
 Minor Features:
 	[ ] Give money with a reason, feed on hud

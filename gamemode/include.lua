@@ -47,45 +47,46 @@ local function validFile(name)
 	return not (name:find("~", 1, true) or name[1] == ".")
 end
 
+local function recurseDirs(dir, adder, ignoreCLSV)
+	local count = 0
+	local files = file.Find(dir .. "*.lua", "LUA")
+
+	for _, name in ipairs(files) do
+		if validFile(name) then
+			count = count + 1
+			adder(dir .. name, name)
+		end
+	end
+
+	local _, dirs = file.Find(dir .. "*", "LUA")
+
+	for _, name in ipairs(dirs) do
+		if not ignoreCLSV or (name ~= "client" and name ~= "server") then
+			count = count + recurseDirs(dir .. name .. "/", adder, nil)
+		end
+	end
+
+	return count
+end
+
 function basewars.loadExtFolder(dirName)
 	local gm = GM or GAMEMODE
 	local dir = gm.gmFolder .. dirName
 	basewars.logf("loading extensions directory '%s'", dirName)
 
-	local i, files
-
 	if SERVER then
-		i = 0
-		files = file.Find(dir .. "server/*.lua", "LUA")
-		for _, name in ipairs(files) do
-			if validFile(name) then
-				i = i + 1
-				include(dir .. "server/" .. name)
-			end
-		end
-		basewars.logf("    loaded %d server files", i)
+		basewars.logf("    loaded %d server files", recurseDirs(dir .. "server/", include))
 	end
 
-	i = 0
-	files = file.Find(dir .. "client/*.lua", "LUA")
-	for _, name in ipairs(files) do
-		if validFile(name) then
-			i = i + 1
-			loadCS(dir .. "client/" .. name)
-		end
-	end
-	basewars.logf("    loaded %d client files", i)
+	basewars.logf("    loaded %d client files", recurseDirs(dir .. "client/", loadCS))
+	basewars.logf("    loaded %d shared files", recurseDirs(dir, includeCS, true))
+end
 
-	i = 0
-	files = file.Find(dir .. "*.lua", "LUA")
+local function itemLoad(path, name)
+	ITEM = {}
 
-	for _, name in ipairs(files) do
-		if validFile(name) then
-			i = i + 1
-			includeCS(dir .. name)
-		end
-	end
-	basewars.logf("    loaded %d shared files", i)
+	includeCS(path)
+	if not ITEM.discard and next(ITEM) then basewars.items.createItemEx(name:gsub("%.lua", ""), ITEM) end
 end
 
 function basewars.loadItemFolder(dirName)
@@ -93,24 +94,8 @@ function basewars.loadItemFolder(dirName)
 	local dir = gm.itemFolder .. dirName
 	basewars.logf("loading item directory 'items/%s'", dirName)
 
-	local i, files
-
-	i = 0
-	files = file.Find(dir .. "*.lua", "LUA")
-
-	for _, name in ipairs(files) do
-		if validFile(name) then
-			i = i + 1
-
-			ITEM = {}
-
-			includeCS(dir .. name)
-			if not ITEM.discard and next(ITEM) then basewars.items.createItemEx(name:gsub("%.lua", ""), ITEM) end
-		end
-	end
-
+	basewars.logf("    loaded %d items", recurseDirs(dir, itemLoad))
 	ITEM = nil
-	basewars.logf("    loaded %d items", i)
 end
 
 

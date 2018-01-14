@@ -201,7 +201,7 @@ if CLIENT then
 	end
 
 	local function angle_rotated(ang, amount)
-		local ang = Angle(ang)
+		ang = Angle(ang)
 		ang:RotateAroundAxis(ang:Up(), amount)
 		return ang
 	end

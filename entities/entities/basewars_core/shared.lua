@@ -36,10 +36,6 @@ function ENT:SetupDataTables()
 	self:netVar("Bool", "SelfDestructing")
 end
 
-function ENT:UpdateTransmitState()
-	return TRANSMIT_ALWAYS
-end
-
 do
 	local black = Color(0, 0, 0)
 	local red = Color(100, 20, 20)

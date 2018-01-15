@@ -1,7 +1,7 @@
 local ext = basewars.createExtension"core.items-server"
 basewars.items = {}
 
-ext.limiter = {}
+ext.limiter = ext:establishGlobalTable("limiter")
 
 local function onRemoveLimitHandler(_, ent, id, class)
 	if ent.limiter[id] and ent.limiter[id][class] then

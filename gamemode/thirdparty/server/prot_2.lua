@@ -4,13 +4,13 @@
 local tag = "bw18-prot2"
 
 
-local c_physics = "PHYS"
-local c_badents = "ENTS"
+--local c_physics = "PHYS"
+--local c_badents = "ENTS"
 local c_baddamg = "DAMG"
 local c_modules = "MODL"
-local c_frmtime = "TIME"
+--local c_frmtime = "TIME"
 local c_luasend = "LUAS"
-local c_buildin = "BUIL"
+--local c_buildin = "BUIL"
 
 local logf, warnf, fatalf, alertf
 --local stopPenetration, freezeMovement, emergencyMode, antiPenetration
@@ -67,18 +67,17 @@ if system.IsLinux() then
 	local ok, err
 
 	ok, err = pcall(require, "hosterror")
-	if not ok then warnf(c_modules, "Failed to load hosterror module.") end
+	if not ok then warnf(c_modules, "Failed to load hosterror module '%s'.", err) end
 
 	ok, err = pcall(require, "slerpbones")
-	if not ok then warnf(c_modules, "Failed to load slerpbones module.") end
+	if not ok then warnf(c_modules, "Failed to load slerpbones module '%s'.", err) end
 
 	ok, err = pcall(require, "penicillin")
-	if not ok then warnf(c_modules, "Failed to load penicillin module.") end
+	if not ok then warnf(c_modules, "Failed to load penicillin module '%s'.", err) end
 end
 
+--[[
 do
-	local defcon = 5
-
 	local function freezeTbl(tbl, sleep)
 		for _, ent in ipairs(tbl) do
 			local count = ent:GetPhysicsObjectCount()
@@ -257,7 +256,7 @@ do
 		timer.Create(tag .. "emergencyMode", 10, 1, toggleBuilding)
 	end
 end
-
+]]
 
 --== Brain Damage Prevention ==--
 
@@ -277,12 +276,12 @@ end
 
 local postInitFixes
 local delayHooks = {}
-local function delayHook(type, name, func) delayHooks[#delayHooks+1] = {type, tag .. name, func} end
+--local function delayHook(type, name, func) delayHooks[#delayHooks + 1] = {type, tag .. name, func} end
 
 do
 	local function dumbCommand(mod)
 		return function(ply, command, args, str)
-			local str = str or table.concat(str, " ")
+			str = str or table.concat(str, " ")
 
 			ply:ChatPrint(string.format("%s is not installed on this server. (You tried to run '%s %s')", mod, mod, str))
 		end
@@ -598,7 +597,7 @@ end
 
 --== Server Crash Prevention ==--
 
-
+--[=[
 do
 	-- Think based antipen and freeze
 
@@ -704,6 +703,7 @@ if false then
 
 	logf("Added anti-infinite-loop protection.")
 end
+]=]
 
 do
 	if _G.FixesPerformed then -- reloading

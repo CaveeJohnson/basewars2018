@@ -31,7 +31,6 @@ function hook.Remove(event_name, name)
 	_hooks[event_name][name] = nil
 end
 
-local format = string.format
 function hook.Call(name, gm, ...)
 	local hook_table = _hooks[name]
 	if hook_table then
@@ -61,12 +60,10 @@ function hook.Call(name, gm, ...)
 			local func = t[name]
 
 			if isfunction(func) then
-				suc, a, b, c, d, e, f = pcall(func, t, ...)
+				a, b, c, d, e, f = func(t, ...)
 
-				if suc and a ~= nil or b then
+				if a ~= nil or b then
 					return a, b, c, d, e, f
-				elseif not suc then
-					ErrorNoHalt(format("extension '%s' hook '%s' failed: %s\n", extName, name, a))
 				end
 			end
 		end

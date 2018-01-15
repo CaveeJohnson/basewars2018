@@ -35,6 +35,7 @@ BUGS / NEEDS DOING:
 	[X] Make loader recursive - sv/cl folder, split files up into easier categories
 	[X] Moving weapon container doesn't move render
 	[ ] I may have broken the area ents update when fixing stuff
+	[ ] ent limiter seems like it may be broken?
 
 Improvements (mark as [-] if its dumb):
 	[ ] Alert when spawning fails in hostile area
@@ -55,6 +56,7 @@ Minor Features:
 	[#] Entity upgrading
 	[ ] RDM protection + raid grace for newer players
 	[ ] Playtime tracking
+	[ ] AFK tracking
 	[ ] Deployed value tracking
 	[ ] Damage numbers
 	[ ] Spawn protection

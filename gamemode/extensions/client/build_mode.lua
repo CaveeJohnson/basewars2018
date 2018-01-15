@@ -25,7 +25,7 @@ end
 
 function ext:mmBuilding(ply)
 	local wep = ply:GetActiveWeapon()
-	return IsValid(wep) and wep:GetClass() == "basewars_mattermanipulator"
+	return IsValid(wep) and wep:GetClass() == "basewars_matter_manipulator"
 end
 
 local off_white = Color(240, 240, 240, 255)

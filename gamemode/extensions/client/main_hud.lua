@@ -70,8 +70,11 @@ do
 	local max, min = math.max, math.min
 
 	function drawString(str, x, y, col, a1, a2, font)
-		local _, h = draw.SimpleTextOutlined(str, font or main_font, x, y, col, a1, a2, 1, shade)
-		return h
+		return draw.textOutlined(str, font or main_font, x, y, col, a1, a2, shade)
+	end
+
+	function drawStringLT(str, x, y, col, font)
+		return draw.textOutlinedLT(str, font or main_font, x, y, col, shade)
 	end
 
 	function drawBar(x, y, w, h, col1, col2, frac)
@@ -106,13 +109,29 @@ local pure_red = Color(255, 0, 0, 255)
 local core, encompassing_core, valid_core_past
 local core_data = {}
 
-local time_string = string.format("Current Time:  %s", os.date("%H:%M"))
+local level = 1
+local xp = 0
+local next_xp = 500
+
+local time_string      = string.format("Current Time:  %s", os.date("%H:%M"))
+
+local level_text       = string.format("Level:  %d" ,  basewars.nformat(level))
+local xp_text          = string.format("XP:  %d/ %d" , xp, next_xp)
+local level_text_final = string.format("%s    %s", level_text, xp_text)
 
 timer.Create(ext:getTag(), 1, 0, function()
-	time_string = string.format("Current Time:  %s", os.date("%H:%M"))
-
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return end
+
+	level            = ply:getLevel()
+	xp               = ply:getXP()
+	next_xp          = ply:getNextLevelXP()
+
+	time_string      = string.format("Current Time:  %s", os.date("%H:%M"))
+
+	level_text       = string.format("Level:  %d" ,  basewars.nformat(level))
+	xp_text          = string.format("XP:  %d/ %d" , xp, next_xp)
+	level_text_final = string.format("%s    %s", level_text, xp_text)
 
 	core = basewars.basecore.get(ply)
 	encompassing_core = basewars.basecore.getForPos(ply)
@@ -165,16 +184,7 @@ function ext:HUDPaint()
 
 			local money_string = string.format("Bank:  %s    Deployed:  %s", basewars.currency(ply:getMoney()), basewars.currency(0))
 			cury = cury - drawString(money_string, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
-
-			local level = ply:getLevel()
-			local xp = ply:getXP()
-			local next_xp = ply:getNextLevelXP()
-
-			local level_text       = string.format("Level:  %d" ,  basewars.nformat(level))
-			local xp_text          = string.format("XP:  %d/ %d" , xp, next_xp)
-			local level_text_final = string.format("%s    %s", level_text, xp_text)
 			cury = cury - drawString(level_text_final, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
-
 			cury = cury - drawString(basewars.versionString .. " | not representative of release version", curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM, version_font)
 		else
 			cury = cury - drawString("FATAL ERROR", curx, cury, pure_red, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
@@ -182,7 +192,7 @@ function ext:HUDPaint()
 
 		cury = yindent
 
-		cury = cury + drawString(time_string, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+		cury = cury + drawStringLT(time_string, curx, cury, off_white)
 		cury = cury + 8
 
 		if IsValid(core) then
@@ -198,7 +208,7 @@ function ext:HUDPaint()
 				elseif v == 0 then
 					col = off_white_t
 				else
-					cury = cury + drawString(tostring(v), curx, cury, col, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+					cury = cury + drawStringLT(tostring(v), curx, cury, col)
 				end
 			end
 		elseif valid_core_past and valid_core_past + 20 > CurTime() then
@@ -209,9 +219,9 @@ function ext:HUDPaint()
 			surface.DrawRect(curx, cury, w + 8, h + 8)
 
 			curx, cury = curx + 4, cury + 4
-			cury = cury + drawString(failure, curx, cury, off_white_t, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+			cury = cury + drawStringLT(failure, curx, cury, off_white_t)
 		else
-			cury = cury + drawString("Neural Interface:  Offline", curx, cury, off_white_t2, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+			cury = cury + drawStringLT("Neural Interface:  Offline", curx, cury, off_white_t2)
 		end
 	self:ex()
 

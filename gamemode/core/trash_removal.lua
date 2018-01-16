@@ -254,6 +254,11 @@ do -- DELET's the drive system all together, along with opts
 		return false -- fuck the drive system
 	end
 
+	function GM:CreateMove(cmd)
+		-- if ( drive.CreateMove( cmd ) ) then return true end
+		if runClass(LocalPlayer(), "CreateMove", cmd) then return true end
+	end
+
 	function GM:SetupMove(ply, mv, cmd)
 		-- if ( drive.StartMove( ply, mv, cmd ) ) then return true end
 		if runClass(ply, "StartMove", mv, cmd) then return true end
@@ -406,6 +411,14 @@ if CLIENT then
 		local s_getTSize = surface.GetTextSize
 
 		local g_mousePos = gui.MousePos
+
+		-- We don't actually draw HUD in this so I replace it with the base code
+		-- without sandbox's worthless trash
+		function GM:HUDPaint()
+			hook.Call("HUDDrawTargetID", self)
+			hook.Call("HUDDrawPickupHistory", self)
+			hook.Call("DrawDeathNotice", self, 0.85, 0.04) -- yes, this is in the base code, its retarded
+		end
 
 		function GM:HUDDrawTargetID()
 			local ply = LocalPlayer()

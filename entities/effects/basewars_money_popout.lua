@@ -29,7 +29,7 @@ function EFFECT:Init(data)
 end
 
 function EFFECT:Think()
-	local d = (FrameTime()*self.height)/self.time
+	local d = (FrameTime() * self.height) / self.time
 	if self.inverse then d = -d end
 
 	self.cur_height = self.cur_height + d
@@ -57,6 +57,6 @@ function EFFECT:Render()
 		col.a     = 255 * self.alpha
 		shade.a   = 192 * self.alpha
 
-		draw.SimpleTextOutlined(self.str, self.font, 0, 0, col, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, shade)
+		draw.textOutlined(self.str, self.font, 0, 0, col, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, shade)
 	cam.End3D2D()
 end

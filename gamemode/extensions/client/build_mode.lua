@@ -36,8 +36,7 @@ do
 	--local max, min = math.max, math.min
 
 	function drawString(str, x, y, col, a1, a2)
-		local _, h = draw.SimpleTextOutlined(str, font_main, x, y, col, a1, a2, 1, shade)
-		return h
+		return draw.textOutlined(str, font_main, x, y, col, a1, a2, shade)
 	end
 end
 

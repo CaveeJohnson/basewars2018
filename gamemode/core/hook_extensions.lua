@@ -100,5 +100,6 @@ function GM:PlayerSpawn(ply, ...)
 		if IsValid(ply) then hook.Run("PostPlayerSpawn", ply, unpack(a)) end
 	end)
 
+	hook.Run("PlayerSpawnShared", ply)
 	return self.BaseClass.PlayerSpawn(self, ply, ...)
 end

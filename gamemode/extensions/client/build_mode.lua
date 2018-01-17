@@ -77,20 +77,20 @@ function ext:mmRender(ply)
 		render.SetColorMaterial()
 
 		for _, v in ipairs(self.ent_list) do
-			local spawned_time = CurTime() - v:GetNW2Int("boughtAt", 0)
-
 			if invalid or not core:encompassesEntity(v) then
 				render.SetColorModulation(1, 0, 0, 1)
-				v:DrawModel()
+					v:DrawModel()
 			elseif basewars.items.getSaleMult(v, ply, false) == 1.0 then
+				local spawned_time = CurTime() - v:GetNW2Int("boughtAt", 0)
 				local alpha = (10 - spawned_time) / 10 -- TODO: config, see items.lua
 				render.SetColorModulation(0, 1, 0, alpha)
 				render.SetBlend(alpha)
-				v:DrawModel()
+					v:DrawModel()
 				render.SetBlend(1)
 			end
 		end
 
+		render.SetColorModulation(1, 1, 1, 1)
 		render.SuppressEngineLighting(false)
 	cam.IgnoreZ(false)
 end

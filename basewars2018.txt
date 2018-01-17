@@ -5,7 +5,7 @@
 	"version"     "GIT"
 	"description" "Hexahedron Basewars redesigned, 2018 edition."
 
-	"author_name" "hexahedron"
+	"author_name" "Hexahedron Studios"
 	"author_url"  "http://hexahedron.pw/, http://hexahedronic.github.io/"
 
 	"hide"        "0"

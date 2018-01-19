@@ -1,0 +1,45 @@
+New admin mod
+	- name?
+	- rank system
+	- permission system
+	- cami compliance
+	- command system
+		- argument system with flags
+		- better 'mutator commands'
+		- commands
+			- tp
+				- tp
+				- goto
+				- bring
+				- send
+				- goto-wherever (id, ip, lookup)
+				- back (location stack)
+			- convar force
+			- revive
+			- spectate
+			- ss
+			- admin
+				- kick
+				- ban
+				- mute/off
+				- gag/voice mute
+			- rcon
+			- countdown
+				- cleanup
+				- restart
+				- reboot
+				- map/rand
+				- abort
+			- refreshlua
+	- 'admin mode'
+		- needs anti-abuse
+		- rank hiding
+		- nodraw / stop sending PVS updates for self
+		- esp
+	- banni remake
+	- aowl wrapper and full compat with it
+	- nicer printouts and feedback
+	- menu?
+	- web interface?
+	- cross server interaction?
+	- ulx wrapper?

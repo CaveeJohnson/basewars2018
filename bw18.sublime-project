@@ -50,6 +50,10 @@
 			"path": "gamemode/config"
 		},
 		{
+			"name": "Content",
+			"path": "content"
+		},
+		{
 			"folder_exclude_patterns":
 			[
 				"*"

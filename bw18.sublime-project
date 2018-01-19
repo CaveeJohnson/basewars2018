@@ -1,7 +1,5 @@
-// For your linter please use the following settings
-// you may also need to map "gmod lua" to "lua"
-// garry specific syntax is not allowed in this project
-// so lua / luajit linters will work fine
+// Please use glualinter with the default settings
+// and the following settings on sublime lint
 
 // "lint_mode": "background",
 // "show_errors_on_save": true,

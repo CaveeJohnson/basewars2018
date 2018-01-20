@@ -1,15 +1,17 @@
 local ext = basewars.createExtension"hit-numbers"
 
+ext.hits = {}
+
 ext.default_color = Color(200, 200, 200, 255)
 ext.crit_color    = Color(255,   0,   0, 255)
-ext.gravity       = Vector(0, 0, -5)
+ext.gravity       = Vector(0, 0, -20)
 
 local main_font = ext:getTag()
 
 surface.CreateFont(main_font, {
 	font = "DejaVu Sans Bold",
 	size = 64,
-	outline = true,
+	shadow = true,
 })
 
 function ext:getHitPos(ent, dmginfo)
@@ -33,16 +35,21 @@ function mixColor(incol, adcol)
 end
 
 ext.colorLookup = {
-	DMG_ACID     = Color(- 50,  200, - 50,    0),
+	[DMG_ACID     ] = Color(- 50,  200, - 50,    0),
 
-	DMG_NERVEGAS = Color(-100,  255, - 30,    0),
-	DMG_POISON   = Color(-100,  255, - 30,    0),
-	DMG_PARALYZE = Color(-100,  255, - 30,    0),
+	[DMG_NERVEGAS ] = Color(-100,  255, - 30,    0),
+	[DMG_POISON   ] = Color(-100,  255, - 30,    0),
+	[DMG_PARALYZE ] = Color(-100,  255, - 30,    0),
 
-	DMG_DROWN    = Color(-255, -255,  255, -100),
-	DMG_SHOCK    = Color(-100, -100,  255,    0),
+	[DMG_DROWN    ] = Color(-255, -255,  255, -100),
+	[DMG_SHOCK    ] = Color(-100, -100,  255,    0),
 }
 --  DMG_BURN ENERGYBEAM PLASMA RADIATION CRUSH VEHICLE CLUB FALL
+
+function rnSign()
+	local rn = math.random()
+	return rn < 0.5 and -1 or 1
+end
 
 function ext:SharedEntityTakeDamage(ent, dmginfo)
 	local col = mixColor(self.default_color)
@@ -61,7 +68,11 @@ function ext:SharedEntityTakeDamage(ent, dmginfo)
 
 	local data = {
 		pos   = self:getHitPos(ent, dmginfo),
-		vel   = -dmginfo:GetDamageForce() * 0.1,
+		vel   = --dmginfo:GetDamageForce() * 0.1
+			Vector(
+				math.random(5, 15) * rnSign(),
+				math.random(5, 15) * rnSign(),
+				15),
 
 		dmg   = dmg,
 		crit  = crit,
@@ -69,7 +80,7 @@ function ext:SharedEntityTakeDamage(ent, dmginfo)
 		types = types,
 
 		start = CurTime(),
-		txt   = tostring(dmg)
+		txt   = "-" .. tostring(dmg)
 	}
 
 	self.hits[#self.hits + 1] = data
@@ -81,26 +92,35 @@ function ext:PostDrawTranslucentRenderables(depth, sky)
 	local new = {}
 	local i = 0
 
-	cam.Start3D2D(Vector(), EyeAngles(), 0.2)
-		surface.SetFont(main_font)
+	surface.SetFont(main_font)
 
-		for _, v in ipairs(self.hits) do
-				surface.SetTextColor(v.col)
+	local eye_pos = EyePos()
+	local ft = FrameTime()
 
-				local pos = v.pos:ToScreen()
-				surface.SetTextPos(pos.x, pos.y)
+	for _, v in ipairs(self.hits) do
+		local render_ang = (v.pos - eye_pos):Angle()
+		render_ang:RotateAroundAxis(render_ang:Up(), -90)
+		render_ang:RotateAroundAxis(render_ang:Forward(), 90)
 
-				surface.DrawText(v.txt)
+		local scale = 1 - ((CurTime() - v.start)/2)
 
-				v.pos = v.pos + v.vel + self.gravity
-				v.vel = v.vel * 0.99 -- reduce a bit
+		cam.Start3D2D(v.pos, render_ang, 0.2 * (scale + 0.1))
+			--debugoverlay.Cross(v.pos, 10, 0.1, Color(255, 255, 255, 50), true)
+			local w, h = surface.GetTextSize(v.txt)
+			surface.SetTextColor(v.col)
+			surface.SetTextPos(0 - w / 2, 0 - h / 2)
 
-				if CurTime() < v.start + 2 then
-					i = i + 1
-					new[i] = v
-				end
-		end
-	cam.End3D2D()
+			surface.DrawText(v.txt)
+
+			v.pos = v.pos + v.vel * ft
+			v.vel = v.vel + self.gravity * ft
+
+			if CurTime() < v.start + 2 then
+				i = i + 1
+				new[i] = v
+			end
+		cam.End3D2D()
+	end
 
 	self.hits = new
 end

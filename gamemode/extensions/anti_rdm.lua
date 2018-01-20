@@ -17,7 +17,7 @@ function ext:becomeHostile(ply)
 		hook.Run("BW_OnPlayerBecomeHostile", ply)
 
 		if SERVER then
-			ply:SetColor(255, 255, 255, 255)
+			ply:SetColor(Color(255, 255, 255, 255))
 			ply:GodDisable()
 		end
 	end
@@ -34,7 +34,7 @@ function ext:PlayerSpawnShared(ply)
 
 	if SERVER then
 		ply:SetRenderMode(RENDERMODE_TRANSALPHA)
-		ply:SetColor(255, 255, 255, 100)
+		ply:SetColor(Color(255, 255, 255, 100))
 
 		ply:GodEnable()
 

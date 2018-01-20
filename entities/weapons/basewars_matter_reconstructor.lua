@@ -6,6 +6,12 @@ SWEP.PrintName     = "MATTER RECONSTRUCTOR"
 SWEP.Purpose       = "Missing some matter here and there? Fear no more"
 SWEP.Instructions  = "Hold LMB = Repair Target"
 
+SWEP.Slot          = 0
+SWEP.SlotPos       = 4
+
+SWEP.Category      = "Basewars"
+SWEP.Spawnable     = true
+
 SWEP.HoldType = "physgun"
 SWEP.ViewModelFOV = 69.748743718593
 SWEP.ViewModelFlip = false

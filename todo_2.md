@@ -34,10 +34,8 @@ BUGS / NEEDS DOING:
 	[X] Divy up basewars.funcs into basewars.concept.funcs
 	[X] Make loader recursive - sv/cl folder, split files up into easier categories
 	[X] Moving weapon container doesn't move render
-	[ ] I may have broken the area ents update when fixing stuff
 	[X] ent limiter seems like it may be broken?
 	[ ] Weapons pick up instantly? what
-	[ ] Weapons disapear after firing with the 'sell effect' (ion cannon only atm)
 
 Improvements (mark as [-] if its dumb):
 	[ ] Alert when spawning fails in hostile area
@@ -50,32 +48,44 @@ Improvements (mark as [-] if its dumb):
 	[ ] Better vehicle spawning with vcmod support (requested)
 	[ ] Convars for build mode
 	[ ] Convar for how intense the core protection field is (alpha)
+	[#] Custom spawnicons
 
 Minor Features:
-	[ ] Give money with a reason, feed on hud
+	[#] Give money with a reason, feed on hud
 	[#] HUD completion + optimization
 	[X] Scanning + heartbeat like R6S
 	[#] Entity upgrading
-	[#] RDM/Spawn protection + raid grace for newer players
-	[ ] Playtime tracking
+	[X] RDM/Spawn protection + raid grace for newer players
+	[X] Playtime tracking
 	[ ] AFK tracking
-	[ ] Deployed value tracking
-	[ ] Damage numbers
+	[-] Deployed value tracking
+		- just do it in the hud or some shit, complex shared tracking = WHY
+		  all it needs to do is ~every 10 seconds go through owned 'valuables' and readd them
+	[X] Damage numbers
 
 Big stuff:
-	[ ] Crypto market
 	[ ] Drug/buff system
 	[#] Faction system
 		- Faction button
 		- Flags for factions
 		- Faction owner + admin + user, function to get highest ranking user, owner only changes on core reclaim
 		- faction only items, with a faction vault which people can only deposit in
+--- PRE-ALPHA ENDS HERE ---
+	[ ] Crypto market
 	[ ] Clan system
 		- meta-game type stuff
 		- minor ingame buffs
 			- productivity = productivity + math.max(0, (clan_members - non_clan_members) / 100)
 		- found for massive money?
 		- should be linked to forums
+
+Big stuff that requires BIG changes/edits:
+	[ ] Tutorial
+	[ ] Language system
+	[#] Config system which allows overrides but doesn't force everything into 1 massive file
+		- Allows for people to change entity variables without breaking forward compat
+	[ ] MYSQL support
+		- needs to be perfect, we will be using this too
 
 External addons included with the gamemode:
 	[ ] Admin mod
@@ -87,14 +97,6 @@ External addons included with the gamemode:
 	[ ] ChatEXP remake from scratch
 		- Base on warframe chat
 	[ ] Titles + COH + Nametags
-
-Big stuff that requires BIG changes/edits:
-	[ ] Tutorial
-	[ ] Language system
-	[#] Config system which allows overrides but doesn't force everything into 1 massive file
-		- Allows for people to change entity variables without breaking forward compat
-	[ ] MYSQL support
-		- needs to be perfect, we will be using this too
 
 Fun / extra gameplay stuff:
 	[ ] Superdrugs + selling drugs

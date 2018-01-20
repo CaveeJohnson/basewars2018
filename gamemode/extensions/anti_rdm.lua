@@ -62,7 +62,7 @@ function ext:PlayerSpawnShared(ply)
 end
 
 function ext:PlayerSwitchWeapon(ply, old, new)
-	if IsValid(new) and not self.nonHostileWeps[new:GetClass()] then
+	if IsValid(old) and IsValid(new) and not self.nonHostileWeps[new:GetClass()] then -- wep switch
 		self:becomeHostile(ply)
 	end
 end

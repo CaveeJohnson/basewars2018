@@ -119,6 +119,8 @@ local level_text       = string.format("Level:  %d" ,  basewars.nformat(level))
 local xp_text          = string.format("XP:  %d/ %d" , xp, next_xp)
 local level_text_final = string.format("%s    %s", level_text, xp_text)
 
+local playtime_text
+
 timer.Create(ext:getTag(), 1, 0, function()
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return end
@@ -129,12 +131,21 @@ timer.Create(ext:getTag(), 1, 0, function()
 
 	time_string      = string.format("Current Time:  %s", os.date("%H:%M"))
 
-	level_text       = string.format("Level:  %d" ,  basewars.nformat(level))
-	xp_text          = string.format("XP:  %d/ %d" , xp, next_xp)
-	level_text_final = string.format("%s    %s", level_text, xp_text)
+	level_text       = string.format("Level:  %d" , basewars.nformat(level))
+	xp_text          = string.format("XP:  %d/ %d", xp, next_xp)
+	level_text_final = string.format("%s    %s"   , level_text, xp_text)
 
 	core = basewars.basecore.get(ply)
 	encompassing_core = basewars.basecore.getForPos(ply)
+
+	local playtime = ply.getPlaytime and ply:getPlaytime()
+
+	if playtime then
+		local d = math.floor(playtime / 86400)
+		local h = math.floor(playtime / 3600 - d * 24)
+		local m = math.floor(playtime / 60 - h * 60 - d * 86400)
+		playtime_text = string.format("Playtime:  %dd  %02.f:%02.f", d, h, m)
+	end
 
 	if IsValid(core) then
 		valid_core_past = CurTime()
@@ -227,6 +238,11 @@ function ext:HUDPaint()
 
 	curx, cury = scrW - xindent, yindent
 	self:en(rot_y)
+		if playtime_text then
+			cury = cury + drawString(playtime_text, curx, cury, off_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+			cury = cury + 4
+		end
+
 		if encompassing_core then
 			local own = encompassing_core == core
 			cury = cury + drawString("In range of core", curx, cury, off_white_t, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)

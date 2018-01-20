@@ -150,6 +150,7 @@ function basewars.items.spawn(id, ply, pos, ang, norm)
 		end
 	end
 	if not IsValid(ent) then return false, "item:postSpawn destroyed entity <REPORT THIS: '" .. id .. "'>>" end
+	hook.Run("BW_OnItemSpawned", ply, id, ent)
 
 	return true, ent
 end
@@ -158,7 +159,7 @@ end
 -- Sale
 
 
-function ext:BW_EntitySold(ent, ply, violent)
+function ext:BW_OnEntitySold(ent, ply, violent)
 	local final_val = basewars.items.getSaleValue(ent, ply, violent)
 	if not final_val or final_val < 1 then return end
 
@@ -182,7 +183,7 @@ function ext:BW_OnEntityDestroyed(ent, attack, inflic, violent)
 		return
 	end
 
-	hook.Run("BW_EntitySold", ent, ply, violent or false)
+	hook.Run("BW_OnEntitySold", ent, ply, violent or false)
 end
 ext.BW_OnNonBasewarsEntityDestroyed = ext.BW_OnEntityDestroyed
 

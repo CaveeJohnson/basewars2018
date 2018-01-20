@@ -37,11 +37,11 @@ else
 	function basewars.playerUIDToSID64(uid) return uid end
 end
 
-function basewars.playerAddMoney(ply, amt)
+function basewars.playerAddMoney(ply, amt, where)
 	local id = ply
 	if isentity(ply) then
 		if ply.addMoney then
-			ply:addMoney(amt)
+			ply:addMoneyNotif(amt, where)
 
 			return
 		else
@@ -50,7 +50,7 @@ function basewars.playerAddMoney(ply, amt)
 	else
 		local ply_ent = player.GetBySteamID64(ply)
 		if ply_ent and ply_ent.addMoney then
-			ply_ent:addMoney(amt)
+			ply_ent:addMoneyNotif(amt, where)
 
 			return
 		end
@@ -77,6 +77,7 @@ function ext:payout(ent, ply, owner, money)
 	if IsValid(ply) then
 		table.insert(pay, ply)
 	end
+
 	if owner then
 		table.insert(pay, owner)
 	end
@@ -85,9 +86,12 @@ function ext:payout(ent, ply, owner, money)
 	local split = money / people
 
 	for i = 1, people do
-		basewars.playerAddMoney(pay[i], split)
-
-		-- TODO: Notify
+		basewars.playerAddMoney(pay[i], split,
+			string.format("%s %s",
+				basewars.getEntOwnerName(ent, pay[i] == owner):gsub("^(%l)", string.upper),
+				basewars.getEntPrintName(ent)
+			)
+		)
 	end
 end
 
@@ -97,7 +101,7 @@ function ext:BW_DistributeSaleMoney(ent, ply, money)
 
 	if not owner then
 		if not owner_id or owner_id == CPPI.CPPI_NOTIMPLEMENTED then
-			ErrorNoHalt("WARNING: Your prop protection does not track offline ownership, the disconnected player WILL lose money!")
+			ErrorNoHalt("WARNING: Your prop protection does not track offline ownership, the disconnected player WILL lose money!\n")
 		else
 			owner = basewars.playerUIDToSID64(owner_id)
 		end

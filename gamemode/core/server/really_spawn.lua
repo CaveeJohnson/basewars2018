@@ -18,10 +18,6 @@ ext.PlayerSay               = ext.reallySpawn
 ext.CanPlayerSuicide        = ext.reallySpawn
 ext.ShouldPlayerSpawnObject = ext.reallySpawn
 
-function ext:PlayerSwitchWeapon(ply, old, new)
-
-end
-
 function ext:FinishMove(ply, md)
 	if not ply.bw_hasReallySpawned and
 		(md:GetButtons() ~= 0 or md:GetImpulseCommand() ~= 0) then

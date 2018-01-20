@@ -24,7 +24,7 @@ basewars.__global = basewars.__global or {} -- For preserved state (eg factions,
 
 
 basewars.version = 20180120
-basewars.versionString = "ALPHA " .. tostring(basewars.version)
+basewars.versionString = "PRE-ALPHA " .. tostring(basewars.version)
 
 
 do
@@ -232,6 +232,17 @@ do
 		cache[class] = name
 
 		return name
+	end
+end
+
+function basewars.getEntOwnerName(ent, isOwner) -- TODO: this is crap
+	if isOwner then return "your" end
+
+	local owner = ent:CPPIGetOwner()
+	if IsValid(owner) then
+		return owner:Nick()
+	else
+		return "somebody's"
 	end
 end
 

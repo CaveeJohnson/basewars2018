@@ -12,25 +12,40 @@ ext.nonHostileWeps = {
 }
 
 function ext:becomeHostile(ply)
-	if ply:IsPlayer() and not ply.isHostile then
-		ply.isHostile = true
+	if IsValid(ply) and ply:IsPlayer() and not ply.bw_isHostile then
+		ply.bw_isHostile = true
 		hook.Run("BW_OnPlayerBecomeHostile", ply)
 
 		if SERVER then
 			ply:SetColor(Color(255, 255, 255, 255))
 			ply:GodDisable()
+
+			timer.Remove(self:getTag() .. tostring(ply))
 		end
 	end
 end
 
+function ext:PlayerReallySpawned(ply)
+	if not ply.bw_isHostile then
+		local time = 60 -- TODO: config
+
+		timer.Create(self:getTag() .. tostring(ply), time, 1, function()
+			self:becomeHostile(ply)
+		end)
+	end
+end
+
 function ext:PlayerSpawnShared(ply)
+	local time = 60 -- TODO: config
+
 	if hook.Run("BW_ShouldPlayerHaveProtection", ply) == false then
-		ply.isHostile = true
+		ply.bw_isHostile = true
 
 		return
 	end
 
-	ply.isHostile = false
+	local neverBefore = ply.bw_isHostile == nil
+	ply.bw_isHostile = false
 
 	if SERVER then
 		ply:SetRenderMode(RENDERMODE_TRANSALPHA)
@@ -38,10 +53,11 @@ function ext:PlayerSpawnShared(ply)
 
 		ply:GodEnable()
 
-		local time = 60 -- TODO: config
-		timer.Create(self:getTag() .. tostring(ply), time, 1, function()
-			self:becomeHostile(ply)
-		end)
+		if not neverBefore then -- reallyspawned does this
+			timer.Create(self:getTag() .. tostring(ply), time, 1, function()
+				self:becomeHostile(ply)
+			end)
+		end
 	end
 end
 

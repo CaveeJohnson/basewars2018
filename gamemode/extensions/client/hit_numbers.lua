@@ -51,7 +51,11 @@ function rnSign()
 	return rn < 0.5 and -1 or 1
 end
 
+ext.dist_sqr = 512 * 512
+
 function ext:SharedEntityTakeDamage(ent, dmginfo)
+	if LocalPlayer():GetPos():DistToSqr(ent:GetPos()) > self.dist_sqr then return end
+
 	local col = mixColor(self.default_color)
 	local types = {}
 

@@ -21,4 +21,3 @@ FreeImage: Couldn't open file 'entities/keypad_wire.png'
 
 "materials/icon16/wrench_orange.vtf": can't be found on disk
 "materials/icon16/folder_database.vtf": can't be found on disk
-

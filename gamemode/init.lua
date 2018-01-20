@@ -8,4 +8,9 @@ resource.AddFile("resource/fonts/DejaVuSans.ttf")
 resource.AddFile("resource/fonts/DejaVuSans-Bold.ttf")
 resource.AddFile("resource/fonts/DejaVuSans-Mono.ttf")
 
+local spawnicons = file.Find(GM.Folder  .. "/content/materials/entities/*", "GAME")
+for _, v in ipairs(spawnicons) do
+	resource.AddFile("materials/entities/" .. v)
+end
+
 resource.AddWorkshop("1132466603") -- stormfox

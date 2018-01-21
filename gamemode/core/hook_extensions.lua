@@ -1,3 +1,14 @@
+if CLIENT then
+	timer.Simple(0, function()
+		local world_panel = vgui.GetWorldPanel()
+		assert(IsValid(world_panel), "world_panel is invalid")
+
+		function world_panel:OnCursorMoved(x, y)
+			hook.Run("GUIOnCursorMoved", x, y)
+		end
+	end)
+end
+
 function GM:OnEntityCreated(ent, ...)
 	local a = {...}
 	timer.Simple(0, function()

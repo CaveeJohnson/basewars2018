@@ -7,7 +7,6 @@ function ext:reallySpawn(ply, b, c)
 	if not (IsValid(ply) and ply:IsPlayer()) then return end
 	if ply.bw_hasReallySpawned then return end
 
-	print("player really spawn!!", ply)
 	ply.bw_hasReallySpawned = true
 	hook.Run("PlayerReallySpawned", ply) -- important: dont use for sv logic, its when the player decides
 	-- to tab in, not when the players entity 'really spawned' or anything like that, its for TELLING THE PLAYER

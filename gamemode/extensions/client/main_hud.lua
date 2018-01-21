@@ -119,7 +119,7 @@ local level_text       = string.format("Level:  %d" ,  basewars.nformat(level))
 local xp_text          = string.format("XP:  %d/ %d" , xp, next_xp)
 local level_text_final = string.format("%s    %s", level_text, xp_text)
 
-local playtime_text
+local playtime_text, afk_text
 
 timer.Create(ext:getTag(), 1, 0, function()
 	local ply = LocalPlayer()
@@ -145,6 +145,17 @@ timer.Create(ext:getTag(), 1, 0, function()
 		local h = math.floor(playtime / 3600 - d * 24)
 		local m = math.floor(playtime / 60 - h * 60 - d * 86400)
 		playtime_text = string.format("Playtime:  %dd  %02.f:%02.f", d, h, m)
+	end
+
+	local afk = ply.isAFK and ply:isAFK()
+
+	if afk then
+		local afktime = ply:getAFKTime()
+		local h = math.floor(afktime / 3600)
+		local m = math.floor(afktime / 60 - h * 60)
+		afk_text = string.format("AFK For:  %02.f:%02.f", h, m)
+	else
+		afk_text = nil
 	end
 
 	if IsValid(core) then
@@ -238,10 +249,18 @@ function ext:HUDPaint()
 
 	curx, cury = scrW - xindent, yindent
 	self:en(rot_y)
+		local off = 0
 		if playtime_text then
 			cury = cury + drawString(playtime_text, curx, cury, off_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
-			cury = cury + 4
+			off = 4
 		end
+
+		if afk_text then
+			cury = cury + drawString(afk_text, curx, cury, off_white_t, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+			off = 4
+		end
+
+		cury = cury + off
 
 		if encompassing_core then
 			local own = encompassing_core == core

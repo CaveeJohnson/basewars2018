@@ -29,6 +29,7 @@ function ext:drawStructureInfo(ent) -- OPT:
 	local mh
 	do
 		local data = ent:getStructureInformation()
+		if not data then return end -- no draw
 
 		surface.SetFont(main_font)
 		local _, th = surface.GetTextSize("W")

@@ -1,6 +1,10 @@
 // Please use glualinter with the default settings
 // and the following settings on sublime lint
 
+// For the todo, please see the trello board
+// https://trello.com/b/cfCpGf1Y/basewars2018
+// (ask Q2F2 for an invite)
+
 // "lint_mode": "background",
 // "show_errors_on_save": true,
 

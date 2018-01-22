@@ -70,6 +70,8 @@ function ext:SharedEntityTakeDamage(ent, dmginfo)
 	local crit = dmg >= 100
 	col = crit and mixColor(self.crit_color) or col
 
+	if ent == LocalPlayer() then col.a = 35 end
+
 	local data = {
 		pos   = self:getHitPos(ent, dmginfo),
 		vel   = --dmginfo:GetDamageForce() * 0.1

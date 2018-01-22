@@ -267,6 +267,17 @@ function ext:HUDPaint()
 			cury = cury + drawString("In range of core", curx, cury, off_white_t, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
 			cury = cury + drawString(own and "Friendly" or "Hostile", curx, cury, own and off_white_t2 or pure_red, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
 		end
+
+		cury = scrH - yindent
+
+		local wep = ply:GetActiveWeapon()
+		if ply:Alive() and IsValid(wep) then
+			local hp = math.max(ply:Health(), 0)
+			local max_hp = ply:GetMaxHealth()
+			drawString(hp, curx - bar_width - 4, cury - bar_height / 2 - 1, hp > max_hp and over_load or off_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+			cury = cury - bar_height
+			cury = cury - drawBar(curx - bar_width, cury, bar_width, bar_height, col2, col1, hp / max_hp)
+		end
 	self:ex()
 end
 

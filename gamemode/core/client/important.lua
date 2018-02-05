@@ -36,9 +36,9 @@ function ext:PostDrawHUD()
 
 	local alpha = 1
 	if rem < 1 then
-		alpha = rem*rem*rem*rem
+		alpha = rem * rem * rem * rem
 	elseif elapsed < 1 then
-		alpha = elapsed*elapsed
+		alpha = elapsed * elapsed
 	end
 
 	self.mat:SetFloat("$alpha", math.min(alpha, 0.9999))
@@ -50,9 +50,9 @@ function ext:PostDrawHUD()
 	surface.SetMaterial(self.mat)
 	surface.SetDrawColor(255, 255, 255, 255)
 
-	local center = scrH/2 - h
+	local center = scrH / 2 - h
 
-	local startY = center - h/2
+	local startY = center - h / 2
 	local scroll = CurTime() * 0.6
 	surface.DrawTexturedRectUV(0, startY, scrW, h, scroll, 0, rep + scroll, 1)
 
@@ -62,19 +62,16 @@ function ext:PostDrawHUD()
 	surface.DrawRect(0, startY - black_h, scrW, black_h)
 	surface.DrawRect(0, startY + h, scrW, black_h)
 
-	local x, y = scrW/2 - h/2 - 30, startY - h/2 - 15
-
-	draw.NoTexture()
-
-	local sz = h*2
-	local sz_diag = sz*math.sqrt(2)
+	local sz = h * 2
+	local sz_diag = sz * math.sqrt(2)
 	local posX = sz_diag / 2 + h
 
+	draw.NoTexture()
 	surface.SetDrawColor(0, 0, 0, 255)
-	surface.DrawTexturedRectRotated(posX, startY + h/2, sz + black_h*2, sz + black_h*2, 45)
+	surface.DrawTexturedRectRotated(posX, startY + h / 2, sz + black_h * 2, sz + black_h * 2, 45)
 
 	surface.SetDrawColor(207, 192, 15, 255)
-	surface.DrawTexturedRectRotated(posX, startY + h/2, sz, sz, 45)
+	surface.DrawTexturedRectRotated(posX, startY + h / 2, sz, sz, 45)
 
 	draw.SimpleText("!", font, posX, center, color_black, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
@@ -85,10 +82,10 @@ function ext:PostDrawHUD()
 	local tw, th = surface.GetTextSize(text)
 
 	surface.SetDrawColor(0, 0, 0, 192)
-	surface.DrawRect(posX - tw - 4, center - th/2, tw + 8, th)
+	surface.DrawRect(posX - tw - 4, center - th / 2, tw + 8, th)
 
 	surface.SetTextColor(255, 255, 255, 255)
-	surface.SetTextPos(posX - tw, center - th/2)
+	surface.SetTextPos(posX - tw, center - th / 2)
 	surface.DrawText(text)
 
 	surface.SetAlphaMultiplier(1)

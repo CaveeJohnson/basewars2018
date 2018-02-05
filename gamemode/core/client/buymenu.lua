@@ -6,6 +6,7 @@ do
 	local green = Color(90 , 200, 0  , 180)
 	local red   = Color(200, 0  , 20 , 180)
 	local blue  = Color(0  , 90 , 200, 180)
+	local yello = Color(255, 234, 136, 180)
 
 	local shade = Color(0  , 0  , 0  , 192)
 	local white = Color(255, 255, 255, 255)
@@ -41,6 +42,8 @@ do
 				col = grey
 			elseif cost > money then
 				col = red
+			elseif cost > money / 3 then
+				col = yello
 			elseif cost < money / 100 then
 				col = blue
 			end

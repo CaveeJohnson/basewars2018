@@ -99,10 +99,12 @@ do
 	end
 end
 
-local stupid1 = Color(19, 209, 245,90)
-local stupid2 = Color(10,90,150,30)
-local col2 = Color(159,1,1,30)
-local col1 = Color(204,50,48,90)
+local color_armor1 = Color(19, 209, 245,90)
+local color_armor2 = Color(10,90,150,30)
+local color_health2 = Color(159,1,1,30)
+local color_health1 = Color(204,50,48,90)
+local color_ammo1 = Color(200,120,10)
+local color_ammo2 = Color(120,90,10)
 
 local pure_red = Color(255, 0, 0, 255)
 
@@ -143,7 +145,7 @@ timer.Create(ext:getTag(), 1, 0, function()
 	if playtime then
 		local d = math.floor(playtime / 86400)
 		local h = math.floor(playtime / 3600 - d * 24)
-		local m = math.floor(playtime / 60 - h * 60 - d * 86400)
+		local m = math.floor(playtime / 60 - h * 60 - d * 1440)
 		playtime_text = string.format("Playtime:  %dd  %02.f:%02.f", d, h, m)
 	end
 
@@ -196,13 +198,13 @@ function ext:HUDPaint()
 			local max_armor = 100
 			drawString(armor, curx + bar_width + 4, cury - bar_height / 2 - 1, armor > max_armor and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 			cury = cury - bar_height
-			cury = cury - drawBar(curx, cury, bar_width, bar_height, stupid2, stupid1, armor / max_armor)
+			cury = cury - drawBar(curx, cury, bar_width, bar_height, color_armor2, color_armor1, armor / max_armor)
 
 			local hp = math.max(ply:Health(), 0)
 			local max_hp = ply:GetMaxHealth()
 			drawString(hp, curx + bar_width + 4, cury - bar_height / 2 - 1, hp > max_hp and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 			cury = cury - bar_height
-			cury = cury - drawBar(curx, cury, bar_width, bar_height, col2, col1, hp / max_hp)
+			cury = cury - drawBar(curx, cury, bar_width, bar_height, color_health2, color_health1, hp / max_hp)
 
 			local money_string = string.format("Bank:  %s    Deployed:  %s", basewars.currency(ply:getMoney()), basewars.currency(0))
 			cury = cury - drawString(money_string, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
@@ -272,18 +274,23 @@ function ext:HUDPaint()
 
 		local wep = ply:GetActiveWeapon()
 		if ply:Alive() and IsValid(wep) then
-			local hp = math.max(ply:Health(), 0)
-			local max_hp = ply:GetMaxHealth()
-			drawString(hp, curx - bar_width - 4, cury - bar_height / 2 - 1, hp > max_hp and over_load or off_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
-			cury = cury - bar_height
-			cury = cury - drawBar(curx - bar_width, cury, bar_width, bar_height, col2, col1, hp / max_hp)
+			local max_clip = wep:GetMaxClip1()
+
+			if max_clip > 0 then
+				local clip = math.max(wep:Clip1(), 0)
+
+				drawString(clip .. "  /  " .. max_clip, curx - bar_width - 4, cury - bar_height / 2 - 1, clip > max_clip and over_load or off_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+				cury = cury - bar_height
+				cury = cury - drawBar(curx - bar_width, cury, bar_width, bar_height, color_ammo2, color_ammo1, clip / max_clip)
+			end
 		end
 	self:ex()
 end
 
 ext.hudNoDraw = {
 	["CHudHealth"] = true,
-	["CHudBattery"] = true
+	["CHudBattery"] = true,
+	["CHudAmmo"] = true,
 }
 
 function ext:HUDShouldDraw(name)

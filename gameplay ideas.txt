@@ -1,0 +1,4 @@
+Talking gameplay for bw18 again:
+
+XP is boring, it's a good system, but it should be implemented more strongly than just a straight up 'progress throttle'. Maybe printers shouldn't give XP at all? I bet the tutorial system would lay a lot of framework for objective based stuff, this could be used for missions or something? But then the problem becomes making it something entertaining to do. Maybe milestones with XP rewards, destruction in raids etc, to make XP a counter to AFK farming rather than a reward.
+Also levels should be exponential, with a 'high' level being like 50-60, since after level 50 in bw15 levels become even more useless.

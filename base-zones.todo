@@ -1,0 +1,73 @@
+base-zones:
+	A new system to handle area ownership, designed to be a compromise of
+	scalability for maps along with ease of use for both players and admins.
+
+	The fundamental concept of it can be explained as a 'navmesh for bases',
+	where the navmesh is used for AI navigation data the base zone system
+	will be used for eliminating the abuses of being able to base anywhere
+	while still allowing for relatively free bases.
+
+A comparison of all our systems so far:
+
+	Areas:
+		The first system, based on navmeshes.
+		Pros:
+			Uses existing navmesh
+			Fast when stationary due to using source engine features
+			Requires no extra data to be generated, the navmesh is used
+		Cons:
+			Misuse of the navmesh, most features aren't used, hacks are used
+			**NAVMESH IS NOT NETWORKED**, networking would require remaking it all
+			Not all maps have a navmesh, GENERATING IS EXPENSIVE, SLOW AND BAD
+			Visibility based, bases may not be fully encompassed
+			Regenerating areas is EXPENSIVE, testing against other areas is EXPENSIVE
+
+	Radius:
+		The second, simplified version using just a sphere.
+		Pros:
+			Code is simple
+			Very fast
+			Works well on flat and open maps
+			Does not require any data at all, works on all maps
+		Cons:
+			**DOES NOT WORK ON REAL MAPS.**
+			Corners are cut, multiple floors are covered
+			Very space inefficient, source uses blocky buildings, not spheres
+
+	Base-Zones:
+		The new system being detailed in this documents.
+		Pros:
+			Will work well for all maps
+			Does not require a navmesh
+			Covers all space of a building and will not cut corners
+			Much more intuitive for players, named areas, costs for an area etc
+			Not much networking needed, data will be shared (or sent whole+intact)
+			Manually generated, map issues can be fixed easier than navmesh
+			Data specialized for bases, solves base blocking, street bases etc
+		Cons:
+			**MANUALLY GENERATED.**
+			Code will likely be significantly more complex
+			Will likely be slower than other methods
+				*Heuristic tests will help with this*
+
+Tool:
+	The tool to mark, connect and otherwise designate data about zones.
+	Usage:
+		General usage mode, for players.
+
+		Mark one point, mark another creating a zone.
+		If a core is deployed then zones may only be created if they are
+			connected to the core's area (collection of zones owned).
+		If no core is deployed then a single zone may be marked to
+			deploy the core inside of, from which the other mode will apply.
+		A player owned zone may be deleted by the owner with this mode too.
+
+		Admin selection mode.
+
+		Mark one point, mark another creating a zone.
+
+Next revision of document will contain a rundown of the following:
+	☐	Structure of 'mesh' (sub-zones, weighting, names, connections, adjacency)
+	☐	Admin tool design, with controls and usage
+	☐	How the new system will replace the old one
+	☐	A technical overview of the new system (methods, etc)

@@ -108,7 +108,7 @@ function ext:PostDrawTranslucentRenderables(depth, sky)
 		render_ang:RotateAroundAxis(render_ang:Up(), -90)
 		render_ang:RotateAroundAxis(render_ang:Forward(), 90)
 
-		local scale = 1 - ((CurTime() - v.start)/2)
+		local scale = 1 - ((CurTime() - v.start) / 2)
 
 		cam.Start3D2D(v.pos, render_ang, 0.2 * (scale + 0.1))
 			--debugoverlay.Cross(v.pos, 10, 0.1, Color(255, 255, 255, 50), true)

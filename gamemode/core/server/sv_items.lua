@@ -3,12 +3,12 @@ basewars.items = {}
 
 ext.limiter = ext:establishGlobalTable("limiter")
 
-local function onRemoveLimitHandler(_, ent, id, class)
-	if ent.limiter[id] and ent.limiter[id][class] then
-		ent.limiter[id][class] = ent.limiter[id][class] - 1
+local function onRemoveLimitHandler(_, _self, id, class)
+	if _self.limiter[id] and _self.limiter[id][class] then
+		_self.limiter[id][class] = _self.limiter[id][class] - 1
 
 		local ply = player.GetBySteamID64(id)
-		if ply then ply:SetNW2Int("bw18_limit_" .. class, ent.limiter[id][class]) end
+		if ply then ply:SetNW2Int("bw18_limit_" .. class, _self.limiter[id][class]) end
 	end
 end
 
@@ -40,10 +40,6 @@ function ext:doSpawnEffect(ent, money)
 	util.Effect("propspawn", ed, true, true)
 end
 
-function ext.spawnWeaponItem(item, ply, pos, ang, norm)
-	ext:spawnGenericItem    (item, ply, pos, ang, norm, item.class)
-end
-
 local function DropToFloor(ent)
 	local obb_mins   = ent:OBBMins()
 	local obb_maxs   = ent:OBBMaxs()
@@ -63,11 +59,11 @@ local function DropToFloor(ent)
 	end
 end
 
-function ext:spawnGenericItem(item, ply, pos, ang, norm, wep)
-	local ent = ents.Create(wep and "basewars_weapon_container" or item.class)
+function ext:spawnGenericItem(item, ply, pos, ang, norm)
+	local ent = ents.Create(item.wep and "basewars_weapon_container" or item.class)
 	if not IsValid(ent) then return "ents.Create failed" end
-		if wep and ent.SetWeaponClass then
-			ent:SetWeaponClass(wep)
+		if item.wep and ent.SetWeaponClass then
+			ent:SetWeaponClass(item.class)
 		end
 	ent:Spawn()
 	ent:Activate()

@@ -47,6 +47,7 @@ function basewars.items.createItemEx(id, tbl)
 			tbl.class = id
 			tbl.model = tbl.model or swep.WorldModel
 			tbl.spawn = tbl.spawn or ext.spawnWeaponItem
+			tbl.wep   = true
 		elseif not tbl.spawn then
 			error(string.format("item with no classname and no spawn method registed? '%s'", id))
 		end

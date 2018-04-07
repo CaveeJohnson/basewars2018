@@ -207,7 +207,7 @@ if CLIENT then
 	end
 
 	function SWEP:Think()
-		BaseClass.Think(self)
+		--BaseClass.Think(self)
 
 		self.angle = lf(0.035, self.angle, self.targetAngle)
 		self.VElements.Barrel.angle = angle_rotated(self.baseAngle, self.angle)

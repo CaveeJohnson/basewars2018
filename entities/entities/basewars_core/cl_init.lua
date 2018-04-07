@@ -54,24 +54,25 @@ function ENT:Draw()
 
 	if self:isSelfDestructing() then
 		local len = self:getSelfDestructTime() - CurTime()
-		if len < 0.2 then return end
 
-		local pos = self:GetPos() + Vector(0, 0, (self:BoundingRadius() or 100) + 10)
-		local render_ang   = Angle()
-		render_ang.p = 0
-		render_ang.y = (pos - EyePos()):Angle().y
-		render_ang.r = 0
-		render_ang:RotateAroundAxis(render_ang:Up(), -90)
-		render_ang:RotateAroundAxis(render_ang:Forward(), 90)
+		if len > 0.2 then
+			local pos = self:GetPos() + Vector(0, 0, (self:BoundingRadius() or 100) + 10)
+			local render_ang   = Angle()
+			render_ang.p = 0
+			render_ang.y = (pos - EyePos()):Angle().y
+			render_ang.r = 0
+			render_ang:RotateAroundAxis(render_ang:Up(), -90)
+			render_ang:RotateAroundAxis(render_ang:Forward(), 90)
 
-		cam.Start3D2D(pos, render_ang, 0.1)
-			local m = math.floor(len / 60)
-			local s = math.floor(len - m * 60)
-			local time_str = string.format("%02.f:%02.f", m, s)
+			cam.Start3D2D(pos, render_ang, 0.1)
+				local m = math.floor(len / 60)
+				local s = math.floor(len - m * 60)
+				local time_str = string.format("%02.f:%02.f", m, s)
 
-			draw.SimpleText(time_str, font, 0, -50, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
-			draw.SimpleText("WARNING! Neural Interface: Offline", font_small, 0, 0, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
-		cam.End3D2D()
+				draw.SimpleText(time_str, font, 0, -50, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+				draw.SimpleText("WARNING! Neural Interface: Offline", font_small, 0, 0, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+			cam.End3D2D()
+		end
 	end
 
 	local col = self.indicatorColor

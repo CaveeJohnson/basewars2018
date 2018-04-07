@@ -554,6 +554,7 @@ do
 	PLAYER.SendLuaUnsafe = PLAYER.SendLuaUnsafe or PLAYER.SendLua
 	function PLAYER:SendLua(code, ...)
 		if not tostring(code) then return false end
+		if self:IsBot() then return false end
 		code = tostring(code)
 
 		if code:len() >= 254 then

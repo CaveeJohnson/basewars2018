@@ -1,4 +1,4 @@
-"basewars2018"
+"basewars"
 {
 	"base"        "sandbox"
 	"title"       "Basewars"
@@ -6,7 +6,7 @@
 	"description" "Hexahedron Basewars redesigned, 2018 edition."
 
 	"author_name" "Hexahedron Studios"
-	"author_url"  "http://hexahedron.pw/, http://hexahedronic.github.io/"
+	"author_url"  "http://hexahedron.pw/"
 
 	"hide"        "0"
 	"menusystem"  "1"

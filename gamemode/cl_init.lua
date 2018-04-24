@@ -8,7 +8,8 @@ if not basewars.contentNotificationDone then
 	local css = IsMounted("cstrike") or util.IsValidModel("models/props/cs_assault/money.mdl")
 	local tf2 = IsMounted("tf") or util.IsValidModel("models/props_forest/cliff_wall_05.mdl")
 
-	local msg = [[You are missing content the Gamemode requires!
+	if not (css and tf2) then
+		local msg = [[You are missing content the Gamemode requires!
 Required Content:
     Counter Strike: Source (%s)
     Team Fortress 2 (%s)
@@ -16,7 +17,6 @@ Required Content:
 %s
 If this content is not installed, the Gamemode will %s!]]
 
-	if not (css and tf2) then
 		local content = css and "" or "You can aquire CS:S content by buying the game on steam,\nby using SteamCMD or from a website such as 'http://kajar9.wixsite.com/cscheater2'\n"
 		if not tf2 then
 			content = css and content or content .. "\n"

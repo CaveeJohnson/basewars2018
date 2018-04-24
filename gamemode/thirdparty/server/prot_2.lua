@@ -1,11 +1,11 @@
--- Not acutally third party, but it is out-the-box prot_2 without
+-- Not actually third party, but it is out-the-box prot_2 without
 -- using the module system
 
 local tag = "bw18-prot2"
 
 
 --local c_physics = "PHYS"
---local c_badents = "ENTS"
+local c_badents = "ENTS"
 local c_baddamg = "DAMG"
 local c_modules = "MODL"
 --local c_frmtime = "TIME"
@@ -52,9 +52,12 @@ do
 	local alrt_snd = Sound("npc/roller/code2.wav")
 
 	function alertf(form, ...)
-		if chat and chat.AddText then
+		if chat and chat.AddText then -- aowl
 			chat.AddText(alrt_col, "! ", color_white, string.format(form, ...))
 			BroadcastLua("surface.PlaySound'" .. alrt_snd .. "'")
+		elseif tetra and tetra.rpc then -- tetrahedron
+			tetra.chat(nil, alrt_col, "! ", color_white, string.format(form, ...))
+			tetra.rpc(nil, "surface.PlaySound", alrt_snd)
 		end
 	end
 end
@@ -403,9 +406,7 @@ do
 		fixDamage(self, info)
 	end
 
-	hook.Add("EntityTakeDamage", tag, function(ent, info)
-		fixNpcDamagers(ent, info)
-	end)
+	hook.Add("EntityTakeDamage", tag, fixNpcDamagers)
 
 	hook.Add("ScaleNPCDamage", tag, function(ent, hitgroup, info)
 		fixNpcDamagers(ent, info)
@@ -426,6 +427,7 @@ do
 		end
 	end
 
+	-- no need to slow down startup
 	timer.Simple(3, function()
 		hook.Add("OnEntityCreated", tag .. "edict", function(e)
 			if e:IsValid() and e:EntIndex() > 0 then
@@ -444,12 +446,34 @@ do
 
 	local maxSafe = 8192 - 128
 
+	local function cleanupIfOverflowIn(time)
+		if timer.Exists(tag.."cleanupOverflow") then return end
+
+		timer.Create(tag.."cleanupOverflow", time, 1, function()
+			calculate()
+
+			if total > maxSafe then
+				fatalf(c_badents, "Emergency cleanup commencing.")
+
+				-- TODO: aowl or tetra, if not immediate
+			else
+				warnf(c_badents, "Edict has returned to safe levels.")
+			end
+		end)
+	end
+
 	ents.CreateUnsafe = ents.CreateUnsafe or ents.Create
 	function ents.Create(class, ...)
 		if total > maxSafe then
 			calculate()
 
 			if total > maxSafe then
+				fatalf(c_badents, "Maximum safe edict count has been exceeded (%d/%d)!", total, maxSafe)
+				fatalf(c_badents, "if the count is still exceeded in 10 seconds the server will begin an emergency cleanup.")
+
+				alertf("Safe edict count has been exceeded, delete any entities you do not need IMMEDIATELY.")
+
+				cleanupIfOverflowIn(10)
 				return NULL
 			end
 		end
@@ -494,7 +518,7 @@ do
 	PLAYER.GetInfoNumUnsafe = PLAYER.GetInfoNumUnsafe or PLAYER.GetInfoNum
 	function PLAYER:GetInfoNum(var, def, ...)
 		local num = self:GetInfoNumUnsafe(var, def, ...)
-		if num and not (num < inf and num > ninf) then
+		if num and (num >= inf or num <= ninf) then
 			num = def or 0
 		end
 
@@ -506,7 +530,7 @@ do
 		local num = self:GetInfoUnsafe(var, def, ...)
 
 		local comp = tonumber(num)
-		if comp and not (comp < inf and comp > ninf) then
+		if comp and (comp >= inf or comp <= ninf) then
 			num = def or 0
 		end
 
@@ -553,18 +577,25 @@ end
 do
 	PLAYER.SendLuaUnsafe = PLAYER.SendLuaUnsafe or PLAYER.SendLua
 	function PLAYER:SendLua(code, ...)
-		if not tostring(code) then return false end
-		if self:IsBot() then return false end
+		if self:IsBot() then return end
+
 		code = tostring(code)
+		if not code then return end
 
-		if code:len() >= 254 then
+		local len = code:len()
+		if len >= 254 then
 			if luadev and luadev.RunOnClient then
-				warnf(c_luasend, "SendLua overflowed for '%s', using luadev to transmit.", self)
+				warnf(c_luasend, "SendLua overflowed for '%s' (%d bytes), using luadev to transmit.", self, len)
 
-				return luadev.RunOnClient(code, self, self)
+				local _, err = luadev.RunOnClient(code, self, "SendLua")
+				if err then
+					warnf(c_luasend, "failed to send with luadev; %s...", err)
+				end
+			else
+				warnf(c_luasend, "SendLua overflowed for '%s' (%d bytes); no luadev.RunOnClient, cannot rescue.", self, len)
 			end
 
-			return false
+			return
 		end
 
 		return self:SendLuaUnsafe(code, ...)
@@ -572,21 +603,23 @@ do
 
 	BroadcastLuaUnsafe = BroadcastLuaUnsafe or BroadcastLua
 	function BroadcastLua(code, ...)
-		if not tostring(code) then return false end
 		code = tostring(code)
+		if not code then return end
 
-		if code:len() >= 254 then
-			if luadev and luadev.RunOnClient then
-				warnf(c_luasend, "BroadcastLua overflowed, using luadev to transmit.")
+		local len = code:len()
+		if len >= 254 then
+			if luadev and luadev.RunOnClients then
+				warnf(c_luasend, "BroadcastLua overflowed (%d bytes), using luadev to transmit.", len)
 
-				for _, v in ipairs(player.GetHumans()) do
-					luadev.RunOnClient(code, v, v)
+				local _, err = luadev.RunOnClients(code, "BroadcastLua")
+				if err then
+					warnf(c_luasend, "failed to send with luadev; %s...", err)
 				end
-
-				return true
 			else
-				return false
+				warnf(c_luasend, "BroadcastLua overflowed (%d bytes); no luadev.RunOnClients, cannot rescue.", len)
 			end
+
+			return
 		end
 
 		return BroadcastLuaUnsafe(code, ...)

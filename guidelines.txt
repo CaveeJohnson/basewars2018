@@ -1,6 +1,9 @@
 Style Guidelines.
 To contribute code you must follow these guidelines.
 
+GLUA EXCLUSIVE SYNTAX IS FORBIDDEN.
+Do not use 'continue' or any C style alternative operators.
+
 File naming:
 	lower_snake.lua
 	- There are no exceptions to this excluding where
@@ -60,6 +63,10 @@ Events / file interaction:
 	  BW_Event, calling non-standard events that do not start with BW_
 	  must be part of the core. Listening for them is fine.
 
+	Core extensions may have a subtable inside the basewars global, such as
+	  'basewars.raids', and as such, may be called directly, but should still
+	  avoid becoming interdependent where possible, and rely on events.
+
 Optimization:
 	Optimization is IMPORTANT.
 	Consider optimization when DESIGNING THE CODE, and after the fact.
@@ -84,7 +91,7 @@ Optimization:
 
 	Micro-optimization is things like localizing math functions on something called 5
 	  times per entity per frame and not localizing Entity.SetHealth for a call every
-	  	(22 * 5 * edict (lets say 1000) = 110000 table lookups at 22tps)
+	  	(22 * 5 * edict (lets say 1000) = 110,000 table lookups per second at 22tps)
 	  few seconds, that's not an optimization, it's just fucking stupid.
 
 	PROFILE EVERYTHING ON CLIENT AND SERVER.
@@ -94,12 +101,19 @@ Optimization:
 	Something that takes more than 0.5ms and get called per frame is unacceptable.
 	ANYTHING that takes more than 5ms is unacceptable, full stop.
 
+	Optimization should be focused on noticeable, measurable impacts, not small
+	  improvements. If something 'looks like it performs bad' that doesn't mean
+	  it needs optimizing, changes for the sake of changes are unacceptable.
+
 General:
 	Never iterate ents.GetAll() per frame. EVER. THIS IS UNACCEPTABLE!
 	Never use ents. ANYTHING PER FRAME. Track entities and then use DistToSqr etc.
 
 	Track entities using the extensions tracker system or by yourself,
 	  track the bare minimum you can.
+
+	Use the 'utf8' string functions wherever possible, avoid using string.find,
+	  use pattern matches instead.
 
 
 IF YOU HAVE SOMETHING TO ADD PLEASE CONSULT @Basewars Core OR @Q2F2 FIRST

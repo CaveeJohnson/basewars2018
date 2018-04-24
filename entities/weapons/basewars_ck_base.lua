@@ -186,7 +186,7 @@ if CLIENT then
 	local function createModel(self, v, model)
 		if
 			(not IsValid(v.modelEnt) or v.createdModel ~= model) and
-			string.find(model, ".mdl", 1, true) and file.Exists(model, "GAME")
+			model:match("^[^\0]+%.mdl$") and file.Exists(model, "GAME")
 		then
 			v.modelEnt = ClientsideModel(model, RENDERGROUP_VIEWMODEL)
 
@@ -359,15 +359,15 @@ if CLIENT then
 
 		for _, name in ipairs(self.vRenderOrder) do
 			local v = self.VElements[name]
-
 			if not v then self.vRenderOrder = nil break end
-			if v.hide then continue end
-			if not v.bone then continue end
 
-			local pos, ang = self:ckGetBoneOrientation(self.VElements, v, vm)
-			if not pos then continue end
+			if v.bone and not v.hide then
+				local pos, ang = self:ckGetBoneOrientation(self.VElements, v, vm)
 
-			self:ckRenderElement(name, v, pos, ang)
+				if pos then
+					self:ckRenderElement(name, v, pos, ang)
+				end
+			end
 		end
 	end
 
@@ -395,19 +395,20 @@ if CLIENT then
 
 		for _, name in ipairs(self.wRenderOrder) do
 			local v = self.WElements[name]
-
 			if not v then self.wRenderOrder = nil break end
-			if v.hide then continue end
 
-			local pos, ang
-			if v.bone then
-				pos, ang = self:ckGetBoneOrientation(self.WElements, v, bone_ent)
-			else
-				pos, ang = self:ckGetBoneOrientation(self.WElements, v, bone_ent, "ValveBiped.Bip01_R_Hand")
+			if not v.hide then
+				local pos, ang
+				if v.bone then
+					pos, ang = self:ckGetBoneOrientation(self.WElements, v, bone_ent)
+				else
+					pos, ang = self:ckGetBoneOrientation(self.WElements, v, bone_ent, "ValveBiped.Bip01_R_Hand")
+				end
+
+				if pos then
+					self:ckRenderElement(name, v, pos, ang)
+				end
 			end
-			if not pos then continue end
-
-			self:ckRenderElement(name, v, pos, ang)
 		end
 	end
 
@@ -482,33 +483,34 @@ if CLIENT then
 
 		for name, v in pairs(bone_mods) do
 			local bone = vm:LookupBone(name)
-			if not bone then continue end
 
-			local scale = Vector(v.scale.x, v.scale.y, v.scale.z)
+			if bone then
+				local scale = Vector(v.scale.x, v.scale.y, v.scale.z)
 
-			-- workaround
-			if not hasGarryFixedBoneScalingYet then
-				local total_scale = Vector(1, 1, 1)
+				-- workaround
+				if not hasGarryFixedBoneScalingYet then
+					local total_scale = Vector(1, 1, 1)
 
-				local current_bone = vm:GetBoneParent(bone)
-				while current_bone >= 0 do
-					local parent_scale = bone_mods[vm:GetBoneName(current_bone)].scale
-					total_scale = total_scale * parent_scale
+					local current_bone = vm:GetBoneParent(bone)
+					while current_bone >= 0 do
+						local parent_scale = bone_mods[vm:GetBoneName(current_bone)].scale
+						total_scale = total_scale * parent_scale
 
-					current_bone = vm:GetBoneParent(current_bone)
+						current_bone = vm:GetBoneParent(current_bone)
+					end
+
+					scale = scale * total_scale
 				end
 
-				scale = scale * total_scale
-			end
-
-			if vm:GetManipulateBoneScale(bone) ~= scale then
-				vm:ManipulateBoneScale(bone, scale)
-			end
-			if vm:GetManipulateBoneAngles(bone) ~= v.angle then
-				vm:ManipulateBoneAngles(bone, v.angle)
-			end
-			if vm:GetManipulateBonePosition(bone) ~= v.pos then
-				vm:ManipulateBonePosition(bone, v.pos)
+				if vm:GetManipulateBoneScale(bone) ~= scale then
+					vm:ManipulateBoneScale(bone, scale)
+				end
+				if vm:GetManipulateBoneAngles(bone) ~= v.angle then
+					vm:ManipulateBoneAngles(bone, v.angle)
+				end
+				if vm:GetManipulateBonePosition(bone) ~= v.pos then
+					vm:ManipulateBonePosition(bone, v.pos)
+				end
 			end
 		end
 	end

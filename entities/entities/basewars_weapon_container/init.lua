@@ -8,7 +8,7 @@ local hl2_rev = {
 }
 local cache = {}
 
-function ENT:getModel(class)
+function ENT:getWorldModel(class)
 	if cache[class] then return cache[class] end
 	if hl2_rev[class] then return hl2_rev[class] end
 
@@ -19,6 +19,7 @@ function ENT:getModel(class)
 		return try
 	end
 
+	ErrorNoHalt(string.format("Weapon Container: Failed to resolve worldmodel for '%s'\n", class))
 	return "models/error.mdl"
 end
 
@@ -26,10 +27,10 @@ function ENT:Initialize()
 	local class = self:GetWeaponClass()
 	self.wep = weapons.Get(class)
 
-	if self.wep then
-		self:SetModel(self.wep.WorldModel or self:getModel(class))
+	if self.wep and util.IsValidModel(self.wep.WorldModel or "models/error.mdl") then
+		self:SetModel(self.wep.WorldModel)
 	else
-		self:SetModel(self:getModel(class))
+		self:SetModel(self:getWorldModel(class))
 	end
 
 	self:PhysicsInit(SOLID_VPHYSICS)

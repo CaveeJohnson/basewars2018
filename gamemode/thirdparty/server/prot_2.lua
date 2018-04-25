@@ -435,7 +435,7 @@ do
 		return ents.CreateUnsafe(class, ...)
 	end
 
-	logf("Added ents.Create saftey checks.")
+	logf("Added ents.Create safety checks.")
 end
 
 do

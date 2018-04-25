@@ -97,6 +97,8 @@ end
 
 -- Spawner code below --
 
+local edictMaxSafe = 8192 - 128
+
 function basewars.items.canSpawn(id, ply, pos, ang)
 	local item = items[id]
 	if not item then return false, "Invalid item!" end
@@ -104,8 +106,8 @@ function basewars.items.canSpawn(id, ply, pos, ang)
 	local res, err = hook.Run("BW_ShouldSpawn", ply, item, pos, ang)
 	if res == false then return false, err end
 
-	if SERVER and ents.GetEdictCount() > 8063 then
-		return false, "EDICT is about to reach its limit, spawn request denied"
+	if SERVER and ents.GetEdictCount() >= edictMaxSafe then
+		return false, "Safe edict count has been exceeded!"
 	end
 
 	if item.requiresCore and not basewars.basecore.has(ply) then
@@ -160,7 +162,7 @@ end
 
 function basewars.items.getSaleMult(ent, ply, violent)
 	local mult = violent and 0.5 or 0.6
-	if CurTime() - ent:GetNW2Int("boughtAt", 0) < 10 and not ent.noRefund and not ent:GetNW2Bool("hasBeenUsed", false) and not violent then -- TODO: config
+	if CurTime() - ent:GetNW2Int("bw_boughtAt", 0) < 10 and not ent.noRefund and not ent:GetNW2Bool("bw_hasBeenUsed", false) and not violent then -- TODO: config
 		mult = 1.0
 	end
 

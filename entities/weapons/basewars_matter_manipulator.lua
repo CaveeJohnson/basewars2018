@@ -323,7 +323,7 @@ if CLIENT then
 				local col = res and Color(0, 200, 0) or Color(200, 0, 0)
 				y = y - drawString(err, xsmallFont, x, y, col, nil, TEXT_ALIGN_BOTTOM)
 
-				local spawned_time = CurTime() - ent:GetNW2Int("boughtAt", 0)
+				local spawned_time = CurTime() - ent:GetNW2Int("bw_boughtAt", 0)
 				res = spawned_time < 10 -- TODO: config, see items.lua
 
 				if res then

@@ -71,7 +71,7 @@ function ENT:Use(act, caller, type, value)
 	local money = self:getStoredMoney()
 	if money <= 0 then return end
 
-	self:SetNW2Bool("hasBeenUsed", true)
+	self:SetNW2Bool("bw_hasBeenUsed", true)
 
 	--caller:ChatPrint(string.format("You recieved £%s from the placeholder.", basewars.nformat(money)))
 

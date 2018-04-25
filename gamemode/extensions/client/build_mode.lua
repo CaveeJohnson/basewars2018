@@ -81,7 +81,7 @@ function ext:mmRender(ply)
 				render.SetColorModulation(1, 0, 0, 1)
 					v:DrawModel()
 			elseif basewars.items.getSaleMult(v, ply, false) == 1.0 then
-				local spawned_time = CurTime() - v:GetNW2Int("boughtAt", 0)
+				local spawned_time = CurTime() - v:GetNW2Int("bw_boughtAt", 0)
 				local alpha = (10 - spawned_time) / 10 -- TODO: config, see items.lua
 				render.SetColorModulation(0, 1, 0, alpha)
 				render.SetBlend(alpha)

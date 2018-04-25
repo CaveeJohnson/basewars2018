@@ -8,7 +8,7 @@ local function onRemoveLimitHandler(_, _self, id, class)
 		_self.limiter[id][class] = _self.limiter[id][class] - 1
 
 		local ply = player.GetBySteamID64(id)
-		if ply then ply:SetNW2Int("bw18_limit_" .. class, _self.limiter[id][class]) end
+		if ply then ply:SetNW2Int("bw_limit_" .. class, _self.limiter[id][class]) end
 	end
 end
 
@@ -17,7 +17,7 @@ function ext:PostPlayerInitialSpawn(ply)
 	self.limiter[id] = self.limiter[id] or {}
 
 	for class, n in pairs(self.limiter[id]) do
-		ply:SetNW2Int("bw18_limit_" .. class, n)
+		ply:SetNW2Int("bw_limit_" .. class, n)
 	end
 end
 
@@ -27,10 +27,10 @@ function ext:setupLimits(ent, ply, item)
 
 	self.limiter[id] = self.limiter[id] or {}
 	self.limiter[id][class] = (self.limiter[id][class] or 0) + 1
-	ply:SetNW2Int("bw18_limit_" .. class, self.limiter[id][class])
+	ply:SetNW2Int("bw_limit_" .. class, self.limiter[id][class])
 
-	ent:CallOnRemove("bw18_ent_limits" , onRemoveLimitHandler, self, id, class)
-	ent:CallOnRemove("bw18_ent_removal", basewars.onEntitySale) -- won't call if the entity marks itsself as having handled before
+	ent:CallOnRemove("bw_ent_limits" , onRemoveLimitHandler, self, id, class)
+	ent:CallOnRemove("bw_ent_removal", basewars.onEntitySale) -- won't call if the entity marks itsself as having handled before
 end
 
 function ext:doSpawnEffect(ent, money)
@@ -80,6 +80,10 @@ function ext:spawnGenericItem(item, ply, pos, ang, norm)
 	end
 	DropToFloor(ent)
 
+	return ent
+end
+
+function ext:postSpawn(item, ply, ent)
 	ent:CPPISetOwner(ply)
 	if ent.setAbsoluteOwner then ent:setAbsoluteOwner(ply:SteamID64()) end
 
@@ -95,13 +99,11 @@ function ext:spawnGenericItem(item, ply, pos, ang, norm)
 	basewars.moneyPopout(ent, -item.cost)
 
 	if ent.setCurrentValue then ent:setCurrentValue(item.cost) end
-	ent:SetNW2Int("boughtAt", CurTime())
+	ent:SetNW2Int("bw_boughtAt", CurTime())
 
 	if item.cost > 0 then
 		ply:takeMoney(item.cost)
 	end
-
-	return ent
 end
 
 function ext:BW_ShouldSpawn(ply, item)
@@ -146,6 +148,8 @@ function basewars.items.spawn(id, ply, pos, ang, norm)
 		end
 	end
 	if not IsValid(ent) then return false, "item:postSpawn destroyed entity <REPORT THIS: '" .. id .. "'>>" end
+
+	ext:postSpawn(item, ply, ent)
 	hook.Run("BW_OnItemSpawned", ply, id, ent)
 
 	return true, ent

@@ -55,11 +55,11 @@ function ext:PlayerLoadout(ply)
 	ply:Give("basewars_matter_manipulator")
 end
 
-ext.rtName = "bw18_matter_manipulator_rt"
+ext.rtName = "bw_matter_manipulator_rt"
 ext.rtMatName = "!" .. ext.rtName .. "_mat"
 
 function ext:getAngles(ply)
-	local yaw = tonumber(ply:GetInfoNum("bw18_mm_creation_yaw", 0)) or 0
+	local yaw = tonumber(ply:GetInfoNum("bw_mm_creation_yaw", 0)) or 0
 	local snap = tonumber(ply:GetInfoNum("gm_snapangles", 0)) or 0
 	if ply:KeyDown(IN_SPEED) then yaw = math.Round(yaw / snap) * snap end
 
@@ -71,15 +71,15 @@ function ext:getAngles(ply)
 end
 
 function ext:buyItem(ply, res)
-	local id = ply:GetInfo("bw18_mm_creation_item", "error") or "error"
+	local id = ply:GetInfo("bw_mm_creation_item", "error") or "error"
 	if id == "error" then return false end
 
 	return basewars.items.spawn(id, ply, res.HitPos, self:getAngles(ply), res.HitNormal)
 end
 
 if CLIENT then
-	ext.creationItemCVar = CreateClientConVar("bw18_mm_creation_item", "error", true, true, "The unique identifier for the selected item you are creating.")
-	ext.yawCVar          = CreateClientConVar("bw18_mm_creation_yaw", "0", true, true, "The yaw offset of the entity.")
+	ext.creationItemCVar = CreateClientConVar("bw_mm_creation_item", "error", true, true, "The unique identifier for the selected item you are creating.")
+	ext.yawCVar          = CreateClientConVar("bw_mm_creation_yaw", "0", true, true, "The yaw offset of the entity.")
 	ext.snapCVar         = GetConVar("gm_snapangles")
 
 	function SWEP:FreezeMovement()
@@ -90,7 +90,7 @@ if CLIENT then
 			local snap = ext.snapCVar:GetFloat()
 			cur = math.Round(cur / snap) * snap
 
-			RunConsoleCommand("bw18_mm_creation_yaw", cur)
+			RunConsoleCommand("bw_mm_creation_yaw", cur)
 			self.clampYawNext = nil
 		end
 	end
@@ -105,7 +105,7 @@ if CLIENT then
 				local cur = ext.yawCVar:GetFloat()
 				cur = cur + deg
 
-				RunConsoleCommand("bw18_mm_creation_yaw", cur)
+				RunConsoleCommand("bw_mm_creation_yaw", cur)
 				if owner:KeyDown(IN_SPEED) then
 					self.clampYawNext = true
 				else
@@ -136,7 +136,7 @@ if CLIENT then
 		self.creationItemId = id
 		self.creationItem = basewars.items.get(id)
 
-		RunConsoleCommand("bw18_mm_creation_item", id)
+		RunConsoleCommand("bw_mm_creation_item", id)
 	end
 
 	function SWEP:createGhostEntity()
@@ -221,7 +221,7 @@ if CLIENT then
 		end
 	end
 
-	cvars.AddChangeCallback("bw18_mm_creation_item", function(_, old, new)
+	cvars.AddChangeCallback("bw_mm_creation_item", function(_, old, new)
 		if ext.creationItemId == new then return end
 
 		ext:setCreationItem(new, true)

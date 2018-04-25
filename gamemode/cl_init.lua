@@ -36,8 +36,8 @@ If this content is not installed, the Gamemode will %s!]]
 			basewars.doneStartup = true
 		end)
 	else
-		hook.Add("PlayerBindPress", "bw18-listenfirstinput", function()
-			hook.Remove("PlayerBindPress", "bw18-listenfirstinput")
+		hook.Add("PlayerBindPress", "bw-listenfirstinput", function()
+			hook.Remove("PlayerBindPress", "bw-listenfirstinput")
 			hook.Run("BW_PostContentNotification")
 
 			basewars.doneStartup = true

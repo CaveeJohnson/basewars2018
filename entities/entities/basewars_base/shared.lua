@@ -24,7 +24,7 @@ end
 do
 	local clamp = math.ClampRev
 
-	local net_tag = "bw18-dtv_transmit"
+	local net_tag = "bw-dtv_transmit"
 	if SERVER then
 		util.AddNetworkString(net_tag)
 

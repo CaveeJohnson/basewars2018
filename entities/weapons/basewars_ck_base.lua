@@ -86,22 +86,22 @@ function SWEP:ShouldDropOnDie()
 end
 
 if CLIENT then
-	surface.CreateFont("bw18_ck_base_weapon_selection_blur", {
+	surface.CreateFont("bw_ck_base_weapon_selection_blur", {
 		font = "HalfLife2",
 		size = 128,
 		blursize = 9,
 		scanlines = 4,
 	})
 
-	surface.CreateFont("bw18_ck_base_weapon_selection", {
+	surface.CreateFont("bw_ck_base_weapon_selection", {
 		font = "HalfLife2",
 		size = 128,
 	})
 
 	function SWEP:DrawWeaponSelection(x, y, w, h, a)
 		if self.weaponSelectionLetter then
-			draw.SimpleText(self.weaponSelectionLetter, self.weaponSelectionFontBlur or "bw18_ck_base_weapon_selection_blur", x + w / 2, y + h / 2, Color(200, 200, 200, math.max(a - 8, 0)), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-			draw.SimpleText(self.weaponSelectionLetter, self.weaponSelectionFont     or "bw18_ck_base_weapon_selection",      x + w / 2, y + h / 2, Color(200, 200, 200, a), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+			draw.SimpleText(self.weaponSelectionLetter, self.weaponSelectionFontBlur or "bw_ck_base_weapon_selection_blur", x + w / 2, y + h / 2, Color(200, 200, 200, math.max(a - 8, 0)), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+			draw.SimpleText(self.weaponSelectionLetter, self.weaponSelectionFont     or "bw_ck_base_weapon_selection",      x + w / 2, y + h / 2, Color(200, 200, 200, a), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
 			self:PrintWeaponInfo(x + w + 20, y + h * 0.95, a)
 		else

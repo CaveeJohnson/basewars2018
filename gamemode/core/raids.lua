@@ -365,7 +365,7 @@ if CLIENT then -- GUI (temp)
 		self.raidPanel:MakePopup()
 	end
 
-	concommand.Add("bw18_raid_gui", function() ext:openRaidGUI() end)
+	concommand.Add("bw_raid_gui", function() ext:openRaidGUI() end)
 end
 
 if CLIENT then return end

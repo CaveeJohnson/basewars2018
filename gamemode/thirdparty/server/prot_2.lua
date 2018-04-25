@@ -1,7 +1,7 @@
 -- Not actually third party, but it is out-the-box prot_2 without
 -- using the module system
 
-local tag = "bw18-prot2"
+local tag = "bw-prot2"
 
 
 --local c_physics = "PHYS"

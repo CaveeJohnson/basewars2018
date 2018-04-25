@@ -55,7 +55,7 @@ function ext:repair(res)
 	return true
 end
 
-ext.rtName = "bw18_matter_reconstructor_rt"
+ext.rtName = "bw_matter_reconstructor_rt"
 ext.rtMatName = "!" .. ext.rtName .. "_mat"
 
 if CLIENT then
@@ -183,7 +183,7 @@ do
 end
 
 function SWEP:DoShootEffect(hitpos, hitnormal, entity, physbone, firstTimePredicted)
-	local random_id = "bw18_matter_reconstructor_" .. CurTime() .. tostring(self)
+	local random_id = "bw_matter_reconstructor_" .. CurTime() .. tostring(self)
 	local shared_random = math.Round(util.SharedRandom(random_id, 1, 2, 0))
 	local shared_random2 = math.Round(util.SharedRandom(random_id, 45, 55, 1))
 

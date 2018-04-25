@@ -43,7 +43,7 @@ SWEP.reloadDelay = 1.2
 
 sound.Add({
 	channel = CHAN_WEAPON,
-	name    = "bw2018.photon_cannon.shoot1",
+	name    = "bw.photon_cannon.shoot1",
 	level   = 100,
 	sound   = ")ambient/levels/labs/electric_explosion5.wav",
 	volume  = 0.7,
@@ -52,7 +52,7 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw2018.photon_cannon.shoot2",
+	name    = "bw.photon_cannon.shoot2",
 	level   = 100,
 	sound   = ")weapons/smg1/smg1_fire1.wav",
 	volume  = 0.65,
@@ -61,7 +61,7 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw2018.photon_cannon.shoot3",
+	name    = "bw.photon_cannon.shoot3",
 	level   = 80,
 	sound   = ")ambient/levels/labs/electric_explosion2.wav",
 	volume  = 0.05,
@@ -70,7 +70,7 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw2018.photon_cannon.reload1",
+	name    = "bw.photon_cannon.reload1",
 	level   = 80,
 	sound   = ")plats/elevator_stop1.wav",
 	volume  = 0.7,
@@ -79,7 +79,7 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw2018.photon_cannon.reload2",
+	name    = "bw.photon_cannon.reload2",
 	level   = 70,
 	sound   = ")weapons/physcannon/energy_bounce2.wav",
 	volume  = 0.8,
@@ -88,22 +88,22 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw2018.photon_cannon.reload3",
+	name    = "bw.photon_cannon.reload3",
 	level   = 70,
 	sound   = ")items/medshot4.wav",
 	volume  = 0.2,
 	pitch   = 120
 })
 
-SWEP.primarySound1 = Sound "bw2018.photon_cannon.shoot1"
-SWEP.primarySound2 = Sound "bw2018.photon_cannon.shoot2"
-SWEP.primarySound3 = Sound "bw2018.photon_cannon.shoot3"
+SWEP.primarySound1 = Sound "bw.photon_cannon.shoot1"
+SWEP.primarySound2 = Sound "bw.photon_cannon.shoot2"
+SWEP.primarySound3 = Sound "bw.photon_cannon.shoot3"
 
 SWEP.noAmmoSound = Sound "items/suitchargeno1.wav"
 
-SWEP.reloadSound1 = Sound "bw2018.photon_cannon.reload1"
-SWEP.reloadSound2 = Sound "bw2018.photon_cannon.reload2"
-SWEP.reloadSound3 = Sound "bw2018.photon_cannon.reload3"
+SWEP.reloadSound1 = Sound "bw.photon_cannon.reload1"
+SWEP.reloadSound2 = Sound "bw.photon_cannon.reload2"
+SWEP.reloadSound3 = Sound "bw.photon_cannon.reload3"
 
 SWEP.reloadEndSound = Sound "buttons/button14.wav"
 

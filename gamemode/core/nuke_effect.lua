@@ -1,4 +1,4 @@
-local net_tag = "bw18-nuke-effect"
+local net_tag = "bw-nuke-effect"
 
 function basewars.doNukeEffect(pos)
 	if hook.Run("BW_OnNukeEffect", pos) then return end

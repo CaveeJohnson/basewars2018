@@ -53,7 +53,7 @@ SWEP.DrawAmmo = false
 
 sound.Add({
 	channel = CHAN_WEAPON,
-	name    = "bw18.gauss_pistol.shoot1",
+	name    = "bw.gauss_pistol.shoot1",
 	level   = 100,
 	sound   = ")weapons/pistol/pistol_fire2.wav",
 	volume  = 0.8,
@@ -62,7 +62,7 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw18.gauss_pistol.shoot2",
+	name    = "bw.gauss_pistol.shoot2",
 	level   = 90,
 	sound   = ")ambient/energy/zap8.wav",
 	volume  = 0.45,
@@ -71,7 +71,7 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_WEAPON,
-	name    = "bw18.gauss_pistol.chargedshot1",
+	name    = "bw.gauss_pistol.chargedshot1",
 	level   = 110,
 	sound   = {")weapons/airboat/airboat_gun_energy1.wav", ")weapons/airboat/airboat_gun_energy2.wav"},
 	volume  = 1,
@@ -80,7 +80,7 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw18.gauss_pistol.chargedshot2",
+	name    = "bw.gauss_pistol.chargedshot2",
 	level   = 100,
 	sound   = {")weapons/physcannon/energy_sing_flyby1.wav", ")weapons/physcannon/energy_sing_flyby2.wav"},
 	volume  = 0.5,
@@ -89,19 +89,19 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw18.gauss_pistol.chargedshot3",
+	name    = "bw.gauss_pistol.chargedshot3",
 	level   = 80,
 	sound   = ")weapons/physcannon/superphys_launch4.wav",
 	volume  = 0.1,
 	pitch   = 112
 })
 
-SWEP.primarySound1 = Sound "bw18.gauss_pistol.shoot1"
-SWEP.primarySound2 = Sound "bw18.gauss_pistol.shoot2"
+SWEP.primarySound1 = Sound "bw.gauss_pistol.shoot1"
+SWEP.primarySound2 = Sound "bw.gauss_pistol.shoot2"
 
-SWEP.secondarySound1 = Sound "bw18.gauss_pistol.chargedshot1"
-SWEP.secondarySound2 = Sound "bw18.gauss_pistol.chargedshot2"
-SWEP.secondarySound3 = Sound "bw18.gauss_pistol.chargedshot3"
+SWEP.secondarySound1 = Sound "bw.gauss_pistol.chargedshot1"
+SWEP.secondarySound2 = Sound "bw.gauss_pistol.chargedshot2"
+SWEP.secondarySound3 = Sound "bw.gauss_pistol.chargedshot3"
 
 SWEP.secondaryChargeSound = Sound "weapons/physcannon/energy_sing_loop4.wav"
 

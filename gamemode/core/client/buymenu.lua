@@ -204,7 +204,7 @@ do
 		if developer ~= old_dev then
 			ext.reloadSpawnmenu()
 		end
-	end, "bw18_spawnmenu_reload")
+	end, "bw_spawnmenu_reload")
 
 	if g_SpawnMenu then
 		ext.reloadSpawnmenu()

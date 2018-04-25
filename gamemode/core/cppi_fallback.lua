@@ -14,11 +14,11 @@ CPPI.CPPI_NOTIMPLEMENTED = 7080
 
 -- II.b Global Functions
 function CPPI:GetName()
-	return "Basewars 2018"
+	return "Basewars"
 end
 
 function CPPI:GetVersion()
-	return "bw18 cppi_fallback"
+	return "bw cppi_fallback"
 end
 
 function CPPI:GetInterfaceVersion()

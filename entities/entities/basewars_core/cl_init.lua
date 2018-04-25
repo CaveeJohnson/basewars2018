@@ -1,7 +1,7 @@
 include("shared.lua")
 DEFINE_BASECLASS(ENT.Base)
 
-local net_tag = "bw18-core-area"
+local net_tag = "bw-core-area"
 
 function ENT.readNetwork()
 	local ent = net.ReadEntity()
@@ -36,8 +36,8 @@ local yellow = Color(255, 255, 20 , 255)
 local red    = Color(255, 20 , 20 , 255)
 local green  = Color(20 , 255, 20 , 255)
 
-local font = "bw18-core"
-local font_small = "bw18-core_small"
+local font = "bw-core"
+local font_small = "bw-core_small"
 
 surface.CreateFont(font, {
 	font      = "DejaVu Sans Bold",

@@ -20,7 +20,7 @@ ENT.damageLowerBoundMult = 1
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw18.photon_cannon_grenade.explode1",
+	name    = "bw.photon_cannon_grenade.explode1",
 	level   = 100,
 	sound   = ")ambient/energy/weld2.wav",
 	volume  = 0.8,
@@ -29,7 +29,7 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw18.photon_cannon_grenade.explode2",
+	name    = "bw.photon_cannon_grenade.explode2",
 	level   = 90,
 	sound   = ")ambient/levels/citadel/portal_beam_shoot6.wav",
 	volume  = 0.3,
@@ -38,16 +38,16 @@ sound.Add({
 
 sound.Add({
 	channel = CHAN_AUTO,
-	name    = "bw18.photon_cannon_grenade.dissipate",
+	name    = "bw.photon_cannon_grenade.dissipate",
 	level   = 120,
 	sound   = ")weapons/physcannon/superphys_small_zap2.wav",
 	volume  = 0.6,
 	pitch   = {105, 115}
 })
 
-ENT.explodeSound1  = "bw18.photon_cannon_grenade.explode1"
-ENT.explodeSound2  = "bw18.photon_cannon_grenade.explode2"
-ENT.dissipateSound = "bw18.photon_cannon_grenade.dissipate"
+ENT.explodeSound1  = "bw.photon_cannon_grenade.explode1"
+ENT.explodeSound2  = "bw.photon_cannon_grenade.explode2"
+ENT.dissipateSound = "bw.photon_cannon_grenade.dissipate"
 
 if SERVER then
 	function ENT:Initialize()

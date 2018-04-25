@@ -29,7 +29,7 @@ basewars.versionString = "PRE-ALPHA " .. tostring(basewars.version)
 
 do
 	local titleCol = CLIENT and Color(55, 205 , 135) or Color(200, 50 , 120)
-	local title = CLIENT and "[bw18-cl] " or "[bw18-sv] "
+	local title = CLIENT and "[bw-cl] " or "[bw-sv] "
 	local mainCol  = Color(255, 255, 255)
 
 	function basewars.logf(...)
@@ -42,7 +42,7 @@ do
 
 	function basewars.extBase:getTag()
 		if self.__tag then return self.__tag end
-		self.__tag = "bw18_ext." .. self.name
+		self.__tag = "bw_ext." .. self.name
 
 		return self.__tag
 	end

@@ -204,7 +204,7 @@ if SERVER then
 function ENT:Initialize()
 	BaseClass.Initialize(self)
 
-	self:SetSubMaterial(1, string.format("!bw2018_matgencc_%d_%d", self:EntIndex(), math.ceil(self:GetCreationTime())))
+	self:SetSubMaterial(1, string.format("!bw_matgencc_%d_%d", self:EntIndex(), math.ceil(self:GetCreationTime())))
 end
 
 else
@@ -237,14 +237,14 @@ else
 
 	--- Fonts
 
-	local FONT_MP_HEADER    = "bw2018.mp.header"
-	local FONT_MP_OPTION    = "bw2018.mp.option"
-	local FONT_MP_EASTEREGG = "bw2018.mp.easterEgg"
+	local FONT_MP_HEADER    = "bw.mp.header"
+	local FONT_MP_OPTION    = "bw.mp.option"
+	local FONT_MP_EASTEREGG = "bw.mp.easterEgg"
 
-	local FONT_MP_CONTROLS  = "bw2018.mp.controls"
+	local FONT_MP_CONTROLS  = "bw.mp.controls"
 
-	local FONT_EP_TP        = "bw2018.ep.tp"
-	local FONT_EP_CANCEL    = "bw2018.ep.cancel"
+	local FONT_EP_TP        = "bw.ep.tp"
+	local FONT_EP_CANCEL    = "bw.ep.cancel"
 
 	surface.CreateFont(FONT_MP_HEADER, {
 		font   = "Arial",
@@ -534,8 +534,8 @@ else
 		local mat_num = string.format("%d_%d", self:EntIndex(), math.ceil(self:GetCreationTime()))
 
 		-- Create material for rendering the main panel
-		local tex = GetRenderTargetEx(string.format("bw2018_rtcc_%s", mat_num), 1200, 600, RT_SIZE_DEFAULT, MATERIAL_RT_DEPTH_NONE, 2, 0, IMAGE_FORMAT_RGBA8888)
-		local mat = CreateMaterial(string.format("bw2018_matgencc_%s", mat_num), "UnlitGeneric", {
+		local tex = GetRenderTargetEx(string.format("bw_rtcc_%s", mat_num), 1200, 600, RT_SIZE_DEFAULT, MATERIAL_RT_DEPTH_NONE, 2, 0, IMAGE_FORMAT_RGBA8888)
+		local mat = CreateMaterial(string.format("bw_matgencc_%s", mat_num), "UnlitGeneric", {
 			["$basetexture"] = tex,
 			["$model"] = "1"
 		})

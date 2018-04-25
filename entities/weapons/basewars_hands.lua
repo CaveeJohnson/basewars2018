@@ -96,7 +96,7 @@ function SWEP:PrimaryAttack(action, randomness)
 	self:SetNextSecondaryFire(CurTime() + 1)
 
 	if randomness then
-		local random_id = "bw18_hands_random_" .. CurTime() .. tostring(self)
+		local random_id = "bw_hands_random_" .. CurTime() .. tostring(self)
 		local shared_random = math.Round(util.SharedRandom(random_id, 1, randomness, 0))
 
 		if shared_random ~= 1 then

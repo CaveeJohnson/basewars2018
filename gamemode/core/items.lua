@@ -126,7 +126,7 @@ function basewars.items.canSpawn(id, ply, pos, ang)
 		return false, "Incorrect rank!"
 	end
 
-	if CLIENT and ply:GetNW2Int("bw18_limit_" .. item.class, 0) >= item.limit then
+	if CLIENT and ply:GetNW2Int("bw_limit_" .. item.class, 0) >= item.limit then
 		return false, "You have too many of this item!"
 	end
 

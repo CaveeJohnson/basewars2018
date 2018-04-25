@@ -186,7 +186,7 @@ if CLIENT then
 	local function createModel(self, v, model)
 		if
 			(not IsValid(v.modelEnt) or v.createdModel ~= model) and
-			model:match("%.mdl$") and file.Exists(model, "GAME")
+			model:match("%.mdl$") and (file.Exists(model, "GAME") or util.IsValidModel(model))
 		then
 			v.modelEnt = ClientsideModel(model, RENDERGROUP_VIEWMODEL)
 

@@ -22,9 +22,9 @@ function ext:cleanTables()
 
 			new[core] = data
 
-			name_names[data.name        ] = true
-			name_names[data.name:lower()] = true
-			name_names[data.name:upper()] = true
+			new_names[data.name        ] = true
+			new_names[data.name:lower()] = true
+			new_names[data.name:upper()] = true
 		end
 	end
 
@@ -60,6 +60,8 @@ function ext:getDefaultTagFromName(name)
 end
 
 function basewars.factions.canStartFaction(ply, name, password, color)
+	-- TODO: must not be in a faction
+
 	if utf8.len(name) < 2 then
 		return false, "Your faction name must be 2 or more characters"
 	end
@@ -89,7 +91,7 @@ function ext:BW_ShouldSell(ply, ent)
 	if ent.isCore and self.factionTable[ent] then return false, "Faction core cannot be sold, you must disband!" end
 end
 
-function basewars.factions.playerLeaveFaction(ply)
+function basewars.factions.playerLeaveFaction(ply, disband)
 	local fac = nil-- TODO:
 	if not fac then return end
 
@@ -97,7 +99,7 @@ function basewars.factions.playerLeaveFaction(ply)
 	local status = fac.hierarchy_reverse[id]
 
 	if status == "owner" then
-		-- TODO:
+		-- TODO: disband
 	else
 		table.RemoveByValue(fac.hierarchy[status], id)
 
@@ -224,11 +226,14 @@ end
 function basewars.factions.startFaction(ply, name, password, color)
 	assert(name and password, "startFaction: missing required data")
 	color = color or HSVToColor(math.random(359), 0.8 + 0.2 * math.random(), 0.8 + 0.2 * math.random())
+	color = Color(color.r or 255, color.g or 255, color.b or 255, 255)
 
 	if SERVER then
-		ext:startFaction(ply, name, password, color, nil)
+		return ext:startFaction(ply, name, password, color, nil)
 	else
 		ext:handleStartNetworking(nil, name, password, color)
+
+		return true
 	end
 end
 
@@ -237,12 +242,12 @@ function ext:PlayerReallySpawned()
 end
 
 function ext:startFaction(ply, name, password, color, teamId)
-	assert(name and password and color, "startFaction: missing required data")
+	assert(name and color, "startFaction: missing required data")
 	name = utf8.force(name:Trim()) or name
 
 	if SERVER then -- CLIENT calls this when server says, failing would make no sense
-		local res = basewars.canStartFaction(ply, name, password, color)
-		if res == false then return false end
+		local res, err = basewars.factions.canStartFaction(ply, name, password, color)
+		if res == false then return false, err end
 	end
 
 	local core = basewars.basecore.get(ply)
@@ -285,6 +290,8 @@ function ext:startFaction(ply, name, password, color, teamId)
 	self:cleanTables()
 
 	if SERVER then
+		ply:SetTeam(fac_data.team_id)
+
 		self:handleStartNetworking(ply, name, nil, color, fac_data.team_id)
 	end
 

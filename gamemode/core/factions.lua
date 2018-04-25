@@ -6,13 +6,9 @@ ext.factionTable = ext:establishGlobalTable("factionTable")
 ext.factionCount = table.Count(ext.factionTable)
 
 if SERVER then
-	util.AddNetworkString(ext:getTag() .. "start") -- faction made
-	util.AddNetworkString(ext:getTag() .. "send") -- client receiving faction data
-		-- it's important this is made distinct since on start the client can construct
-		-- most of the data, then is modified by the events, but a fresh join
-		-- needs more data such as members sent
-	util.AddNetworkString(ext:getTag() .. "event") -- event about a faction
-		-- this includes member join, leave, promotion, ownership change, etc
+	util.AddNetworkString(ext:getTag() .. "start")
+	util.AddNetworkString(ext:getTag() .. "joinleave")
+	util.AddNetworkString(ext:getTag() .. "event")
 end
 
 function ext:cleanTables()
@@ -76,9 +72,9 @@ function basewars.factions.canStartFaction(ply, name, password, color)
 		return false, "A faction with this name already exists"
 	end
 
-	local pw_len = utf8.len(password)
-	if pw_len == 0 then
-		return false, "Faction passwords are required to stop griefing"
+	local pw_len = password and utf8.len(password)
+	if not pw_len or pw_len == 0 then
+		return false, "Faction passwords are required to stop trolling"
 	elseif pw_len < 5 then
 		return false, "Your faction password must be 5 or more characters"
 	end
@@ -92,9 +88,6 @@ end
 function ext:BW_ShouldSell(ply, ent)
 	if ent.isCore and self.factionTable[ent] then return false, "Faction core cannot be sold, you must disband!" end
 end
-
--- TODO: logic to attempt to leave faction
--- is needed because you cant leave factions in a raid, etc
 
 function basewars.factions.playerLeaveFaction(ply)
 	local fac = nil-- TODO:
@@ -110,15 +103,10 @@ function basewars.factions.playerLeaveFaction(ply)
 
 		table.RemoveByValue(fac.flat_members, id)
 		fac.flat_member_count = fac.flat_member_count - 1
-
-		-- TODO: Network
 	end
 end
 
--- TODO: logic to attempt to join faction
--- TODO: basewars.factions.canJoinFaction(ply) ?
-
-function basewars.factions.playerJoinFaction(ply, faction)
+function basewars.factions.playerJoinFaction()
 	-- TODO:
 end
 
@@ -157,7 +145,6 @@ function ext:promoteNewOwner(fac)
 			table.RemoveByValue(fac.hierarchy.officers, new)
 		end
 
-		-- TODO: Network
 		hook.Run("BW_FactionOwnerChanged", old, new)
 	end
 end
@@ -173,45 +160,89 @@ function ext:BW_ReclaimCore(core)
 	return true
 end
 
-function ext:handleStartNetworking(ply, name, password, color, sh_data)
-	if CLIENT then
-		-- TODO: send to server
-	else
-		-- TODO: reconstruct data from server?
-		-- ext:startFaction(ply, name, password, color)
-	end
+if CLIENT then
+	ext.startupBacklog = ext:establishGlobalTable("startupBacklog")
+
+	timer.Create(ext:getTag() .. "-backlog", 10, 0, function() -- TODO: compress this table
+		for k, v in pairs(ext.startupBacklog) do
+			local ply = Player(v[1])
+
+			if IsValid(ply) then
+				ext.startupBacklog[k] = nil
+
+				ext:startFaction(ply, v[2], nil, v[3], v[4])
+			elseif v[5] > 3 then
+				ext.startupBacklog[k] = nil
+			else
+				v[5] = v[5] + 1
+			end
+		end
+	end)
 end
 
-net.Receive(ext:getTag() .. "start", function(_, ply)
+net.Receive(ext:getTag() .. "start", function(len, ply)
 	if CLIENT then
-		-- TODO: call handleStartNetworking
+		local uid = net.ReadUInt(16)
+		local name = net.ReadString()
+		local color = net.ReadColor()
+		local team_id = net.ReadUInt(16)
+
+		local _ply = Player(uid)
+		if IsValid(_ply) then
+			ext:startFaction(_ply, name, nil, color, team_id)
+		else
+			table.insert(ext.startupBacklog, {uid, name, color, team_id, 0})
+		end
 	else
-		-- TODO: call basewars.factions.startFaction
+		local name = net.ReadString()
+		local password = net.ReadString()
+		local color = net.ReadColor()
+
+		local okay = ext:startFaction(ply, name, password, color)
+		if not okay then
+			-- TODO: network telling them no
+			ErrorNoHalt(string.format("DEBUG: Client & Server disagreed on if they can create a faction %s -> %s (%s)\nEither a bug or a malicious user ^", tostring(ply), name, password))
+		end
 	end
 end)
+
+function ext:handleStartNetworking(ply, name, password, color, teamId)
+	net.Start(ext:getTag() .. "start")
+	if CLIENT then
+		net.WriteString(name)
+		net.WriteString(password)
+		net.WriteColor(color)
+	else
+		net.WriteUInt(ply:UserID(), 16)
+		net.WriteString(name)
+		net.WriteColor(color)
+		net.WriteUInt(teamId, 16)
+	net.Broadcast()
+	end
+end
 
 function basewars.factions.startFaction(ply, name, password, color)
 	assert(name and password, "startFaction: missing required data")
 	color = color or HSVToColor(math.random(359), 0.8 + 0.2 * math.random(), 0.8 + 0.2 * math.random())
 
 	if SERVER then
-		ext:startFaction(ply, name, password, color)
+		ext:startFaction(ply, name, password, color, nil)
 	else
 		ext:handleStartNetworking(nil, name, password, color)
 	end
 end
 
-function ext:PostPlayerInitialSpawn()
-	-- network all facs
+function ext:PlayerReallySpawned()
+	-- TODO: network all facs
 end
 
-function ext:startFaction(ply, name, password, color, sh_data)
+function ext:startFaction(ply, name, password, color, teamId)
 	assert(name and password and color, "startFaction: missing required data")
 	name = utf8.force(name:Trim()) or name
 
 	if SERVER then -- CLIENT calls this when server says, failing would make no sense
-		local res = basewars.factions.canStartFaction(ply, name, password, color)
-		if res == false then return end
+		local res = basewars.canStartFaction(ply, name, password, color)
+		if res == false then return false end
 	end
 
 	local core = basewars.basecore.get(ply)
@@ -237,10 +268,7 @@ function ext:startFaction(ply, name, password, color, sh_data)
 		flat_members = {ply:SteamID64()},
 		flat_member_count = 1,
 
-		sv_data = SERVER and {}, -- for extensions
-		sh_data = sh_data or {
-			source_team_id = self:nextSourceTeamID(),
-		}, -- please bear in mind that this is all networked
+		team_id = teamId or self:nextSourceTeamID(),
 	}
 	hook.Run("BW_FactionCreated", ply, fac_data)
 
@@ -252,9 +280,13 @@ function ext:startFaction(ply, name, password, color, sh_data)
 
 	self.factionTable[core] = fac_data
 
-	team.SetUp(fac_data.sh_data.source_team_id, name, color)
+	team.SetUp(fac_data.team_id, name, color)
+
+	self:cleanTables()
 
 	if SERVER then
-		self:handleStartNetworking(ply, name, nil, color, fac_data.sh_data)
+		self:handleStartNetworking(ply, name, nil, color, fac_data.team_id)
 	end
+
+	return true
 end

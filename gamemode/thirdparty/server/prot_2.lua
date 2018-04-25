@@ -407,7 +407,6 @@ do
 	end
 
 	hook.Add("EntityTakeDamage", tag, fixNpcDamagers)
-
 	hook.Add("ScaleNPCDamage", tag, function(ent, hitgroup, info)
 		fixNpcDamagers(ent, info)
 	end)
@@ -415,67 +414,18 @@ do
 end
 
 do
-	local total = 0
-
-	local function calculate()
-		total = 0
-
-		for _, v in ipairs(ents.GetAll()) do
-			if v:EntIndex() > 0 then
-				total = total + 1
-			end
-		end
-	end
-
-	-- no need to slow down startup
-	timer.Simple(3, function()
-		hook.Add("OnEntityCreated", tag .. "edict", function(e)
-			if e:IsValid() and e:EntIndex() > 0 then
-				total = total + 1
-			end
-		end)
-
-		hook.Add("EntityRemoved", tag .. "edict", function(e)
-			if e:EntIndex() > 0 then
-				total = total - 1
-			end
-		end)
-
-		calculate()
-	end)
 
 	local maxSafe = 8192 - 128
 
-	local function cleanupIfOverflowIn(time)
-		if timer.Exists(tag.."cleanupOverflow") then return end
-
-		timer.Create(tag.."cleanupOverflow", time, 1, function()
-			calculate()
-
-			if total > maxSafe then
-				fatalf(c_badents, "Emergency cleanup commencing.")
-
-				-- TODO: aowl or tetra, if not immediate
-			else
-				warnf(c_badents, "Edict has returned to safe levels.")
-			end
-		end)
-	end
-
 	ents.CreateUnsafe = ents.CreateUnsafe or ents.Create
 	function ents.Create(class, ...)
-		if total > maxSafe then
-			calculate()
+		local count = ents.GetEdictCount()
 
-			if total > maxSafe then
-				fatalf(c_badents, "Maximum safe edict count has been exceeded (%d/%d)!", total, maxSafe)
-				fatalf(c_badents, "if the count is still exceeded in 10 seconds the server will begin an emergency cleanup.")
+		if count >= maxSafe then
+			fatalf(c_badents, "Maximum safe edict count has been exceeded (%d/%d)!", count, maxSafe)
+			alertf("Safe edict count has been exceeded, no more entities may spawn, delete any entities you do not need.")
 
-				alertf("Safe edict count has been exceeded, delete any entities you do not need IMMEDIATELY.")
-
-				cleanupIfOverflowIn(10)
-				return NULL
-			end
+			return NULL
 		end
 
 		if class == "prop_vehicle_jeep_old" then
@@ -485,7 +435,7 @@ do
 		return ents.CreateUnsafe(class, ...)
 	end
 
-	logf("Added entity count tracking.")
+	logf("Added ents.Create saftey checks.")
 end
 
 do

@@ -104,7 +104,7 @@ function basewars.items.canSpawn(id, ply, pos, ang)
 	local res, err = hook.Run("BW_ShouldSpawn", ply, item, pos, ang)
 	if res == false then return false, err end
 
-	if SERVER and ents.GetEdictCount() > 8170 then
+	if SERVER and ents.GetEdictCount() > 8063 then
 		return false, "EDICT is about to reach its limit, spawn request denied"
 	end
 

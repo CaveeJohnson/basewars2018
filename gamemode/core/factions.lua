@@ -1,13 +1,14 @@
 local ext = basewars.createExtension"core.factions"
 basewars.factions = {}
 
-ext.factions     = ext:establishGlobalTable("factions")
-ext.factionTable = ext:establishGlobalTable("factionTable")
-ext.factionCount = table.Count(ext.factionTable)
+ext.factions      = ext:establishGlobalTable("factions")
+ext.factionTable  = ext:establishGlobalTable("factionTable")
+ext.teamToFaction = ext:establishGlobalTable("teamToFaction")
+ext.factionCount  = table.Count(ext.factionTable)
 
 if SERVER then
 	util.AddNetworkString(ext:getTag() .. "start")
-	util.AddNetworkString(ext:getTag() .. "joinleave")
+	util.AddNetworkString(ext:getTag() .. "connect")
 	util.AddNetworkString(ext:getTag() .. "event")
 end
 
@@ -17,7 +18,7 @@ function ext:cleanTables()
 	local new_names = {}
 
 	for core, data in pairs(self.factionTable) do
-		if IsValid(core) and data.flat_member_count > 0 then
+		if IsValid(core) and data.flat_member_count > 0 and #team.GetPlayers(data.team_id) > 0 then
 			count = count + 1
 
 			new[core] = data
@@ -59,8 +60,35 @@ function ext:getDefaultTagFromName(name)
 	return utf8.sub(name:upper(), 1, 4)
 end
 
+function basewars.factions.getByTeam(teamId)
+	return ext.teamToFaction[teamId]
+end
+
+function basewars.factions.getByPlayer(ply)
+	local sid64 = ply:SteamID64()
+
+	for c, v in pairs(ext.factionTable) do
+		if IsValid(c) and v.hierarchy_reverse[sid64] then return v end
+	end
+
+	return nil
+end
+
+function ext:BW_PostTagParse(tbl, ply, isTeam)
+	if isTeam or not (IsValid(ply) and ply.Team) then return end
+
+	local fac = basewars.factions.getByTeam(ply:Team())
+	if not fac then return end
+
+	table.insert(tbl, color_white)
+	table.insert(tbl, fac.tag)
+	table.insert(tbl, " ")
+end
+
 function basewars.factions.canStartFaction(ply, name, password, color)
-	-- TODO: must not be in a faction
+	if basewars.factions.getByPlayer(ply) then
+		return false, "You are already in a faction"
+	end
 
 	if utf8.len(name) < 2 then
 		return false, "Your faction name must be 2 or more characters"
@@ -91,26 +119,107 @@ function ext:BW_ShouldSell(ply, ent)
 	if ent.isCore and self.factionTable[ent] then return false, "Faction core cannot be sold, you must disband!" end
 end
 
-function basewars.factions.playerLeaveFaction(ply, disband)
-	local fac = nil-- TODO:
-	if not fac then return end
+ext.eventHandlers = {}
 
-	local id = ply:SteamID64()
-	local status = fac.hierarchy_reverse[id]
+ext.eventHandlers.leave = function(_, fac, sid64)
+	if not sid64 then return false end
 
-	if status == "owner" then
-		-- TODO: disband
+	local status = fac.hierarchy_reverse[sid64]
+	if not status then return false end
+
+	table.RemoveByValue(fac.hierarchy[status], sid64)
+	table.RemoveByValue(fac.flat_members     , sid64)
+	fac.flat_member_count = fac.flat_member_count - 1
+
+	fac.hierarchy_reverse[sid64] = nil
+
+	return true
+end
+
+ext.eventHandlers.join = function(_, fac, sid64)
+	if not sid64 then return false end
+
+	local status = fac.hierarchy_reverse[sid64]
+	if status then return false end
+
+	table.insert(fac.hierarchy.members, sid64)
+	table.insert(fac.flat_members, sid64)
+	fac.flat_member_count = fac.flat_member_count + 1
+
+	fac.hierarchy_reverse[sid64] = "members"
+
+	return true
+end
+
+ext.eventHandlers.ownerchange = function(_, fac, new, notOfficer)
+	local old = fac.hierarchy.owner
+	table.insert(fac.hierarchy.officers, 1, old) -- slap the old owner back in at the front of the officer list
+
+	print("DEBUG: faction ownership changed " .. old .. " -> " .. new .. ". member only? ", notOfficer)
+
+	fac.hierarchy.owner = new
+	if notOfficer then
+		table.RemoveByValue(fac.hierarchy.members, new)
 	else
-		table.RemoveByValue(fac.hierarchy[status], id)
-
-		table.RemoveByValue(fac.flat_members, id)
-		fac.flat_member_count = fac.flat_member_count - 1
+		table.RemoveByValue(fac.hierarchy.officers, new)
 	end
+
+	return true
 end
 
-function basewars.factions.playerJoinFaction()
-	-- TODO:
+function ext:event(t, fac, ...)
+	if SERVER then
+		net.Start(ext:getTag() .. "event")
+			net.WriteString(t)
+			net.WriteUInt(fac.team_id, 16)
+
+			local var = {...}
+
+			net.WriteUInt(#var, 8)
+			for _, v in ipairs(var) do
+				net.WriteType(v)
+			end
+		net.Broadcast()
+	end
+
+	if self.eventHandlers[t] then
+		return self.eventHandlers[t](t, fac, ...)
+	end
+
+	return true
 end
+
+function basewars.factions.playerEvent(ply, event, fac)
+	fac = fac or basewars.factions.getByPlayer(ply)
+	if not fac then return false end
+
+	return ext:event(event, fac, ply:SteamID64())
+end
+
+net.Receive(ext:getTag() .. "event", function(len, ply)
+	local t = net.ReadString()
+
+	local fac
+	if SERVER then
+		-- TODO: officer action such as kicking, validate FIRST then read in var
+		error("server is receiving event, this isnt finished yet")
+	else
+		fac = basewars.factions.getByTeam(net.ReadUInt(16))
+		if not fac then error("receiving event for none-existant faction?") end -- TODO: needs backlog
+	end
+
+	local var = {}
+	local amt = net.ReadUInt(8)
+	for i = 1, amt do
+		var[i] = net.ReadType()
+	end
+
+	if SERVER then
+		-- TODO: officer action
+	else
+		ext:event(t, fac, unpack(var))
+	end
+end)
 
 function ext:promoteNewOwner(fac)
 	local current = player.GetBySteamID64(fac.hierarchy.owner)
@@ -123,31 +232,19 @@ function ext:promoteNewOwner(fac)
 	local new
 	for i, v in ipairs(fac.hierarchy.officers) do
 		local p = player.GetBySteamID64(v)
-		if p then new = v break end
+		if IsValid(p) then new = v break end
 	end
 
-	local members = not new
-	if not new then
+	local notOfficer = not new
+	if notOfficer then
 		for i, v in ipairs(fac.hierarchy.members) do
 			local p = player.GetBySteamID64(v)
-			if p then new = v break end
+			if IsValid(p) then new = v break end
 		end
 	end
 
 	if new then
-		local old = fac.hierarchy.owner
-		table.insert(fac.hierarchy.officers, 1, old) -- slap the old owner back in at the front of the officer list
-
-		print("DEBUG: faction ownership changed " .. old .. " -> " .. new .. ". member only? ", members)
-
-		fac.hierarchy.owner = new
-		if members then
-			table.RemoveByValue(fac.hierarchy.members, new)
-		else
-			table.RemoveByValue(fac.hierarchy.officers, new)
-		end
-
-		hook.Run("BW_FactionOwnerChanged", old, new)
+		self:event("ownerchange", fac, new, notOfficer)
 	end
 end
 
@@ -172,11 +269,11 @@ if CLIENT then
 			if IsValid(ply) then
 				ext.startupBacklog[k] = nil
 
-				ext:startFaction(ply, v[2], nil, v[3], v[4])
-			elseif v[5] > 3 then
+				ext:createFaction(v[1], v[2], v[3], nil, v[4], v[5], v[6])
+			elseif v[7] > math.floor(basewars.getCleanupTime() / 10) + 1 then
 				ext.startupBacklog[k] = nil
 			else
-				v[5] = v[5] + 1
+				v[7] = v[7] + 1
 			end
 		end
 	end)
@@ -184,16 +281,19 @@ end
 
 net.Receive(ext:getTag() .. "start", function(len, ply)
 	if CLIENT then
-		local uid = net.ReadUInt(16)
+		local coreId = net.ReadUInt(16)
+		local ownerId = net.ReadString()
 		local name = net.ReadString()
 		local color = net.ReadColor()
 		local team_id = net.ReadUInt(16)
+		local hierarchy = net.ReadTable()
+		if not next(hierarchy) then hierarchy = nil end
 
-		local _ply = Player(uid)
-		if IsValid(_ply) then
-			ext:startFaction(_ply, name, nil, color, team_id)
+		local core = Entity(uid)
+		if IsValid(core) then
+			ext:createFaction(core, name, nil, color, team_id, hierarchy)
 		else
-			table.insert(ext.startupBacklog, {uid, name, color, team_id, 0})
+			table.insert(ext.startupBacklog, {coreId, ownerId, name, color, team_id, hierarchy, 0})
 		end
 	else
 		local name = net.ReadString()
@@ -208,18 +308,21 @@ net.Receive(ext:getTag() .. "start", function(len, ply)
 	end
 end)
 
-function ext:handleStartNetworking(ply, name, password, color, teamId)
+function ext:handleStartNetworking(core, ownerId, name, password, color, teamId, hierarchy, target)
 	net.Start(ext:getTag() .. "start")
 	if CLIENT then
 		net.WriteString(name)
 		net.WriteString(password)
 		net.WriteColor(color)
+	net.SendToServer()
 	else
-		net.WriteUInt(ply:UserID(), 16)
+		net.WriteUInt(core:EntIndex(), 16)
+		net.WriteString(ownerId)
 		net.WriteString(name)
 		net.WriteColor(color)
 		net.WriteUInt(teamId, 16)
-	net.Broadcast()
+		net.WriteTable(hierarchy or {})
+	if target then net.Send(target) else net.Broadcast() end
 	end
 end
 
@@ -231,26 +334,57 @@ function basewars.factions.startFaction(ply, name, password, color)
 	if SERVER then
 		return ext:startFaction(ply, name, password, color, nil)
 	else
-		ext:handleStartNetworking(nil, name, password, color)
+		ext:handleStartNetworking(nil, nil, name, password, color, nil, nil, nil)
 
 		return true
 	end
 end
 
-function ext:PlayerReallySpawned()
-	-- TODO: network all facs
+function ext:PlayerSpawn(ply)
+	local fac = basewars.factions.getByPlayer(ply)
+	if not fac then return end
+
+	ply:SetTeam(fac.team_id)
+	print("DEBUG: player rejoined as part of a faction ", ply)
 end
 
-function ext:startFaction(ply, name, password, color, teamId)
-	assert(name and color, "startFaction: missing required data")
-	name = utf8.force(name:Trim()) or name
+function ext:PlayerReallySpawned(ply)
+	self:cleanTables()
 
-	if SERVER then -- CLIENT calls this when server says, failing would make no sense
-		local res, err = basewars.factions.canStartFaction(ply, name, password, color)
-		if res == false then return false, err end
+	for _, v in pairs(self.factionTable) do
+		ext:handleStartNetworking(v.core, v.hierarchy.owner, v.name, nil, v.color, v.team_id, v.hierarchy, ply)
+	end
+end
+
+function ext:updateUsingHierarchy(fac_data)
+	local count = 1
+	local members = {}
+	local reverse = {}
+
+	local hierarchy = fac_data.hierarchy
+
+	table.insert(members, hierarchy.owner)
+	reverse[hierarchy.owner] = "owner"
+
+	for _, v in ipairs(hierarchy.officers) do
+		table.insert(members, v)
+		reverse[v] = "officers"
+		count = count + 1
 	end
 
-	local core = basewars.basecore.get(ply)
+	for _, v in ipairs(hierarchy.members) do
+		table.insert(members, v)
+		reverse[v] = "members"
+		count = count + 1
+	end
+
+	fac_data.hierarchy_reverse = reverse
+	fac_data.flat_members      = members
+	fac_data.flat_member_count = count
+end
+
+function ext:createFaction(core, ownerId, name, password, color, teamId, hierarchy)
+	if CLIENT and self.factionTable[core] then return end -- just so if it gets double networked on startup it doesn't die
 
 	local fac_data = {
 		name     = name,
@@ -260,22 +394,26 @@ function ext:startFaction(ply, name, password, color, teamId)
 
 		core     = core,
 
-		hierarchy = {
-			owner = ply:SteamID64(),
+		hierarchy = hierarchy or {
+			owner = ownerId,
 			officers = {},
 			members = {},
 		},
 
 		hierarchy_reverse = {
-			[ply:SteamID64()] = "owner",
+			[ownerId] = "owner",
 		},
 
-		flat_members = {ply:SteamID64()},
+		flat_members = {ownerId},
 		flat_member_count = 1,
 
 		team_id = teamId or self:nextSourceTeamID(),
 	}
-	hook.Run("BW_FactionCreated", ply, fac_data)
+	hook.Run("BW_FactionCreated", ownerId, fac_data)
+
+	if hierarchy then
+		ext:updateUsingHierarchy(fac_data)
+	end
 
 	self.factionCount = self.factionCount + 1
 
@@ -283,6 +421,7 @@ function ext:startFaction(ply, name, password, color, teamId)
 	self.factions[name:lower()] = true
 	self.factions[name:upper()] = true
 
+	self.teamToFaction[fac_data.team_id] = fac_data
 	self.factionTable[core] = fac_data
 
 	team.SetUp(fac_data.team_id, name, color)
@@ -290,9 +429,24 @@ function ext:startFaction(ply, name, password, color, teamId)
 	self:cleanTables()
 
 	if SERVER then
-		ply:SetTeam(fac_data.team_id)
+		self:handleStartNetworking(core, ownerId, name, nil, color, fac_data.team_id, nil, nil)
+	end
 
-		self:handleStartNetworking(ply, name, nil, color, fac_data.team_id)
+	return fac_data
+end
+
+function ext:startFaction(ply, name, password, color)
+	assert(name and color, "startFaction: missing required data")
+	name = utf8.force(name:Trim()) or name
+
+	if SERVER then -- CLIENT calls this when server says, failing would make no sense
+		local res, err = basewars.factions.canStartFaction(ply, name, password, color)
+		if res == false then return false, err end
+	end
+
+	local fac_data = self:createFaction(basewars.basecore.get(ply), ply:SteamID64(), name, password, color)
+	if SERVER then
+		ply:SetTeam(fac_data.team_id)
 	end
 
 	return true

@@ -47,7 +47,7 @@ function ENT:spark(effect)
 end
 
 function ENT:explode(soft, mag)
-	if self.beingDestructed then return end
+	if self.beingDestructed or self.markedAsDestroyed then return end
 	local pos = self:GetPos()
 
 	if soft then

@@ -1,6 +1,6 @@
 AddCSLuaFile()
 
-ENT.Base = "basewars_base"
+ENT.Base = "basewars_upgradable_base"
 ENT.Type = "anim"
 DEFINE_BASECLASS(ENT.Base)
 

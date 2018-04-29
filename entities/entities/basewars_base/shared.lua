@@ -233,9 +233,6 @@ do
 	function ENT:SetupDataTables()
 		self.dtv_callbacks = {}
 
-		self:netVar("Int", "XP")
-		self:netVar("Int", "UpgradeLevel")
-
 		self:netVar("String", "AbsoluteOwner")
 		self:netVar("Double", "CurrentValue")
 	end

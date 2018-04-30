@@ -196,13 +196,13 @@ function ext:HUDPaint()
 		if ply:Alive() then
 			local armor = ply:Armor()
 			local max_armor = 100
-			drawString(armor, curx + bar_width + 4, cury - bar_height / 2 - 1, armor > max_armor and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+			drawString(basewars.nformat(armor), curx + bar_width + 4, cury - bar_height / 2 - 1, armor > max_armor and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 			cury = cury - bar_height
 			cury = cury - drawBar(curx, cury, bar_width, bar_height, color_armor2, color_armor1, armor / max_armor)
 
 			local hp = math.max(ply:Health(), 0)
 			local max_hp = ply:GetMaxHealth()
-			drawString(hp, curx + bar_width + 4, cury - bar_height / 2 - 1, hp > max_hp and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+			drawString(basewars.nformat(hp), curx + bar_width + 4, cury - bar_height / 2 - 1, hp > max_hp and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 			cury = cury - bar_height
 			cury = cury - drawBar(curx, cury, bar_width, bar_height, color_health2, color_health1, hp / max_hp)
 

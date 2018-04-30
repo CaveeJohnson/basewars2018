@@ -2,7 +2,7 @@ local ext = basewars.createExtension"core.easteregg-aerach"
 
 ext.maps = {
 	["^gm_excess_island$"] = {
-		Vector (1856.03125, -2717.09375, 574.55145263672),
+		Vector(1856.03125, -2717.09375, 574.55145263672),
 		Angle(0, 90, 90),
 		0.1
 	},
@@ -11,6 +11,11 @@ ext.maps = {
 		Angle(0, 0, 90),
 		0.1
 	},
+	["^rp_eastcoast_v.+$"] = {
+		Vector(256.03125, 132.1639251709, 507.63909912109),
+		Angle(0, 90, 90),
+		0.1
+	}
 }
 
 local map = game.GetMap()

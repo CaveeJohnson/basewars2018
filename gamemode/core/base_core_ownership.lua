@@ -51,8 +51,8 @@ function basewars.basecore.canSpawn(ply, pos, class)
 	local sent = scripted_ents.Get(class)
 	if not (sent and sent.isCore) then return false, "Invalid core class!" end
 
-	local rad = sent.DefaultRadius
-	if not rad then return false, "Invalid core class!" end
+	--local rad = sent.DefaultRadius
+	--if not rad then return false, "Invalid core class!" end
 
 	--[[local a = basewars.getExtension"areas"
 	if a then
@@ -61,20 +61,33 @@ function basewars.basecore.canSpawn(ply, pos, class)
 		if not a then return false, "This area is not on the navigation mesh!" end
 	end]]
 
+	--[=[for i = 1, ext.core_count do
+		local v = ext.core_list[i]
+
+		local combined_rad = v.base.area_size + rad
+		if v:encompassesPos(pos) or v:GetPos():DistToSqr(pos) <= combined_rad * combined_rad then
+			return false, "Core conflicts with another core's claim!"
+		--[[elseif a and v.area and a:intersects(v.area) then
+			return false, "Core conflicts with another core's claim!"]]
+		end
+	end]=]
+
+	local base = basewars.bases.getForPos(pos)
+	if not (base and base.can_base) then return false, "Not a valid base location!" end
+
 	for i = 1, ext.core_count do
 		local v = ext.core_list[i]
 
-		local combined_rad = v:getProtectionRadius() + rad
-		if v:encompassesPos(pos) or v:GetPos():DistToSqr(pos) <= combined_rad * combined_rad then
-			return false, "Core conflicts with another core's claim!"
-		elseif a and v.area and a:intersects(v.area) then
+		v.base = v.base or basewars.bases.getForPos(v:GetPos())
+		if v.base and v.base.index == base.index then
 			return false, "Core conflicts with another core's claim!"
 		end
 	end
 
-	return true, rad
+	return true
 end
 
+--[[
 if CLIENT then
 	local prot   = Color(120, 100, 170, 2)
 	local prot2  = Color(120, 100, 170, 4)
@@ -103,3 +116,4 @@ if CLIENT then
 		end
 	end
 end
+]]

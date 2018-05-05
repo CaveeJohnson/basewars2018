@@ -20,12 +20,14 @@ function ext:BW_DoScanEffect(core) -- doesn't actually get called yet
 	ext.showAmt = math.min(c, 10)
 
 	local core_pos = core:GetPos()
-	local check = core:getProtectionRadius() * 2
-	check = check * check
+	core.base = core.base or basewars.bases.getForPos(core_pos)
+
+	local base = core.base
+	if not base then return end -- aaaaaa
 
 	c = 0
 	for _, v in ipairs(player.GetAll()) do
-		if core:ownershipCheck(v) and v:GetPos():DistToSqr(core_pos) < check then
+		if core:ownershipCheck(v) and v:GetPos():WithinAABox(base.mins, base.maxs) < check then
 			c = c + 1
 		end
 	end

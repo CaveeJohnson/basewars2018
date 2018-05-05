@@ -158,7 +158,7 @@ function ENT:OnRemove()
 	end]]
 end
 
-function ENT:setRadius(rad)
+--[[function ENT:setRadius(rad)
 	local t, c = basewars.basecore.getList()
 
 	if c > 1 then
@@ -178,7 +178,7 @@ function ENT:setRadius(rad)
 	self:updateAreaCost()
 
 	return true
-end
+end]]
 
 function ENT:Initialize()
 	BaseClass.Initialize(self)
@@ -187,13 +187,24 @@ function ENT:Initialize()
 	self.network_count = 0
 
 	self:setEnergyCapacity(1e6)
-	self:setActiveRate(-2)
-	self:setProtectionRadius(self.DefaultRadius)
+
+	timer.Simple(0, function() -- has to be done after spawn
+		if not IsValid(self) then return end
+
+		self.base = basewars.bases.getForPos(self:GetPos())
+		if not self.base then error("core with no base at " .. tostring(self:GetPos())) end
+
+		self:updateAreaCost()
+	end)
+
+	--self:setProtectionRadius(self.DefaultRadius)
 end
 
 function ENT:updateAreaCost()
+	if not self.base then return end
+
 	local cost = 2
-	cost = cost + math.max(0, math.floor(((self:getProtectionRadius() - self.DefaultRadius) / 10) ^ 1.3)) -- TODO:
+	cost = cost + math.floor(5 ^ (math.log10(self.base.area_size) - 2))
 
 	self:setActiveRate(-cost)
 end
@@ -291,8 +302,14 @@ function ENT:selfDestruct(dmginfo)
 			end
 		end
 
-		for _, ply in ipairs(ents.FindInSphere(self:GetPos(), self:getProtectionRadius() * 1.1)) do
-			if ply:IsPlayer() and ply:Alive() and not ply:HasGodMode() then
+		for _, ply in ipairs(player.GetHumans()) do
+			if self:encompassesPos(ply:GetPos()) and ply:Alive() and not ply:HasGodMode() then
+				if dmginfo then
+					ply:TakeDamage(self.selfDestructPower, dmginfo:GetAttacker(), dmginfo:GetInflictor())
+				else
+					ply:TakeDamage(self.selfDestructPower, self, self)
+				end
+
 				ply:ScreenFade(SCREENFADE.OUT, color_white, 0.2, 2)
 				ply:EmitSound("ambient/explosions/explode_5.wav", 140, 50, 1)
 				ply:EmitSound("ambient/explosions/explode_5.wav", 140, 50, 1)

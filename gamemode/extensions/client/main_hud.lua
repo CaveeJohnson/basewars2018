@@ -107,8 +107,9 @@ local color_ammo1 = Color(200,120,10)
 local color_ammo2 = Color(120,90,10)
 
 local pure_red = Color(255, 0, 0, 255)
+local dull_green_t = Color(100, 255, 130, 180)
 
-local core, encompassing_core, valid_core_past
+local core, encompassing_core, encompassing_base, valid_core_past
 local core_data = {}
 
 local level = 1
@@ -139,6 +140,7 @@ timer.Create(ext:getTag(), 1, 0, function()
 
 	core = basewars.basecore.get(ply)
 	encompassing_core = basewars.basecore.getForPos(ply)
+	encompassing_base = basewars.bases.getForPos(ply)
 
 	local playtime = ply.getPlaytime and ply:getPlaytime()
 
@@ -263,6 +265,11 @@ function ext:HUDPaint()
 		end
 
 		cury = cury + off
+
+		if encompassing_base then
+			cury = cury + drawString("In area", curx, cury, off_white_t, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+			cury = cury + drawString(encompassing_base.name, curx, cury, encompassing_base.can_base and dull_green_t or off_white_t2, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+		end
 
 		if encompassing_core then
 			local own = encompassing_core == core

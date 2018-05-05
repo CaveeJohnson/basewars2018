@@ -10,7 +10,7 @@ ENT.CanUse = function(self) return not self:isActive() and self:canActivate() en
 
 ENT.Model = "models/props_combine/combine_light001b.mdl"
 ENT.BaseHealth = 1e4
-ENT.DefaultRadius = 250
+--ENT.DefaultRadius = 250
 ENT.selfDestructPower = 1e5
 
 ENT.isCore = true
@@ -29,7 +29,7 @@ function ENT:SetupDataTables()
 	self:netVar("Int",  "Energy", 0, "getEnergyCapacity")
 	self:netVar("Int",  "NetworkThroughput")
 
-	self:netVar("Int",  "ProtectionRadius")
+	--self:netVar("Int",  "ProtectionRadius")
 	self:netVar("Bool", "SequenceOngoing")
 
 	self:netVar("Int",  "SelfDestructTime")
@@ -78,7 +78,7 @@ end
 function ENT:ping()
 	local e = EffectData()
 		e:SetOrigin(self:GetPos())
-		e:SetRadius(self:getProtectionRadius())
+		e:SetRadius(300) -- TODO:
 	util.Effect("basewars_scan", e)
 end
 
@@ -100,15 +100,11 @@ function ENT:shouldSell(ply)
 end
 
 function ENT:encompassesPos(pos)
-	--[[if self.area then
-		--if not self.area:containsWithinTolSqr(pos) then return false end
-		if not self.area:containsNoTol(pos) then return false end -- TODO: Tolerence overlap
-	else]]
-		local rad = self:getProtectionRadius()
-		if self:GetPos():DistToSqr(pos) > rad * rad then return false end
-	--end
+	self.base = self.base or basewars.bases.getForPos(pos)
+	if not self.base then return false end -- aaaaaaaaaaaaaaaa?
 
-	return true
+	local b = self.base
+	return pos:WithinAABox(b.mins, b.maxs)
 end
 
 function ENT:encompassesEntity(ent)

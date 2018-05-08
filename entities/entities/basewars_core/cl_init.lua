@@ -10,14 +10,24 @@ function ENT.readNetwork()
 	ent.area_count = net.ReadUInt(16) or 0
 	ent.areaEnts = {}
 
+	local good_snapshot = false
 	for i = 1, ent.area_count do
 		ent.areaEnts[i] = net.ReadEntity()
+		good_snapshot = good_snapshot or IsValid(ent.areaEnts[i])
+	end
+
+	if not good_snapshot then
+		timer.Create("request-area-ents-" .. tostring(ent), 10, 1, function()
+			if IsValid(ent) then ent:requestAreaTransmit() end
+		end)
+	else
+		timer.Remove("request-area-ents-" .. tostring(ent))
 	end
 
 	for i = 1, ent.area_count do
 		local v = ent.areaEnts[i]
 
-		if v.onCoreAreaEntsUpdated then
+		if IsValid(v) and v.onCoreAreaEntsUpdated then
 			v:onCoreAreaEntsUpdated(ent, ent.areaEnts, ent.area_count)
 		end
 	end

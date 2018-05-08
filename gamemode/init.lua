@@ -18,3 +18,5 @@ resource.AddWorkshop("1132466603") -- stormfox
 
 resource.AddWorkshop("160250458" ) -- wire
 resource.AddWorkshop("173482196" ) -- sprops
+
+resource.AddWorkshop("420970650" ) -- Sci-fi weapons

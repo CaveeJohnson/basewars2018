@@ -26,6 +26,8 @@ function GM:PlayerInitialSpawn(ply, ...)
 		if IsValid(ply) then hook.Run("PostPlayerInitialSpawn", ply, unpack(a)) end
 	end)
 
+	hook.Run("SharedPlayerInitialSpawn", ply, ...)
+
 	return self.BaseClass.PlayerInitialSpawn(self, ply, ...)
 end
 

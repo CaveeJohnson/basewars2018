@@ -16,11 +16,6 @@ ENT.isBasewarsEntity = true
 
 ENT.criticalDamagePercent = 0.09
 
-ENT.packExt = basewars.getExtension"packing"
-if ENT.packExt then
-	ENT.PhysgunDisabled = true
-end
-
 do
 	local clamp = math.ClampRev
 

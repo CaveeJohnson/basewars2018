@@ -1,5 +1,5 @@
 local ext = basewars.createExtension"core.base-core-ownership-server"
-basewars.basecore = {}
+basewars.basecore = basewars.basecore or {}
 
 function basewars.basecore.assign(ply, core)
 	ply:SetNW2Entity("baseCore", core)
@@ -37,12 +37,6 @@ function ext:EntityTakeDamageFinal(ent, info)
 			info:SetDamage(0)
 			break
 		end
-	end
-end
-
-function ext:BW_ShouldCoreOwnEntity(core, ent)
-	if not basewars.sameOwner(core, ent) then
-		return false
 	end
 end
 

@@ -23,6 +23,10 @@ function ext:PostEntityCreated(ent)
 	if CLIENT and ent.isCore then ent:requestAreaTransmit() end
 end
 
+function ext:BW_ShouldCoreOwnEntity(core, ent)
+	if basewars.sameOwner(core, ent) then return true end
+end
+
 function basewars.basecore.getList()
 	return ext.core_list, ext.core_count
 end

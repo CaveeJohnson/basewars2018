@@ -100,11 +100,11 @@ function ENT:shouldSell(ply)
 end
 
 function ENT:encompassesPos(pos)
-	self.base = self.base or basewars.bases.getForPos(pos)
+	self.base = self.base or basewars.bases.getForPos(self:GetPos())
 	if not self.base then return false end -- aaaaaaaaaaaaaaaa?
 
-	local b = self.base
-	return pos:WithinAABox(b.mins, b.maxs)
+	local base = basewars.bases.getForPos(pos)
+	return base and base.index == self.base.index
 end
 
 function ENT:encompassesEntity(ent)
@@ -114,7 +114,7 @@ function ENT:encompassesEntity(ent)
 	local res = hook.Run("BW_ShouldCoreOwnEntity", self, ent) -- DOCUMENT:
 	if res ~= nil then return res end
 
-	return true
+	return false
 end
 
 function ENT:protectsEntity(ent)

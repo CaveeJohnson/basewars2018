@@ -18,7 +18,7 @@ function ext:cleanTables()
 	local new_names = {}
 
 	for core, data in pairs(self.factionTable) do
-		if IsValid(core) and data.flat_member_count > 0 and #team.GetPlayers(data.team_id) > 0 then
+		if IsValid(core) and data.flat_member_count > 0 then
 			count = count + 1
 
 			new[core] = data
@@ -60,8 +60,16 @@ function ext:getDefaultTagFromName(name)
 	return utf8.sub(name:upper(), 1, 4)
 end
 
+function basewars.factions.getList()
+	return ext:cleanTables()
+end
+
 function basewars.factions.getByTeam(teamId)
 	return ext.teamToFaction[teamId]
+end
+
+function basewars.factions.getByCore(core)
+	return ext.factionTable[core]
 end
 
 function basewars.factions.getByPlayer(ply)
@@ -83,6 +91,25 @@ function ext:BW_PostTagParse(tbl, ply, isTeam)
 	table.insert(tbl, color_white)
 	table.insert(tbl, fac.tag)
 	table.insert(tbl, " ")
+end
+
+function ext:BW_ShouldCoreOwnEntity(core, ent)
+	local fac = basewars.factions.getByCore(core)
+	if not fac then return end
+
+	local sid64 = basewars.getOwnerSID64(ent)
+	if not sid64 then return end
+
+	if fac.hierarchy_reverse[sid64] then return true end
+end
+
+function ext:BW_GetPlayerCore(ply)
+	local fac = basewars.factions.getByPlayer(ply)
+	if fac then return fac.core end
+end
+
+function ext:PlayerShouldTakeDamage(ply, atk)
+	if atk:IsPlayer() and ply:Team() == atk:Team() and ply:Team() ~= TEAM_UNASSIGNED then return false end
 end
 
 function basewars.factions.canStartFaction(ply, name, password, color)
@@ -113,11 +140,15 @@ function basewars.factions.canStartFaction(ply, name, password, color)
 	if res == false then
 		return res, err
 	end
+
+	return true
 end
 
 function ext:BW_ShouldSell(ply, ent)
 	if ent.isCore and self.factionTable[ent] then return false, "Faction core cannot be sold, you must disband!" end
 end
+
+-- TODO: disconnect = blow stuff up, due to not own core
 
 ext.eventHandlers = {}
 
@@ -127,11 +158,54 @@ ext.eventHandlers.leave = function(_, fac, sid64)
 	local status = fac.hierarchy_reverse[sid64]
 	if not status then return false end
 
-	table.RemoveByValue(fac.hierarchy[status], sid64)
-	table.RemoveByValue(fac.flat_members     , sid64)
+	if status == "owner" and not ext:promoteNewOwner(fac) then
+		return false
+	end
+
+	local ply = player.GetBySteamID64(sid64)
+	if SERVER and IsValid(ply) then
+		ply:SetTeam(TEAM_UNASSIGNED)
+
+		for _, v in ipairs(ents.GetAll()) do
+			if v:CPPIGetOwner() == ply and fac.core:encompassesEntity(v) then
+				if v.isBasewarsEntity then
+					v:explode(true)
+				else
+					SafeRemoveEntity(v)
+				end
+			end
+		end
+	end
+
+	if status == "owner" then
+		fac.hierarchy[status] = nil
+	else
+		table.RemoveByValue(fac.hierarchy[status], sid64)
+	end
+
+	table.RemoveByValue(fac.flat_members, sid64)
 	fac.flat_member_count = fac.flat_member_count - 1
 
 	fac.hierarchy_reverse[sid64] = nil
+
+	return true
+end
+
+ext.eventHandlers.disband = function(_, fac, sid64)
+	if not sid64 then return false end
+
+	local status = fac.hierarchy_reverse[sid64]
+	if not status then return false end
+
+	if status ~= "owner" then return false end
+
+	if SERVER then
+		fac.core:selfDestruct() -- this should do, it makes the core invalid = faction is invalid
+
+		for _, v in ipairs(team.GetPlayers(fac.team_id)) do
+			v:SetTeam(TEAM_UNASSIGNED)
+		end
+	end
 
 	return true
 end
@@ -163,6 +237,8 @@ ext.eventHandlers.ownerchange = function(_, fac, new, notOfficer)
 	else
 		table.RemoveByValue(fac.hierarchy.officers, new)
 	end
+	fac.hierarchy_reverse[old] = "officer"
+	fac.hierarchy_reverse[new] = "owner"
 
 	return true
 end
@@ -189,6 +265,39 @@ function ext:event(t, fac, ...)
 	return true
 end
 
+ext.clientEvents = {}
+
+ext.clientEvents.join = function(_, ply, core, password)
+	local fac = ext.factionTable[core]
+	if not fac then return end
+
+	if fac.password ~= password then return end
+
+	if ext:event("join", fac, ply:SteamID64()) then
+		ply:SetTeam(fac.team_id)
+	end
+end
+
+ext.clientEvents.leave = function(_, ply)
+	local fac = basewars.factions.getByPlayer(ply)
+	if not fac then return end
+
+	ext:event("leave", fac, ply:SteamID64())
+end
+
+ext.clientEvents.disband = function(_, ply)
+	local fac = basewars.factions.getByPlayer(ply)
+	if not fac then return end
+
+	ext:event("disband", fac, ply:SteamID64())
+end
+
+function ext:clientEvent(t, ply, ...)
+	if self.clientEvents[t] then
+		self.clientEvents[t](t, ply, ...)
+	end
+end
+
 function basewars.factions.playerEvent(ply, event, fac)
 	fac = fac or basewars.factions.getByPlayer(ply)
 	if not fac then return false end
@@ -196,67 +305,102 @@ function basewars.factions.playerEvent(ply, event, fac)
 	return ext:event(event, fac, ply:SteamID64())
 end
 
+function basewars.factions.sendEvent(t, ...)
+	if CLIENT then
+		net.Start(ext:getTag() .. "event")
+			net.WriteString(t)
+
+			local var = {...}
+
+			net.WriteUInt(#var, 8)
+			for _, v in ipairs(var) do
+				net.WriteType(v)
+			end
+		net.SendToServer()
+	end
+end
+
 net.Receive(ext:getTag() .. "event", function(len, ply)
 	local t = net.ReadString()
 
 	local fac
-	if SERVER then
-		-- TODO: officer action such as kicking, validate FIRST then read in var
-		error("server is receiving event, this isnt finished yet")
-	else
+	if CLIENT then
 		fac = basewars.factions.getByTeam(net.ReadUInt(16))
 		if not fac then error("receiving event for none-existant faction?") end -- TODO: needs backlog
+	elseif not ext.clientEvents[t] then
+		return
 	end
 
 	local var = {}
 	local amt = net.ReadUInt(8)
+	if SERVER and amt > 16 then return end -- no fuck off
+
 	for i = 1, amt do
 		var[i] = net.ReadType()
 	end
 
 	if SERVER then
-		-- TODO: officer action
+		ext:clientEvent(t, ply, unpack(var))
 	else
 		ext:event(t, fac, unpack(var))
 	end
 end)
 
-function ext:promoteNewOwner(fac)
-	local current = player.GetBySteamID64(fac.hierarchy.owner)
-	if current then
-		ErrorNoHalt("promoteNewOwner: Current leader was valid yet we are trying to promote a new one on relclaim? The fuck?\n")
-
-		return current
-	end
-
-	local new
+function ext:getReplacementOwner(fac)
 	for i, v in ipairs(fac.hierarchy.officers) do
 		local p = player.GetBySteamID64(v)
-		if IsValid(p) then new = v break end
+		if IsValid(p) then return v, false end
 	end
 
-	local notOfficer = not new
-	if notOfficer then
-		for i, v in ipairs(fac.hierarchy.members) do
-			local p = player.GetBySteamID64(v)
-			if IsValid(p) then new = v break end
-		end
+	for i, v in ipairs(fac.hierarchy.members) do
+		local p = player.GetBySteamID64(v)
+		if IsValid(p) then return v, true end
 	end
+
+	return nil
+end
+
+function ext:promoteNewOwner(fac)
+	local new, notOfficer = self:getReplacementOwner(fac)
 
 	if new then
 		self:event("ownerchange", fac, new, notOfficer)
+
+		local ply = player.GetBySteamID64(new)
+		if IsValid(ply) then
+			fac.core:CPPISetOwner(pply)
+		end
 	end
+
+	return new
 end
 
 function ext:BW_ReclaimCore(core)
 	local fac = self.factionTable[core]
 	if not fac then return end
 
+	local current = player.GetBySteamID64(fac.hierarchy.owner)
+	if current then
+		ErrorNoHalt("BW_ReclaimCore: Current leader was valid yet we are trying to promote a new one on relclaim? The fuck?\n")
+
+		return current
+	end
+
 	local next_owner = self:promoteNewOwner(fac)
 	if not next_owner then return end -- sad airhorn
 
-	core:CPPISetOwner(next_owner)
 	return true
+end
+
+function ext:BW_CoreSelfDestructed(core)
+	local fac = basewars.factions.getByCore(core)
+	if not fac then return end
+
+	timer.Simple(0, function() -- just so if any logic gets called after we dont immediately break faction
+		for _, v in ipairs(team.GetPlayers(fac.team_id)) do -- ripe
+			v:SetTeam(TEAM_UNASSIGNED)
+		end
+	end)
 end
 
 if CLIENT then
@@ -264,9 +408,9 @@ if CLIENT then
 
 	timer.Create(ext:getTag() .. "-backlog", 10, 0, function() -- TODO: compress this table
 		for k, v in pairs(ext.startupBacklog) do
-			local ply = Player(v[1])
+			local core = Entity(v[1])
 
-			if IsValid(ply) then
+			if IsValid(core) then
 				ext.startupBacklog[k] = nil
 
 				ext:createFaction(v[1], v[2], v[3], nil, v[4], v[5], v[6])
@@ -289,9 +433,11 @@ net.Receive(ext:getTag() .. "start", function(len, ply)
 		local hierarchy = net.ReadTable()
 		if not next(hierarchy) then hierarchy = nil end
 
-		local core = Entity(uid)
+		print("reading faction from server", coreId, ownerId, name)
+
+		local core = Entity(coreId)
 		if IsValid(core) then
-			ext:createFaction(core, name, nil, color, team_id, hierarchy)
+			ext:createFaction(core, ownerId, name, nil, color, team_id, hierarchy)
 		else
 			table.insert(ext.startupBacklog, {coreId, ownerId, name, color, team_id, hierarchy, 0})
 		end
@@ -299,6 +445,8 @@ net.Receive(ext:getTag() .. "start", function(len, ply)
 		local name = net.ReadString()
 		local password = net.ReadString()
 		local color = net.ReadColor()
+
+		print("received fac from ply", ply, name, password, color)
 
 		local okay = ext:startFaction(ply, name, password, color)
 		if not okay then
@@ -335,12 +483,13 @@ function basewars.factions.startFaction(ply, name, password, color)
 		return ext:startFaction(ply, name, password, color, nil)
 	else
 		ext:handleStartNetworking(nil, nil, name, password, color, nil, nil, nil)
+		print("writing faction request to server", name, password, color)
 
 		return true
 	end
 end
 
-function ext:PlayerSpawn(ply)
+function ext:PlayerInitialSpawn(ply)
 	local fac = basewars.factions.getByPlayer(ply)
 	if not fac then return end
 
@@ -443,6 +592,8 @@ function ext:startFaction(ply, name, password, color)
 		local res, err = basewars.factions.canStartFaction(ply, name, password, color)
 		if res == false then return false, err end
 	end
+
+	print("making faction ", ply, name, password, color)
 
 	local fac_data = self:createFaction(basewars.basecore.get(ply), ply:SteamID64(), name, password, color)
 	if SERVER then

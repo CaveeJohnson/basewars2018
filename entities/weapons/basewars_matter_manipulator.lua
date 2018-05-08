@@ -40,7 +40,7 @@ SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic   = false
 
 SWEP.DrawAmmo      = false
-SWEP.DrawCrosshair = false
+SWEP.DrawCrosshair = true
 
 SWEP.weaponSelectionLetter = "l"
 
@@ -380,8 +380,7 @@ if CLIENT then
 	local col2 = Color(255, 100, 100, 255)
 	local crosshairMat = surface.GetTextureID("sprites/hud/v_crosshair2")
 
-	function SWEP:DrawHUD()
-		local x, y = ScrW() / 2, ScrH() / 2
+	function SWEP:DoDrawCrosshair(x, y)
 		local fire_mode = self:GetFireMode()
 
 		surface.SetTexture(crosshairMat)
@@ -389,6 +388,8 @@ if CLIENT then
 
 		surface.DrawTexturedRectRotated(x, y, 32, 32, 90)
 		surface.DrawTexturedRectRotated(x, y, 32, 32, 0)
+
+		return true
 	end
 
 	function SWEP:getElementColor(name)

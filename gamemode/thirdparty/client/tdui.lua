@@ -1018,3 +1018,52 @@ tdui.RegisterSkin("default", {
 
 --return tdui
 _G.tdui = tdui
+
+-- CUSTOM BELOW
+
+local function button_left(self, input, font, x, y, w, h, clr, hover_clr)
+	local fgColor, bgColor, fgHoverColor, fgPressColor, bgHoverColor, bgPressColor, borderWidth =
+		self:_GetSkinParams("button", "fgColor", "bgColor", "fgHoverColor", "fgPressColor", "bgHoverColor", "bgPressColor", "borderWidth")
+
+	-- Override skin constants with params if needed
+	fgColor = clr or fgColor
+	fgHoverColor = hover_clr or fgHoverColor
+
+	surface.SetFont(self:_ParseFont(font))
+
+	local just_pressed, pressing, hovering = self:TestAreaInput(x, y, w, h, true)
+
+	local finalFgColor, finalBgColor = fgColor, bgColor
+
+	if just_pressed or pressing then
+		finalFgColor, finalBgColor = fgPressColor, bgPressColor
+	elseif hovering then
+		finalFgColor, finalBgColor = fgHoverColor, bgHoverColor
+	end
+
+	self:DrawRect(x, y, w, h, finalBgColor, finalFgColor, borderWidth)
+	self:DrawText(input, font, x + 2, y + h / 2, finalFgColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+
+	if not self:ShouldAcceptInput() then
+		return false, false, false
+	end
+	return just_pressed, pressing, hovering
+end
+tdui.RenderOperations["button_left"] = button_left
+
+function tdui.Meta:LeftButton(str, font, x, y, w, h, clr, hover_clr)
+	self:_QueueRenderOP("button_left", str, font, x, y, w, h, clr, hover_clr)
+	return self:TestAreaInput(x, y, w, h)
+end
+
+function tdui.Meta:ClickyRect(x, y, w, h, clr, out_clr)
+	self:_QueueRenderOP("rect", x, y, w, h, clr, out_clr)
+	return self:TestAreaInput(x, y, w, h)
+end
+
+function tdui.Meta:TextSized(str, font, x, y, clr, halign, valign, scissor_rect)
+	self:_QueueRenderOP("text", str, font, x, y, clr, halign, valign, scissor_rect)
+
+	surface.SetFont(self:_ParseFont(font))
+	return surface.GetTextSize(str)
+end

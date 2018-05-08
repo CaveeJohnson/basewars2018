@@ -42,8 +42,8 @@ if SERVER then
 		end)
 	end)
 
-	timer.Create("HostNameRefresher", 2, 0, function()
-		SetGlobalString("hostname", hostname)
+	timer.Create("HostNameRefresher", 5, 0, function()
+		SetHostName(GetConVar("hostname"):GetString())
 	end)
 else
 	function GetHostName()

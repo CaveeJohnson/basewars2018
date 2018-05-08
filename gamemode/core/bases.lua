@@ -122,7 +122,7 @@ map_locations["rp_eastcoast_v4b"] = {
 	},
 	{
 	mins = Vector(2880.03125, -895.97357177734, -31.96875),
-	maxs = Vector(3391.986328125, -128.05081176758, 528.01428222656),
+	maxs = Vector(3391.986328125, -128.05081176758, 640.01428222656),
 	name = "Garbage Yard",
 	can_base = true,
 	},
@@ -242,8 +242,8 @@ map_locations["rp_eastcoast_v4b"] = {
 	can_base = true,
 	},
 	{
-	mins = Vector(-1663.9475097656, -1727.8604736328, 384.03125),
-	maxs = Vector(-896.03125, -1328.0236816406, 558.00158691406),
+	mins = Vector(-1663.9475097656, -1823.96875, 384.03125),
+	maxs = Vector(-896.03125, -1328.0236816406, 628.00158691406),
 	name = "Starline Offices: Roof",
 	can_base = true,
 	},
@@ -549,6 +549,9 @@ map_locations["rp_eastcoast_v4b"] = {
 }
 
 ext.locations = map_locations[game.GetMap()]
+ext.ownable = {}
+ext.locationCount = 0
+ext.ownableCount = 0
 
 for k, v in ipairs(ext.locations) do
 	v.area_size = v.mins:Distance(v.maxs)
@@ -559,10 +562,21 @@ for k, v in ipairs(ext.locations) do
 
 	v.maxs = v.maxs + Vector(1, 2, 0)
 	v.maxs.z = math.ceil(v.maxs.z)
+
+	ext.locationCount = ext.locationCount + 1
+
+	if v.can_base then
+		ext.ownableCount = ext.ownableCount + 1
+		ext.ownable[ext.ownableCount] = v
+	end
 end
 
 function basewars.bases.getList()
-	return ext.locations
+	return ext.locations, ext.locationCount
+end
+
+function basewars.bases.getOwnableList()
+	return ext.ownable, ext.ownableCount
 end
 
 function basewars.bases.getForPos(pos)

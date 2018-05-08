@@ -8,6 +8,11 @@ hook.Add("player_spawn", "PlayerSpawn-client", function(data)
 	local ply = Player(uid)
 
 	if IsValid(ply) then
+		if not ply.__sharedInitialSpawn then
+			hook.Run("SharedPlayerInitialSpawn", ply) -- die
+			ply.__sharedInitialSpawn = true
+		end
+
 		hook.Run("PlayerSpawnShared", ply)
 	end
 end)

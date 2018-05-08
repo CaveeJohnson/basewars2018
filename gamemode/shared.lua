@@ -92,6 +92,11 @@ do
 		end
 
 		function basewars.extBase:onEntitiesReloaded()
+			for name, data in pairs(self.__entTrackers) do
+				self[data[2]] = {}
+				self[data[3]] = 0
+			end
+
 			for _, v in ipairs(ents.GetAll()) do
 				self:receiveEntityCreate(v)
 			end

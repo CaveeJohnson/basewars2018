@@ -1,42 +1,5 @@
 local ext = basewars.createExtension"core.money-distributor"
 
-if not basewars.fuckUniqueID then
-	-- unfortunately addons are bad
-	ext.lookup = {}
-	ext.collisions = {}
-
-	local bad = "UniqueID collision! Do not complain about this, instead enable basewars.fuckUniqueID and delete addons that rely on this shit and outdated function."
-
-	function ext:PlayerInitialSpawn(ply)
-		local uid   = ply:UniqueID()
-		local sid64 = ply:SteamID64()
-
-		if self.lookup[uid] and self.lookup[uid] ~= sid64 then
-			self.collisions[uid] = true
-			error(bad)
-		elseif not self.lookup[uid] then
-			self.lookup[uid] = sid64
-		end
-	end
-
-	function ext:PostReloaded()
-		for _, v in ipairs(player.GetAll()) do
-			self:PlayerInitialSpawn(v)
-		end
-	end
-
-	function basewars.playerUIDToSID64(uid)
-		assert(not ext.collisions[uid], bad)
-
-		local sid64 = ext.lookup[uid]
-		assert(sid64, "playerUIDToSID64: attempting to get SID64 for a UID which has not been online this session")
-
-		return sid64
-	end
-else
-	function basewars.playerUIDToSID64(uid) return uid end
-end
-
 function basewars.playerAddMoney(ply, amt, where)
 	local id = ply
 	if isentity(ply) then

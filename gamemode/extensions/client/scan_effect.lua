@@ -4,35 +4,34 @@ ext.duration = 20 -- TODO: Config
 
 local function sorter(a, b) return a[2] > b[2] end
 function ext:BW_DoScanEffect(core) -- doesn't actually get called yet
-	ext.started = CurTime()
-	ext.target = core
+	self.started = CurTime()
+	self.target = core
 
 	local a, c = {}, 0
 	for _, v in ipairs(ents.GetAll()) do
-		if core:encompassesEntity(v) and v.isBasewarsEntity then
+		if core:encompassesEntity(v) and v.isBasewarsEntity and v.getCurrentValue and v:getCurrentValue() > 0 then
 			c = c + 1
-			a[c] = {basewars.getEntPrintName(v), v.getCurrentValue and v:getCurrentValue() or 0, v}
+			a[c] = {basewars.getEntPrintName(v), v:getCurrentValue(), v}
 		end
 	end
 
 	table.sort(a, sorter)
-	ext.targetEnts = a
-	ext.showAmt = math.min(c, 10)
+	self.targetEnts = a
+	self.showAmt = math.min(c, 10)
 
 	local core_pos = core:GetPos()
-	core.base = core.base or basewars.bases.getForPos(core_pos)
+	local base = basewars.bases.getForPos(core_pos)
 
-	local base = core.base
-	if not base then return end -- aaaaaa
+	if not base then self.plysCount = 0 return true end -- aaaaaa
 
 	c = 0
 	for _, v in ipairs(player.GetAll()) do
-		if core:ownershipCheck(v) and v:GetPos():WithinAABox(base.mins, base.maxs) < check then
+		if core:ownershipCheck(v) and v:GetPos():WithinAABox(base.mins, base.maxs) then
 			c = c + 1
 		end
 	end
 
-	ext.plysCount = c
+	self.plysCount = c
 
 	-- this actually prevents anything else using it since its for drawing the effects
 	-- to make your own scan effect, remove this file.
@@ -70,6 +69,7 @@ function ext:HUDPaint()
 	cam.Start3D()
 	cam.IgnoreZ(true)
 	render.SetColorModulation(1, 0.2, 0.2)
+	render.SetBlend(0.4)
 		local targs = self.targetEnts
 		for i = 1, self.showAmt do
 			local v = targs[i][3]
@@ -78,6 +78,7 @@ function ext:HUDPaint()
 				v:DrawModel()
 			end
 		end
+	render.SetBlend(1)
 	render.SetColorModulation(1, 1, 1)
 	cam.IgnoreZ(false)
 	cam.End3D()
@@ -87,13 +88,13 @@ function ext:HUDPaint()
 	local screen = pos:ToScreen()
 
 	local x, y = screen.x, screen.y
-	y = y + draw.text("Target Core", font, x, y, white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
-	        draw.text("Detected Hostiles: " .. self.plysCount, font_small, x, y, red, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER)
+	y = y + draw.textOutlined("Target Core", font, x, y, white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER, color_black)
+	        draw.textOutlined("Detected Hostiles: " .. self.plysCount, font_small, x, y, red, TEXT_ALIGN_RIGHT, TEXT_ALIGN_CENTER, color_black)
 	x, y = screen.x + 5, screen.y
-	y = y + draw.text("Top 10 valuables", font_small2, x, y, blue, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+	y = y + draw.textOutlined("Top 10 valuables", font_small2, x, y, blue, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, color_black)
 
 	for i = 1, self.showAmt do
 		local v = targs[i]
-		y = y + draw.text(string.format(former, v[1], basewars.currency(v[2])), font_small, x, y, white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+		y = y + draw.textOutlined(string.format(former, v[1], basewars.currency(v[2])), font_small, x, y, white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER, color_black)
 	end
 end

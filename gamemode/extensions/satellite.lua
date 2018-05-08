@@ -25,6 +25,107 @@ function ext:RenderScene(pos)
 	self.pos = pos -- at infinity
 end
 
+local draw_vis
+
+do
+	g_vistest_stream = g_vistest_stream or nil
+
+	local lerped_data = {}
+
+	local function circle(x, y, radius, seg)
+		local last_x, last_y = 0, 0
+		local first_x, first_y
+
+		for i = 1, seg do
+			local amplitude = radius + (lerped_data[i] * 2048)
+
+			local a = math.rad((i / seg) * -360 + (CurTime() * 20))
+			local new_x, new_y = x + math.sin(a) * amplitude, y + math.cos(a) * amplitude
+
+			if i > 1 then
+				surface.DrawLine(last_x, last_y, new_x, new_y)
+			else
+				first_x, first_y = new_x, new_y
+			end
+
+			last_x, last_y = new_x, new_y
+		end
+
+		surface.DrawLine(last_x, last_y, first_x, first_y)
+	end
+
+	function draw_vis()
+		if not IsValid(g_vistest_stream) or g_vistest_stream:GetState() ~= GMOD_CHANNEL_PLAYING then return end
+		local x, y, radius, seg = 0, 0, 256, 1024
+
+		local data = {}
+		local n = g_vistest_stream:FFT(data, FFT_2048)
+
+		local b0 = 1
+		local bars = 256
+
+		for i = 1, seg do
+			local j = (i % bars) + 1
+			if j ==  1 then
+				b0 = 1
+			end
+
+			if j >= bars - 4 then
+				lerped_data[i] = lerped_data[1]
+			else
+				local sum = 0
+				local sc = 0
+				local b1 = math.pow(2, j * 10.0 / (bars - 1))
+
+				if b1 > n - 1 then b1 = n - 1 end
+				if b1 <= b0 then b1 = b0 + 1 end
+				sc = 10 + b1 - b0
+				while b0 < b1 do
+					sum = sum + data[b0]
+					b0 = b0 + 1
+				end
+
+				local decibels = math.sqrt(sum / math.log10(sc)) * 1.7
+				lerped_data[i] = Lerp(18 * FrameTime(), lerped_data[i] or 0, decibels)
+			end
+		end
+
+		surface.SetDrawColor(0, 0, 0, 200)
+		draw.NoTexture()
+
+		circle(x, y, radius, seg)
+	end
+
+	function vistest_play(url)
+		if IsValid(g_vistest_stream) then g_vistest_stream:Stop() end
+
+		sound.PlayURL(url, "noblock", function(stream)
+			g_vistest_stream = stream
+		end)
+	end
+
+	function ext:CalcView(ply, origin, angles, fov)
+		if not (lerped_data[1] and IsValid(g_vistest_stream) and g_vistest_stream:GetState() == GMOD_CHANNEL_PLAYING) then return end
+		if not (util.IsSkyboxVisibleFromPoint(origin) and (util.QuickTrace(origin, Vector(0, 0, 0xFFFF), ply).HitSky or ply:GetEyeTrace().HitSky)) then return end
+
+		local look_at_f = ply:GetAimVector():Dot(-self.angles:Forward())
+		local fsqr = look_at_f^3
+
+		if look_at_f < 0 or fsqr < 0.01 then return end
+
+		local amp = 0
+		for i = 1, 32 do
+			amp = amp + lerped_data[i] * 3 * fsqr
+		end
+
+		local view = {}
+			view.origin = origin
+			view.angles = angles
+			view.fov    = fov + amp
+		return view
+	end
+end
+
 local pos1 = Vector(0, 0, 701.5)
 local pos2 = Vector(-50, 115, 1120)
 function ext:PostDrawSkyBox()
@@ -47,6 +148,14 @@ function ext:PostDrawSkyBox()
 		local ent_base = self.ent:LocalToWorld(pos1)
 		self.satPos = self.ent:LocalToWorld(pos2)
 
+		local render_ang = Angle(angs.p, angs.y, angs.r)
+		render_ang:RotateAroundAxis(render_ang:Up(), -90)
+		render_ang:RotateAroundAxis(render_ang:Forward(), 90)
+
+		cam.Start3D2D(self.satPos + self.angles:Forward() * -10, render_ang, 2)
+			draw_vis()
+		cam.End3D2D()
+
 		local old = render.EnableClipping(true)
 		render.SuppressEngineLighting(true)
 		render.PushCustomClipPlane(normal, normal:Dot(ent_base))
@@ -68,75 +177,8 @@ function ext:PostDrawSkyBox()
 	end
 end
 
-local draw_vis
-
-do
-	g_vistest_stream = g_vistest_stream or nil
-
-	local function circle(x, y, radius, seg, data)
-		local last_x, last_y = 0, 0
-		local first_x, first_y
-
-		for i = 1, seg do
-			local amplitude = radius + (data[i] * 1000)
-
-			local a = math.rad((i / seg) * -360)
-			local new_x, new_y = x + math.sin(a) * amplitude, y + math.cos(a) * amplitude
-
-			if i > 1 then
-				surface.DrawLine(last_x, last_y, new_x, new_y)
-			else
-				first_x, first_y = new_x, new_y
-			end
-
-			last_x, last_y = new_x, new_y
-		end
-
-		surface.DrawLine(last_x, last_y, first_x, first_y)
-	end
-
-	function draw_vis()
-		if not IsValid(g_vistest_stream) or g_vistest_stream:GetState() ~= GMOD_CHANNEL_PLAYING then return end
-		local x, y, radius, seg = 0, 0, 256, 256
-
-		local data = {}
-		g_vistest_stream:FFT(data, FFT_256)
-
-		local data2 = {}
-		for i = 1, seg do
-
-			data2[i] = data[i % 32] or 0
-		end
-
-		surface.SetDrawColor(0, 0, 0, 200)
-		draw.NoTexture()
-
-		circle(x, y, radius, seg, data2)
-		--circle(x, y, radius * 1.5, seg * 1.5, data2)
-	end
-
-	function vistest_play(url)
-		if IsValid(g_vistest_stream) then g_vistest_stream:Stop() end
-
-		sound.PlayURL(url, "noblock", function(stream)
-			g_vistest_stream = stream
-		end)
-	end
-end
-
 function ext:PostDrawTranslucentRenderables(depth, sky)
 	if sky or not self.satPos then return end
-
-	local render_ang = Angle()
-	render_ang.p = self.satAngs.p
-	render_ang.y = self.satAngs.y
-	render_ang.r = self.satAngs.r
-	render_ang:RotateAroundAxis(render_ang:Up(), -90)
-	render_ang:RotateAroundAxis(render_ang:Forward(), 90)
-
-	cam.Start3D2D(self.satPos, render_ang, 2)
-		draw_vis()
-	cam.End3D2D()
 
 	if not (self.hitPos and IsValid(self.ent)) then return end
 	self.beamMat:SetFloat("$alpha", 1)

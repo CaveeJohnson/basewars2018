@@ -15,13 +15,7 @@ function ENT.readNetwork(_, ply)
 	local ent = net.ReadEntity()
 	if not IsValid(ent) or not ent.isCore then return end
 
-	ent.plyRequests = ent.plyRequests or {}
-
-	if not ent.plyRequests[ply] then
-		ent.plyRequests[ply] = true
-
-		ent:transmitAreaEnts(ply)
-	end
+	ent:transmitAreaEnts(ply)
 end
 net.Receive(net_tag, ENT.readNetwork)
 
@@ -286,6 +280,8 @@ function ENT:selfDestruct(dmginfo)
 	self.__alarm:Play()
 
 	local boom = function()
+		hook.Run("BW_CoreSelfDestructed", self, dmginfo)
+
 		if self.__alarm then self.__alarm:Stop() end
 
 		self:setActive(false)

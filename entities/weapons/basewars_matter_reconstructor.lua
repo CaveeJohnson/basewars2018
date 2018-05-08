@@ -23,7 +23,7 @@ SWEP.ShowWorldModel = false
 SWEP.ViewModelBoneMods = {}
 
 SWEP.DrawAmmo      = false
-SWEP.DrawCrosshair = false
+SWEP.DrawCrosshair = true
 
 SWEP.Primary.Ammo        = "none"
 SWEP.Primary.ClipSize    = -1
@@ -130,14 +130,14 @@ if CLIENT then
 	local col  = Color(150, 150, 255, 255)
 	local crosshairMat = surface.GetTextureID("sprites/hud/v_crosshair2")
 
-	function SWEP:DrawHUD()
-		local x, y = ScrW() / 2, ScrH() / 2
-
+	function SWEP:DoDrawCrosshair(x, y)
 		surface.SetTexture(crosshairMat)
 		surface.SetDrawColor(col)
 
 		surface.DrawTexturedRectRotated(x, y, 32, 32, 90)
 		surface.DrawTexturedRectRotated(x, y, 32, 32, 0)
+
+		return true
 	end
 
 end

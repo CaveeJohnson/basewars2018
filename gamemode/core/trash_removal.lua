@@ -1,6 +1,6 @@
 hook.Remove("PlayerTick", "TickWidgets")
 hook.Remove("PostDrawEffects", "RenderHalos")
-
+-- Mith wanted a line
 -- TODO: HUDDrawTargetID
 
 --[[

@@ -9,7 +9,7 @@ ENT.UseDescription = "Activate"
 ENT.CanUse = function(self) return not self:isActive() and self:canActivate() end
 
 ENT.Model = "models/props_combine/combine_light001b.mdl"
-ENT.BaseHealth = 1e4
+ENT.BaseHealth = 2500
 --ENT.DefaultRadius = 250
 ENT.selfDestructPower = 1e5
 

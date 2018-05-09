@@ -350,16 +350,17 @@ if CLIENT then
 
 		local w, h = 1024, 576
 
-		if item and self.lastModelUpdate ~= item.model then
+		local item_model =  item and item.model or "models/error.mdl"
+		if item and self.lastModelUpdate ~= item_model then
 			if not self.icon then
 				self.icon = vgui.Create("SpawnIcon")
 			end
 				self.icon:SetSize(h / 2, h / 2)
 				self.icon:SetPos (w - h / 2 - 2, h / 4)
 				self.icon:SetPaintedManually(true)
-				self.icon:SetModel(item.model)
+				self.icon:SetModel(item_model)
 				self.icon:SetMouseInputEnabled(false)
-			self.lastModelUpdate = item.model
+			self.lastModelUpdate = item_model
 		end
 
 		render.PushRenderTarget(rtTex)

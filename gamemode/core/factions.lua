@@ -244,6 +244,8 @@ ext.eventHandlers.ownerchange = function(_, fac, new, notOfficer)
 end
 
 function ext:event(t, fac, ...)
+	if hook.Run("BW_CanFactionEvent", t, fac, ...) == false then return false end
+
 	if SERVER then
 		net.Start(ext:getTag() .. "event")
 			net.WriteString(t)

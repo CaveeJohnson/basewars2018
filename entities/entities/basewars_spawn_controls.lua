@@ -1,4 +1,4 @@
---easylua.StartEntity("basewars_spawn_controls")
+easylua.StartEntity("basewars_spawn_controls")
 
 AddCSLuaFile()
 
@@ -135,17 +135,101 @@ else
 	end)
 end
 
+local color_nosucc = Color(100, 20, 20)
+local color_succ = Color(20, 100, 20)
+
 ENT.tabs = {}
 
 ENT.tabs[1] = {"Factions", function(self, p, x, y, w, h)
-	p:Text("faction join controls go here", "!DejaVu Sans@24", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+	local space = 2
+
+	local display_width = w * 0.85
+
+	local my_fac = basewars.factions.getByPlayer(LocalPlayer())
+	if my_fac then
+		p:Text("sorry, this isn't finished", "!DejaVu Sans@14", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP) -- TODO:
+
+		y = y + 16 + space
+		if p:Button("Leave Faction", "!DejaVu Sans@14", x, y, display_width, 16) then
+			basewars.factions.sendEvent("leave")
+		end
+
+		if my_fac.hierarchy.owner == LocalPlayer():SteamID64() then
+			y = y + 16 + space
+			if p:Button("Disband Faction", "!DejaVu Sans@14", x, y, display_width, 16) then
+				basewars.factions.sendEvent("disband")
+			end
+		end
+
+		return
+	end
+
+	local amount_of_facs_shown = math.floor(((h / 2) - space) / 16)
+	local display_height = amount_of_facs_shown * 16
+	local display_end = y + display_height
+
+	local faction_list, faction_total = basewars.factions.getList()
+
+	p:Rect(x, y, display_width, display_height, color_transparent, color_white, 1)
+
+	local display_width_corrected = display_width
+	if faction_total > amount_of_facs_shown then
+		local scroll_width = 16
+		display_width_corrected = display_width - scroll_width
+		p:Rect(x + display_width_corrected, y, scroll_width, display_height, color_transparent, color_white, 1)
+
+		-- TODO: bollocks here look at slider
+	end
+
+	local i = 0
+	for core, fac in pairs(faction_list) do
+		i = i + 1
+		if i >= amount_of_facs_shown then break end
+
+		if p:LeftButton(fac.name, "!DejaVu Sans@14", x, y, display_width_corrected, 16, ent == self.raidcoreSelected and color_selected) then
+			self.highlightedFaction = core
+		end
+		p:Text(fac.flat_member_count .. " members", "!DejaVu Sans@14", x + display_width_corrected - space * 2, y, color_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+
+		y = y + 16
+	end
+
+	if not IsValid(self.highlightedFaction) then return end
+
+	y = display_end + space
+
+	local tw2 = p:TextSized("Password: ", "!DejaVu Sans@14", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+
+	local restore_x = x
+	x = x + tw2 + space
+
+	self.factionPass = self.factionPass or ""
+
+	if p:ClickyRect(x, y, display_width - tw2 - space, 14, color_white) then
+		Derma_StringRequest(
+			"Faction Password",
+			"Input your chosen faction password",
+			self.factionPass,
+			function(str) self.factionPass = str end,
+			function(str) end
+		)
+	end
+	p:Text(self.factionPass, "!DejaVu Sans@12", x, y + 1, color_black, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+	y = y + 14 + space * 2
+
+	x = restore_x
+
+	local no_text = basewars.basecore.has(LocalPlayer()) and "You cannot join with a base!"
+	if p:Button(no_text or "Join Faction", "!DejaVu Sans@14", x, y, display_width_corrected, 16, no_text and color_nosucc or color_succ) then
+		basewars.factions.sendEvent("join", self.highlightedFaction, self.factionPass)
+	end
 end}
 
 ENT.tabs[2] = {"Changelog", function(self, p, x, y, w, h)
 	local space = 2
 
-	p:Text("2018/05/07", "!DejaVu Sans@24", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
-	p:Text("      alpha one release.", "!DejaVu Sans@20", x, y + 24 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+	p:Text("2018/05/09", "!DejaVu Sans@24", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+	p:Text("    + alpha one release.", "!DejaVu Sans@20", x, y + 24 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 end}
 
 ENT.tabs[3] = {"Rules", function(self, p, x, y, w, h)
@@ -214,4 +298,4 @@ end
 
 end
 
---easylua.EndEntity()
+easylua.EndEntity()

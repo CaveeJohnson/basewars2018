@@ -39,13 +39,13 @@ function basewars.items.createItemEx(id, tbl)
 				error(string.format("entity with no baseclass used to init item? '%s', '%s'", id, sent.Base))
 			end
 
-			tbl.name  = tbl.name or sent.PrintName or sent.Name
+			tbl.name  = tbl.name or sent.PrintName or sent.Name or "MISSING NAME"
 			tbl.class = id
-			tbl.model = tbl.model or sent.Model or sent_base.Model
+			tbl.model = tbl.model or sent.Model or sent_base.Model or "models/error.mdl"
 		elseif swep then
-			tbl.name  = tbl.name or swep.PrintName
+			tbl.name  = tbl.name or swep.PrintName or "MISSING NAME"
 			tbl.class = id
-			tbl.model = tbl.model or swep.WorldModel
+			tbl.model = tbl.model or swep.WorldModel or "models/error.mdl"
 			tbl.spawn = tbl.spawn or ext.spawnWeaponItem
 			tbl.wep   = true
 		elseif not tbl.spawn then

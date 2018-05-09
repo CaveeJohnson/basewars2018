@@ -324,7 +324,7 @@ ENT.tabs.Entities  = function(self, p, x, y, w, h)
 	local core = self:getCore()
 	local ent_list, ent_total = core:getAreaEnts()
 
-	local display_width = self.entitySelected and w * 0.65 or w
+	local display_width = IsValid(self.entitySelected) and w * 0.65 or w
 	p:Rect(x, y, display_width, display_height, color_transparent, color_white, 1)
 
 	self.entityScroll = self.entityScroll or 1
@@ -369,7 +369,7 @@ ENT.tabs.Entities  = function(self, p, x, y, w, h)
 		p:Text(text, "!DejaVu Sans@14", x, y, succ and color_succ or color_nosucc, TEXT_ALIGN_LEFT)
 	end
 
-	if not self.entitySelected then return end
+	if not IsValid(self.entitySelected) then return end
 
 	y = restore_y
 	if p:Button("Cancel", "!DejaVu Sans@14", x + display_width - w / 4, y - 16 - space, w / 4, 16) then
@@ -402,7 +402,6 @@ ENT.tabs.factions_active = function(self, p, x, y, w, h)
 	local space = x
 
 	p:Text("sorry, this isn't finished", "!DejaVu Sans@14", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
-
 
 	y = y + h - 16 - space
 	if p:Button("Leave Faction", "!DejaVu Sans@14", x, y, w - space * 2, 16) then
@@ -507,7 +506,65 @@ ENT.tabs.Faction = function(self, p, x, y, w, h)
 end
 
 ENT.tabs.Raids    = function(self, p, x, y, w, h)
+	local space = x
+
 	p:Text("Raids", "!DejaVu Sans@16", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+	y = y + 16 + space
+
+	local amount_of_cores_shown = math.floor((h - space) / 16) - (IsValid(self.raidcoreSelected) and 2 or 0)
+	local display_height = amount_of_cores_shown * 16
+	local display_end = y + display_height
+
+	local core_list, core_total = basewars.basecore.getList()
+
+	local display_width = w
+	p:Rect(x, y, display_width, display_height, color_transparent, color_white, 1)
+
+	self.raidsScroll = self.raidsScroll or 1
+
+	local display_width_corrected = display_width
+	if core_total > amount_of_cores_shown then
+		local scroll_width = 16
+		display_width_corrected = display_width - scroll_width
+		p:Rect(x + display_width_corrected, y, scroll_width, display_height, color_transparent, color_white, 1)
+
+		-- TODO: bollocks here look at slider
+	end
+
+	local core = self:getCore()
+
+	for i = self.raidsScroll, math.min(core_total + 1 - self.raidsScroll, amount_of_cores_shown) do
+		local ent = core_list[i]
+
+		if IsValid(ent) and ent ~= core then
+			local fac = basewars.factions.getByCore(ent)
+			local cppi_owner, owner_id = ent:CPPIGetOwner()
+			local name = (fac and fac.name) or (IsValid(cppi_owner) and cppi_owner:Nick()) or owner_id
+
+			if p:LeftButton(string.format("%s's core", name), "!DejaVu Sans@14", x, y, display_width_corrected, 16, ent == self.raidcoreSelected and color_selected) then
+				self.raidcoreSelected = ent
+			end
+			p:Text(math.floor(core:GetPos():Distance(ent:GetPos()) * 0.01905) .. "m away", "!DejaVu Sans@14", x + display_width_corrected - space * 2, y, color_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+
+			y = y + 16
+		end
+	end
+
+	if not IsValid(self.raidcoreSelected) then return end
+
+	y = display_end + space
+	self.nextScan = self.nextScan or 0
+
+	if p:Button("Scan target (FREE, NOT FINISHED)", "!DejaVu Sans@14", x, y, display_width_corrected, 16, color_white) and self.nextScan <= CurTime() then
+		hook.Run("BW_DoScanEffect", self.raidcoreSelected) -- TODO: make actual thing
+		self.nextScan = CurTime() + 11
+	end
+
+	y = y + 16 + space
+
+	if p:Button("Begin raid", "!DejaVu Sans@14", x, y, display_width_corrected, 16, color_white) then
+		basewars.raids.startRaid(nil, self.raidcoreSelected)
+	end
 end
 
 ENT.tabs.Settings = function(self, p, x, y, w, h)
@@ -534,7 +591,26 @@ function ENT:handleTabs(p, w, h)
 	y = y + each_height + space * 2
 	x = space
 
-	if self.tabs[self.curTab] then
+	local core = self:getCore()
+
+	local ongoing = basewars.raids.getForEnt(core)
+	if ongoing then
+		local ent = ongoing.vs
+		local fac = basewars.factions.getByCore(ent)
+		local cppi_owner, owner_id = ent:CPPIGetOwner()
+		local name = (fac and fac.name) or (IsValid(cppi_owner) and cppi_owner:Nick()) or owner_id
+
+		p:Text(string.format("Ongoing raid VS %s", name), "!DejaVu Sans@20", w / 2, h / 2 - 11, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		y = y + 14 + space
+
+		local len = ongoing.time - (CurTime() - ongoing.started)
+		local m = math.floor(len / 60)
+		local s = math.floor(len - m * 60)
+
+		p:Text(string.format("%.2d:%.2d", m, s), "!DejaVu Sans@20", w / 2, h / 2 + 11, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+		return
+	elseif self.tabs[self.curTab] then
 		self.tabs[self.curTab](self, p, x, y, w, h)
 	else
 		p:Text("Warning: Invalid tab selected?!?!!", "!DejaVu Sans@16", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)

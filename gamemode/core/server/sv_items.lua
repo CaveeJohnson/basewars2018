@@ -85,9 +85,13 @@ end
 
 function ext:postSpawn(item, ply, ent)
 	ent:CPPISetOwner(ply)
+	if ent.SetCreator then ent:SetCreator(ply) end
 	if ent.setAbsoluteOwner then ent:setAbsoluteOwner(ply:SteamID64()) end
 
+	if item.setOwner then ent:SetOwner(ply) end
+
 	ent.DoNotDuplicate = true
+	if item.physgunDisabled then ent.PhysgunDisabled = true end -- TODO: not shared
 
 	if item.limit then
 		self:setupLimits(ent, ply, item)

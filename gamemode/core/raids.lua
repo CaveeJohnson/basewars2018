@@ -18,8 +18,12 @@ function ext:BW_ShouldSell(ply)
 	if self:getPlayerRaidTarget(ply) then return false, "You cannot sell during a raid!" end
 end
 
-function ext:BW_ShouldSpawn(ply)
-	if self:getPlayerRaidTarget(ply) then return false, "You cannot buy during a raid!"  end
+function ext:BW_ShouldSpawn(ply, item)
+	if self:getPlayerRaidTarget(ply) and not item.buyInRaids then return false, "You cannot buy during a raid!" end
+end
+
+function ext:BW_CanFactionEvent(event, fac)
+	if self:getEntRaidTarget(fac.core) then return false, "You cannot manage factions during a raid!" end
 end
 
 function ext:BW_GetCoreIndicatorColor(core)
@@ -44,21 +48,39 @@ function ext:BW_GetCoreDisplayData(core, dt)
 	end
 end
 
-function ext:getPlayerRaidTarget(ply)
+function ext:getPlayerRaid(ply)
 	if not ply:IsPlayer() then return false end
 	if not basewars.basecore.has(ply) then return false end
 
 	local core = basewars.basecore.get(ply)
-	return ext.ongoingRaids[core] and ext.ongoingRaids[core].vs or false
+	return ext.ongoingRaids[core]
 end
 
-function ext:getEntRaidTarget(ent)
-	if ent.isCore then return ext.ongoingRaids[ent] and ext.ongoingRaids[ent].vs end
+function ext:getPlayerRaidTarget(ply)
+	local raid = self:getPlayerRaid(ply)
+	return raid and raid.vs or false
+end
+
+function basewars.raids.getForPlayer(ply)
+	return ext:getPlayerRaid(ply)
+end
+
+function ext:getEntRaid(ent)
+	if ent.isCore then return ext.ongoingRaids[ent] end
 
 	if not ent:validCore() then return false end
 
 	local core = ent:getCore()
-	return ext.ongoingRaids[core] and ext.ongoingRaids[core].vs
+	return ext.ongoingRaids[core]
+end
+
+function ext:getEntRaidTarget(ent)
+	local raid = self:getEntRaid(ent)
+	return raid and raid.vs or false
+end
+
+function basewars.raids.getForEnt(ent)
+	return ext:getEntRaid(ent)
 end
 
 function ext:getRaidInfo(ent)
@@ -432,6 +454,7 @@ function basewars.raids.startRaid(ply, core)
 	ext.ongoingRaids[core]    = {vs = ownCore, time = time, started = started}
 
 	core:raidEffect()
+	ownCore:raidEffect()
 	ext:transmitRaidSingle(ownCore, core, time, started)
 
 	hook.Run("BW_RaidStart", ownCore, core)

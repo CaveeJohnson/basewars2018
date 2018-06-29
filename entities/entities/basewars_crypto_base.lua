@@ -15,6 +15,8 @@ ENT.printAmount     = 100
 
 ENT.fontColor       = Color(255, 255, 255)
 
+ENT.multEnergyTP    = false -- TODO: make in reverse?
+
 do
 	local black = Color(0, 0, 0)
 	local red = Color(100, 20, 20)
@@ -59,7 +61,7 @@ function ENT:Think()
 
 	if CLIENT or not self:isPowered() then return end
 
-	if self.lastGiveMoney and CurTime() - self.lastGiveMoney <= self.interval then return end
+	if self.lastGiveMoney and CurTime() - self.lastGiveMoney <= (self.interval / self:getProductionMultiplier()) then return end
 	self.lastGiveMoney = CurTime()
 	self:addStoredMoney(self.printAmount)
 end

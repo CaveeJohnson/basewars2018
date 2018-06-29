@@ -20,11 +20,6 @@ function ENT:SetupDataTables()
 
 	self:netVarCallback("Active",      self.updateEnergyThroughput)
 	self:netVarCallback("ActiveRate",  self.updateEnergyThroughput)
-
-	if self.multEnergyTP then
-		self:netVarCallback("XP",           self.updateEnergyThroughput)
-		self:netVarCallback("UpgradeLevel", self.updateEnergyThroughput)
-	end
 end
 
 function ENT:updateEnergyThroughput(name, old, new)
@@ -38,7 +33,7 @@ function ENT:updateEnergyThroughput(name, old, new)
 		base = base + active_rate
 	end
 
-	if self.multEnergyTP then
+	if self.isUpgradableEntity and self.multEnergyTP then
 		if base >= 0 then
 			base = base * self:getProductionMultiplier()
 		else

@@ -246,6 +246,12 @@ ENT.tabs[2] = {"Changelog", function(self, p, x, y, w, h)
 
 	y = y + 24 + 20 + 20 + 20 + space + 10
 
+	p:Text("2018/06/29", "!DejaVu Sans@24", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+	p:Text("    * added the initial version of upgrades.", "!DejaVu Sans@20", x, y + 24 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+	p:Text("    * added instructions for the reconstructor.", "!DejaVu Sans@20", x, y + 24 + 20 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+
+	y = y + 24 + 20 + 20 + space + 10
+
 end}
 
 ENT.tabs[3] = {"Rules", function(self, p, x, y, w, h)
@@ -277,7 +283,7 @@ function ENT:Draw()
 	if redux_mat then
 		local m_ratio = 1024 / 3000
 		local m_h = w / 2 * m_ratio
-		p:Mat(redux_mat, w / 4, h / 2 - m_h / 2, w / 2, m_h, Color(255, 255, 255, 70))
+		p:Mat(redux_mat, w / 4, h / 2 - m_h / 2, w / 2, m_h, Color(255, 255, 255, 40))
 	end
 
 	p:Text(GetHostName(), "!DejaVu Sans@48", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)

@@ -4,7 +4,11 @@ SWEP.Base          = "basewars_ck_base"
 SWEP.PrintName     = "MATTER RECONSTRUCTOR"
 
 SWEP.Purpose       = "Missing some matter here and there? Fear no more"
-SWEP.Instructions  = "Hold LMB = Repair Target NOT FINISHED"
+local reload       = SERVER and "R" or input.LookupBinding("reload"):upper()
+SWEP.Instructions  = ([=[
+  <color=192,192,192>LMB</color>\tRepair
+  <color=192,192,192>RMB</color>\tUpgrade
+  <color=192,192,192>]=] .. reload .. [=[</color>\tUNUSED]=]):gsub("\\t", "\t")
 
 SWEP.Slot          = 0
 SWEP.SlotPos       = 4
@@ -57,7 +61,7 @@ function ext:repair(res)
 	return true
 end
 
-function ext:upgrade(res)
+function ext:upgrade(res, owner)
 	local ent = res.Entity
 	if not IsValid(ent) or ent.markedAsDestroyed then return false end
 
@@ -65,8 +69,19 @@ function ext:upgrade(res)
 
 	if SERVER then ent:EmitSound("buttons/button4.wav") end
 
-	-- TODO:
-	return true
+	-- TODO: is this fine?
+	local cost = ent:getNextUpgradeCost()
+	if owner:hasMoney(cost) then
+		if SERVER then
+			owner:takeMoney(cost)
+			ent:addCurrentValue(cost)
+			ent:addUpgradeLevel(1)
+		end
+
+		return true
+	else
+		return false
+	end
 end
 
 function ext:PlayerLoadout(ply)
@@ -131,7 +146,7 @@ if CLIENT then
 
 				local lvl = ent:getUpgradeLevel()
 				y = y + drawString(string.format("Upgrade %d -> %d", lvl, lvl + 1), smallFont, x, y)
-				y = y + drawString(string.format("Cost: %s", basewars.currency(1337)), xsmallFont, x, y)
+				y = y + drawString(string.format("Cost: %s", basewars.currency(ent:getNextUpgradeCost())), xsmallFont, x, y)
 				y = y + drawString(string.format("Production: %d%% -> %d%%", ent:getProductionMultiplier() * 100, ent:getProductionMultiplier(lvl + 1) * 100), xsmallFont, x, y)
 			end
 		end
@@ -244,7 +259,7 @@ function SWEP:SecondaryAttack()
 	self:SetNextSecondaryFire(CurTime() + 0.5)
 	if not self:trace() then return end
 
-	if ext:upgrade(trace_res) then
+	if ext:upgrade(trace_res, self:GetOwner()) then
 		self:DoShootEffect(trace_res.HitPos, trace_res.HitNormal, trace_res.Entity, trace_res.PhysicsBone, IsFirstTimePredicted())
 	end
 end

@@ -16,6 +16,10 @@ local function addUpgradeFunctionality(e)
 		return default
 	end
 
+	function e:getNextUpgradeCost()
+		return math.max(500, self:getCurrentValue()) -- 500, 1000, 2000, 4000? seems good --TODO: config
+	end
+
 	function e:SetupDataTables()
 		BaseClass.SetupDataTables(self)
 
@@ -42,6 +46,8 @@ do
 	ENT.Base = "basewars_power_sub"
 	ENT.Type = "anim"
 	ENT.isUpgradableEntity = true
+
+	ENT.multEnergyTP = true
 
 	ENT.PrintName = "Basewars 2018 Powered Sub Upgradable"
 

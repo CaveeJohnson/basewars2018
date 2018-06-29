@@ -11,6 +11,6 @@ basewars.items.create "basewars_generator_passive_v2" {
 	category     = category,
 	limit        = 2,
 
-	cost         = 5e5,
+	cost         = 5e4,
 	requiresCore = true,
 }

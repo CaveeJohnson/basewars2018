@@ -230,6 +230,22 @@ ENT.tabs[2] = {"Changelog", function(self, p, x, y, w, h)
 
 	p:Text("2018/05/09", "!DejaVu Sans@24", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 	p:Text("    + alpha one release.", "!DejaVu Sans@20", x, y + 24 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+
+	y = y + 24 + 20 + space + 10
+
+	p:Text("2018/05/10", "!DejaVu Sans@24", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+	p:Text("    * changed core power display based on feedback.", "!DejaVu Sans@20", x, y + 24 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+	p:Text("    * fixed faction rejoining.", "!DejaVu Sans@20", x, y + 24 + 20 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+
+	y = y + 24 + 20 + 20 + space + 10
+
+	p:Text("2018/05/15", "!DejaVu Sans@24", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+	p:Text("    * started work on upgrade functionality.", "!DejaVu Sans@20", x, y + 24 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+	p:Text("    * made purchasable mediaplayers.", "!DejaVu Sans@20", x, y + 24 + 20 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+	p:Text("    * improved some of the item spawn logic.", "!DejaVu Sans@20", x, y + 24 + 20 + 20 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+
+	y = y + 24 + 20 + 20 + 20 + space + 10
+
 end}
 
 ENT.tabs[3] = {"Rules", function(self, p, x, y, w, h)

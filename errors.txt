@@ -1,0 +1,46 @@
+gamemodes/basewars/entities/entities/basewars_base/shared.lua:246: Tried to use a NULL entity!
+  1. SteamID64 - [C]:-1
+   2. ownershipCheck - gamemodes/basewars/entities/entities/basewars_base/shared.lua:246
+    3. sameOwner - gamemodes/basewars/gamemode/shared.lua:203
+     4. func - gamemodes/basewars/gamemode/core/base_core_ownership.lua:27
+      5. Run - gamemodes/basewars/gamemode/core/hook_override.lua:63
+       6. encompassesEntity - gamemodes/basewars/entities/entities/basewars_core/shared.lua:114
+        7. transmitAreaEnts - gamemodes/basewars/entities/entities/basewars_core/init.lua:41
+         8. unknown - gamemodes/basewars/entities/entities/basewars_core/init.lua:373
+
+-- projectile weapons cause this
+gamemodes/basewars/gamemode/core/uid_sid64_converter.lua:42: attempt to index local 'owner_id' (a nil value)
+  1. getOwnerSID64 - gamemodes/basewars/gamemode/core/uid_sid64_converter.lua:42
+   2. func - gamemodes/basewars/gamemode/core/factions.lua:100
+    3. Run - gamemodes/basewars/gamemode/core/hook_override.lua:63
+     4. encompassesEntity - gamemodes/basewars/entities/entities/basewars_core/shared.lua:114
+      5. protectsEntity - gamemodes/basewars/entities/entities/basewars_core/shared.lua:121
+       6. func - gamemodes/basewars/gamemode/core/server/sv_base_core_ownership.lua:36
+        7. Run - gamemodes/basewars/gamemode/core/hook_override.lua:63
+         8. unknown - gamemodes/basewars/gamemode/core/hook_extensions.lua:45
+
+
+-- scanning faction base
+Player [2][✪ FuZzYey] ERR: gamemodes/basewars/gamemode/core/uid_sid64_converter.lua:42: attempt to index local 'owner_id' (a nil value)
+  1. getOwnerSID64 - gamemodes/basewars/gamemode/core/uid_sid64_converter.lua:42
+   2. func - gamemodes/basewars/gamemode/core/factions.lua:100
+    3. Run - gamemodes/basewars/gamemode/core/hook_override.lua:63
+     4. encompassesEntity - gamemodes/basewars/entities/entities/basewars_core/shared.lua:114
+      5. func - gamemodes/basewars/gamemode/extensions/client/scan_effect.lua:12
+       6. Run - gamemodes/basewars/gamemode/core/hook_override.lua:63
+        7. unknown - gamemodes/basewars/entities/entities/basewars_core_controls.lua:559
+         8. handleTabs - gamemodes/basewars/entities/entities/basewars_core_controls.lua:614
+          9. Draw - gamemodes/basewars/entities/entities/basewars_core_controls.lua:628
+           10. unknown - gamemodes/base/entities/entities/base_anim.lua:50
+Player [2][✪ FuZzYey] ERR: gamemodes/basewars/gamemode/extensions/client/scan_effect.lua:74: 'for' limit must be a number
+  1. func - gamemodes/basewars/gamemode/extensions/client/scan_effect.lua:74
+   2. unknown - gamemodes/basewars/gamemode/core/hook_override.lua:63
+Player [2][✪ FuZzYey] ERR: gamemodes/basewars/gamemode/extensions/client/scan_effect.lua:74: 'for' limit must be a number
+  1. func - gamemodes/basewars/gamemode/extensions/client/scan_effect.lua:74
+   2. unknown - gamemodes/basewars/gamemode/core/hook_override.lua:63
+Player [2][✪ FuZzYey] ERR: gamemodes/basewars/gamemode/extensions/client/scan_effect.lua:74: 'for' limit must be a number
+  1. func - gamemodes/basewars/gamemode/extensions/client/scan_effect.lua:74
+   2. unknown - gamemodes/basewars/gamemode/core/hook_override.lua:63
+Player [2][✪ FuZzYey] ERR: gamemodes/basewars/gamemode/extensions/client/scan_effect.lua:74: 'for' limit must be a number
+  1. func - gamemodes/basewars/gamemode/extensions/client/scan_effect.lua:74
+   2. unknown - gamemodes/basewars/gamemode/core/hook_override.lua:63

@@ -491,20 +491,17 @@ function basewars.factions.startFaction(ply, name, password, color)
 	end
 end
 
-function ext:PlayerInitialSpawn(ply)
-	local fac = basewars.factions.getByPlayer(ply)
-	if not fac then return end
-
-	ply:SetTeam(fac.team_id)
-	print("DEBUG: player rejoined as part of a faction ", ply)
-end
-
 function ext:PlayerReallySpawned(ply)
 	self:cleanTables()
 
 	for _, v in pairs(self.factionTable) do
 		ext:handleStartNetworking(v.core, v.hierarchy.owner, v.name, nil, v.color, v.team_id, v.hierarchy, ply)
 	end
+
+	local fac = basewars.factions.getByPlayer(ply)
+	if not fac then return end
+
+	ply:SetTeam(fac.team_id)
 end
 
 function ext:updateUsingHierarchy(fac_data)

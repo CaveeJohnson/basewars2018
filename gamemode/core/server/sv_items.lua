@@ -1,5 +1,5 @@
 local ext = basewars.createExtension"core.items-server"
-basewars.items = {}
+basewars.items = basewars.items or {}
 
 ext.limiter = ext:establishGlobalTable("limiter")
 
@@ -84,6 +84,8 @@ function ext:spawnGenericItem(item, ply, pos, ang, norm)
 end
 
 function ext:postSpawn(item, ply, ent)
+	if item.setModel and item.model then ent:SetModel(item.model) ent:Spawn() ent:Activate() end
+
 	ent:CPPISetOwner(ply)
 	if ent.SetCreator then ent:SetCreator(ply) end
 	if ent.setAbsoluteOwner then ent:setAbsoluteOwner(ply:SteamID64()) end
@@ -128,7 +130,6 @@ function basewars.items.spawn(id, ply, pos, ang, norm)
 	if res == false then
 		return false, err
 	end
-
 	res, err = hook.Run("BW_ShouldBuy", id, ply, pos, ang)
 	if res == false then
 		return false, err
@@ -140,7 +141,12 @@ function basewars.items.spawn(id, ply, pos, ang, norm)
 	else
 		ent = ext:spawnGenericItem(item, ply, pos, ang, norm)
 	end
-	if not IsValid(ent) then return false, ent or "Error spawning entity <REPORT THIS: '" .. id .. "'>" end
+	if not pcall(IsValid, ent) then
+		local fail = ent and ent .. " (" .. id .. ")" or "Error spawning entity <REPORT THIS: '" .. id .. "'>"
+		ErrorNoHalt("Entity spawn failure: " .. fail .. "\n")
+
+		return false, fail
+	end
 
 	if item.postSpawn then
 		res, err = item:postSpawn(ply, ent)
@@ -151,7 +157,12 @@ function basewars.items.spawn(id, ply, pos, ang, norm)
 			return false, err
 		end
 	end
-	if not IsValid(ent) then return false, "item:postSpawn destroyed entity <REPORT THIS: '" .. id .. "'>>" end
+	if not pcall(IsValid, ent) then
+		local fail = ent and ent .. " (" .. id .. ")" or "item:postSpawn destroyed entity <REPORT THIS: '" .. id .. "'>"
+		ErrorNoHalt("Entity postSpawn failure: " .. fail .. "\n")
+
+		return false, fail
+	end
 
 	ext:postSpawn(item, ply, ent)
 	hook.Run("BW_OnItemSpawned", ply, id, ent)

@@ -4,7 +4,7 @@ SWEP.Base          = "basewars_ck_base"
 SWEP.PrintName     = "MATTER RECONSTRUCTOR"
 
 SWEP.Purpose       = "Missing some matter here and there? Fear no more"
-SWEP.Instructions  = "Hold LMB = Repair Target"
+SWEP.Instructions  = "Hold LMB = Repair Target NOT FINISHED"
 
 SWEP.Slot          = 0
 SWEP.SlotPos       = 4
@@ -22,9 +22,6 @@ SWEP.ShowViewModel = false
 SWEP.ShowWorldModel = false
 SWEP.ViewModelBoneMods = {}
 
-SWEP.DrawAmmo      = false
-SWEP.DrawCrosshair = true
-
 SWEP.Primary.Ammo        = "none"
 SWEP.Primary.ClipSize    = -1
 SWEP.Primary.DefaultClip = -1
@@ -35,12 +32,17 @@ SWEP.Secondary.ClipSize    = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic   = true
 
+SWEP.DrawAmmo      = false
+SWEP.DrawCrosshair = true
+
+SWEP.weaponSelectionLetter = "l"
+
 local ext = basewars.createExtension"matter-reconstructor"
 SWEP.ext  = ext
 
 function ext:repair(res)
 	local ent = res.Entity
-	if not ent or ent.markedAsDestroyed then return false end
+	if not IsValid(ent) or ent.markedAsDestroyed then return false end
 
 	local hp, max = ent:Health(), ent:GetMaxHealth()
 	if hp <= 0 or max <= 0 or hp >= max then return false end
@@ -53,6 +55,22 @@ function ext:repair(res)
 	end
 
 	return true
+end
+
+function ext:upgrade(res)
+	local ent = res.Entity
+	if not IsValid(ent) or ent.markedAsDestroyed then return false end
+
+	if not ent.isUpgradableEntity then return end
+
+	if SERVER then ent:EmitSound("buttons/button4.wav") end
+
+	-- TODO:
+	return true
+end
+
+function ext:PlayerLoadout(ply)
+	ply:Give("basewars_matter_reconstructor")
 end
 
 ext.rtName = "bw_matter_reconstructor_rt"
@@ -107,6 +125,15 @@ if CLIENT then
 		else
 			y = y + drawString(basewars.getEntPrintName(ent), mediumFont, x, y)
 			y = y + drawString(string.format("Health: %d / %d", ent:Health(), ent:GetMaxHealth()), smallFont, x, y)
+
+			if ent.getProductionMultiplier then
+				y = y + 16
+
+				local lvl = ent:getUpgradeLevel()
+				y = y + drawString(string.format("Upgrade %d -> %d", lvl, lvl + 1), smallFont, x, y)
+				y = y + drawString(string.format("Cost: %s", basewars.currency(1337)), xsmallFont, x, y)
+				y = y + drawString(string.format("Production: %d%% -> %d%%", ent:getProductionMultiplier() * 100, ent:getProductionMultiplier(lvl + 1) * 100), xsmallFont, x, y)
+			end
 		end
 	end
 
@@ -204,6 +231,7 @@ end
 
 function SWEP:PrimaryAttack()
 	self:SetNextPrimaryFire(CurTime() + 0.2)
+	self:SetNextSecondaryFire(CurTime() + 0.5)
 	if not self:trace() then return end
 
 	if ext:repair(trace_res) then
@@ -212,7 +240,13 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
+	self:SetNextPrimaryFire(CurTime() + 0.2)
+	self:SetNextSecondaryFire(CurTime() + 0.5)
+	if not self:trace() then return end
 
+	if ext:upgrade(trace_res) then
+		self:DoShootEffect(trace_res.HitPos, trace_res.HitNormal, trace_res.Entity, trace_res.PhysicsBone, IsFirstTimePredicted())
+	end
 end
 
 function SWEP:Reload()

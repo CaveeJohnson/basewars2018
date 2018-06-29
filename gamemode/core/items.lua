@@ -27,30 +27,27 @@ function basewars.items.createItemEx(id, tbl)
 	item_index = item_index + 1
 	id         = id or string.format("item_autogen_%d", item_index)
 
-	tbl.cost   = tbl.cost or 0
+	tbl.cost   = tbl.cost  or 0
+	tbl.class  = tbl.class or id
 
-	if not tbl.class then
-		local sent = scripted_ents.Get(id)
-		local swep = weapons.Get(id)
+	local sent = scripted_ents.Get(tbl.class or id)
+	local swep = weapons.Get(tbl.class or id)
 
-		if sent then
-			local sent_base = scripted_ents.Get(sent.Base)
-			if not sent_base then
-				error(string.format("entity with no baseclass used to init item? '%s', '%s'", id, sent.Base))
-			end
-
-			tbl.name  = tbl.name or sent.PrintName or sent.Name or "MISSING NAME"
-			tbl.class = id
-			tbl.model = tbl.model or sent.Model or sent_base.Model or "models/error.mdl"
-		elseif swep then
-			tbl.name  = tbl.name or swep.PrintName or "MISSING NAME"
-			tbl.class = id
-			tbl.model = tbl.model or swep.WorldModel or "models/error.mdl"
-			tbl.spawn = tbl.spawn or ext.spawnWeaponItem
-			tbl.wep   = true
-		elseif not tbl.spawn then
-			error(string.format("item with no classname and no spawn method registed? '%s'", id))
+	if sent then
+		local sent_base = scripted_ents.Get(sent.Base)
+		if not sent_base then
+			error(string.format("entity with no baseclass used to init item? '%s', '%s'", id, sent.Base))
 		end
+
+		tbl.name  = tbl.name or sent.PrintName or sent.Name or "MISSING NAME"
+		tbl.model = tbl.model or sent.Model or sent_base.Model or "models/error.mdl"
+	elseif swep then
+		tbl.name  = tbl.name or swep.PrintName or "MISSING NAME"
+		tbl.model = tbl.model or swep.WorldModel or "models/error.mdl"
+		tbl.spawn = tbl.spawn or ext.spawnWeaponItem
+		tbl.wep   = true
+	elseif not tbl.spawn then
+		error(string.format("item with no classname and no spawn method registed? '%s'", id))
 	end
 
 	setmetatable(tbl, meta)

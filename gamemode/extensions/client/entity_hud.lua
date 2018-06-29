@@ -68,6 +68,8 @@ function ext:drawStructureInfo(ent) -- OPT:
 		draw.text(type, type_font, x + (w / 2) - .5, y + (h / 2), self.typeTextColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 	end
 
+	if not ent.isUpgradableEntity then return end
+
 	local lvw
 	do
 		local lv = "LV " .. basewars.nformat(ent:getUpgradeLevel() or 0)

@@ -43,7 +43,7 @@ do
 
 	function ENT:getStructureInformation()
 		local tp  = self:calcEnergyThroughput()
-		local ntp = self:getNetworkThroughput()
+		local ntp = self:getNetworkThroughput() + tp
 
 		return {
 			{
@@ -57,12 +57,12 @@ do
 				self:getEnergy() < (self:getEnergyCapacity() * 0.025) and red or black
 			},
 			{
-				"Consumption",
+				"Upkeep",
 				basewars.nsigned(tp) .. "/t",
 				(tp == 0 and black) or red
 			},
 			{
-				"Network",
+				"Total",
 				basewars.nsigned(ntp) .. "/t",
 				(ntp == 0 and black) or (ntp < 0 and red) or green
 			},

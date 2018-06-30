@@ -36,13 +36,13 @@ end
 function ext:payout(ent, ply, owner, money)
 	local pay = {}
 
-	-- TODO: Faction share?
-	if IsValid(ply) then
-		table.insert(pay, ply)
-	end
-
 	if owner then
 		table.insert(pay, owner)
+	end
+
+	-- TODO: Faction share?
+	if IsValid(ply) and ply ~= owner then
+		table.insert(pay, ply)
 	end
 
 	local people = #pay
@@ -50,7 +50,7 @@ function ext:payout(ent, ply, owner, money)
 
 	for i = 1, people do
 		basewars.playerAddMoney(pay[i], split,
-			string.format("%s %s",
+			string.format("Sale Of %s %s",
 				basewars.getEntOwnerName(ent, pay[i] == owner):gsub("^(%l)", string.upper),
 				basewars.getEntPrintName(ent)
 			)

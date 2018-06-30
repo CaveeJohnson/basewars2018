@@ -70,10 +70,12 @@ do
 	local max, min = math.max, math.min
 
 	function drawString(str, x, y, col, a1, a2, font)
+		shade.a = math.max(0, col.a - 55)
 		return draw.textOutlined(str, font or main_font, x, y, col, a1, a2, shade)
 	end
 
 	function drawStringLT(str, x, y, col, font)
+		shade.a = math.max(0, col.a - 55)
 		return draw.textOutlinedLT(str, font or main_font, x, y, col, shade)
 	end
 
@@ -178,6 +180,18 @@ timer.Create(ext:getTag(), 1, 0, function()
 	end
 end)
 
+local money_notif_list = {}
+
+function ext:BW_OnMoneyNotification(amt, res)
+	table.insert(money_notif_list, 1, {amt, res, CurTime(), 500})
+
+	local count = #money_notif_list
+	while count > 10 do
+		table.remove(money_notif_list,count)
+		count = count - 1
+	end
+end
+
 function ext:HUDPaint()
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return end
@@ -212,6 +226,39 @@ function ext:HUDPaint()
 			cury = cury - drawString(money_string, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
 			cury = cury - drawString(level_text_final, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
 			cury = cury - drawString(basewars.versionString .. " | not representative of release version", curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM, version_font)
+
+			local count = math.min(#money_notif_list, 10)
+			if count ~= 0 then
+				cury = cury - 4
+
+				surface.SetFont(version_font)
+				-- £9,999.99 qn  --
+				-- WWWWWWWWWWWWW --
+				local money_notif_w = surface.GetTextSize("WWWWWWWWWWWWW")
+
+				local lookup_replacement = {}
+				for i = 1, count do
+					local data = money_notif_list[i]
+					local lifetime = CurTime() - data[3]
+
+					if lifetime > 10 then
+						data[4] = data[4] - 1
+
+						if data[4] > 1 then
+							lookup_replacement[#lookup_replacement + 1] = data
+						end
+					else
+						lookup_replacement[#lookup_replacement + 1] = data
+					end
+
+					local alpha = math.min(data[4], 255)
+
+					drawString(basewars.currency(data[1]), curx, cury, data[1] >= 0 and Color(100, 255, 130, alpha) or Color(255, 130, 100, alpha), TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM, version_font)
+					cury = cury - drawString(" | " .. data[2], curx + money_notif_w, cury, Color(240, 240, 240, alpha), TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM, version_font)
+				end
+
+				money_notif_list = lookup_replacement
+			end
 		else
 			cury = cury - drawString("FATAL ERROR", curx, cury, pure_red, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
 		end

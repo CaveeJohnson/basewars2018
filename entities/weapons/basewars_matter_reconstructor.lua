@@ -63,23 +63,34 @@ end
 
 function ext:upgrade(res, owner)
 	local ent = res.Entity
-	if not IsValid(ent) or ent.markedAsDestroyed then return false end
-
-	if not ent.isUpgradableEntity then return end
-
-	if SERVER then ent:EmitSound("buttons/button4.wav") end
+	if not IsValid(ent) or not ent.isUpgradableEntity or ent.markedAsDestroyed then return false end
 
 	-- TODO: is this fine?
 	local cost = ent:getNextUpgradeCost()
-	if owner:hasMoney(cost) then
+	if owner:hasMoney(cost) and hook.Run("BW_ShouldPlayerUpgradeEntity", owner, ent) ~= false then
 		if SERVER then
-			owner:takeMoney(cost)
+			owner:takeMoneyNotif(cost,
+				string.format("For an Upgrade to %s %s",
+					basewars.getEntOwnerName(ent, owner == ent:CPPIGetOwner()):gsub("^(%l)", string.upper),
+					basewars.getEntPrintName(ent)
+			))
 			ent:addCurrentValue(cost)
 			ent:addUpgradeLevel(1)
+
+			-- TODO: -- HACK:
+			if ent.setPassiveRate then
+				ent:setPassiveRate(ent:getPassiveRate()) -- forces- networked energy recalculation
+			end
+
+			ent:EmitSound("buttons/button4.wav")
 		end
 
 		return true
 	else
+		if SERVER then
+			ent:EmitSound("buttons/button11.wav")
+		end
+
 		return false
 	end
 end
@@ -144,10 +155,24 @@ if CLIENT then
 			if ent.getProductionMultiplier then
 				y = y + 16
 
+				local cost = ent:getNextUpgradeCost()
 				local lvl = ent:getUpgradeLevel()
 				y = y + drawString(string.format("Upgrade %d -> %d", lvl, lvl + 1), smallFont, x, y)
-				y = y + drawString(string.format("Cost: %s", basewars.currency(ent:getNextUpgradeCost())), xsmallFont, x, y)
+				y = y + drawString(string.format("Cost: %s", basewars.currency(cost)), xsmallFont, x, y)
 				y = y + drawString(string.format("Production: %d%% -> %d%%", ent:getProductionMultiplier() * 100, ent:getProductionMultiplier(lvl + 1) * 100), xsmallFont, x, y)
+
+				local owner = self:GetOwner()
+				local err = not owner:hasMoney(cost) and "Not enough money!"
+				local ok, ret = hook.Run("BW_ShouldPlayerUpgradeEntity", owner, ent)
+				if ok == false then
+					err = err or ret or "Unknown error!"
+				end
+
+				local col = err and Color(200, 0, 0) or Color(0, 200, 0)
+				err = err or "Upgrade OK!"
+
+				y = h - 2
+				y = y - drawString(err, xsmallFont, x, y, col, nil, TEXT_ALIGN_BOTTOM)
 			end
 		end
 	end

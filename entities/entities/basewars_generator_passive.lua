@@ -10,8 +10,6 @@ ENT.Model = "models/props_lab/powerbox01a.mdl"
 ENT.BaseHealth = 250
 ENT.BasePassiveRate = 10
 
-ENT.multEnergyTP = true
-
 do
 	local black = Color(0, 0, 0)
 	local red = Color(100, 20, 20)

@@ -77,7 +77,7 @@ function ENT:Use(act, caller, type, value)
 
 	--caller:ChatPrint(string.format("You recieved £%s from the placeholder.", basewars.nformat(money)))
 
-	caller:addMoneyNotif(money, "Printer")
+	caller:addMoneyNotif(money, "From a Printer")
 	self:setStoredMoney(0)
 
 	basewars.moneyPopout(self, money)

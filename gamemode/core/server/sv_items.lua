@@ -108,7 +108,10 @@ function ext:postSpawn(item, ply, ent)
 	ent:SetNW2Int("bw_boughtAt", CurTime())
 
 	if item.cost > 0 then
-		ply:takeMoney(item.cost)
+		ply:takeMoneyNotif(item.cost,
+			string.format("For Purchasing a(n) %s",
+				item.name
+		))
 	end
 end
 

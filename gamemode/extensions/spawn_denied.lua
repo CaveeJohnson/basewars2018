@@ -15,6 +15,7 @@ ext.alpha = 0
 ext.sound = Sound("ambient/alarms/klaxon1.wav")
 
 net.Receive(ext:getTag(), function()
+	local ply = LocalPlayer()
 	local pos = ply:GetPos()
 
 	util.ScreenShake(pos, 2, 10, 1, 5000)

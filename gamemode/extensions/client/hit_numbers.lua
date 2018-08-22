@@ -56,6 +56,9 @@ ext.dist_sqr = 512 * 512
 function ext:SharedEntityTakeDamage(ent, dmginfo)
 	if LocalPlayer():GetPos():DistToSqr(ent:GetPos()) > self.dist_sqr then return end
 
+	local dmg = dmginfo:GetDamage()
+	if dmg == 0 then return end
+
 	local col = mixColor(self.default_color)
 	local types = {}
 
@@ -66,7 +69,6 @@ function ext:SharedEntityTakeDamage(ent, dmginfo)
 		end
 	end
 
-	local dmg = dmginfo:GetDamage()
 	local crit = dmg >= 100
 	col = crit and mixColor(self.crit_color) or col
 

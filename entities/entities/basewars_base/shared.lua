@@ -18,6 +18,8 @@ ENT.criticalDamagePercent = 0.09
 
 do
 	local clamp = math.ClampRev
+	local nmax = math.max
+	local nmin = math.min
 
 	local net_tag = "bw-dtv_transmit"
 	if SERVER then
@@ -96,7 +98,7 @@ do
 	end
 
 	-- OPT:
-	function ENT:makeGSAT(type, name, max, min)
+	function ENT:makeGSAT(type, name, min, max)
 		local numberString = type == "Double"
 
 		local getVar = function(minMax)
@@ -157,13 +159,26 @@ do
 			elseif min then
 				self["add" .. name] = function(ent, var)
 					local val = ent[getName](ent) + var
-					val = max(val, getVar(min))
+					val = nmax(val, getVar(min))
 
 					ent[setName](ent, val)
 				end
 				self["take" .. name] = function(ent, var)
 					local val = ent[getName](ent) - var
-					val = max(val, getVar(min))
+					val = nmax(val, getVar(min))
+
+					ent[setName](ent, val)
+				end
+			elseif max then
+				self["add" .. name] = function(ent, var)
+					local val = ent[getName](ent) + var
+					val = nmin(val, getVar(max))
+
+					ent[setName](ent, val)
+				end
+				self["take" .. name] = function(ent, var)
+					local val = ent[getName](ent) - var
+					val = nmin(val, getVar(max))
 
 					ent[setName](ent, val)
 				end
@@ -196,7 +211,7 @@ do
 		end
 	end
 
-	function ENT:netVar(type, name, max, min)
+	function ENT:netVar(type, name, min, max)
 		self.__dataTableCount = self.__dataTableCount or {}
 
 		local index
@@ -215,7 +230,7 @@ do
 		end
 
 		self:NetworkVar(indexType, index, name)
-		self:makeGSAT(type, name, max, min)
+		self:makeGSAT(type, name, min, max)
 	end
 
 	function ENT:netVarCallback(name, func)

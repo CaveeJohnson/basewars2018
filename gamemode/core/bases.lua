@@ -593,14 +593,14 @@ end
 
 -- TODO: toggle / remove
 local col = Color(200, 150, 50, 255)
-function ext:PostDrawTranslucentRenderables(depth, sky)
-	if sky then return end
+function ext:PreDrawOpaqueRenderables(depth, sky)
+	if depth or sky then return end
 
 	local base = basewars.bases.getForPos(LocalPlayer():GetPos())
 	if not (base and base.can_base) then return end
 
-	local alpha = 127.5 + (math.sin(CurTime()) * 127.5)
-	col.a = math.max(0, alpha - 100)
+	local alpha = math.sin(CurTime() * 0.9) * 100
+	col.a = math.max(0, alpha)
 
 	render.DrawWireframeBox(Vector(), Angle(), base.mins, base.maxs, col, false)
 end

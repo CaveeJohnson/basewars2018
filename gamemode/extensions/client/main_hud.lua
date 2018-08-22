@@ -316,6 +316,8 @@ function ext:HUDPaint()
 		if encompassing_base then
 			cury = cury + drawString("In area", curx, cury, off_white_t, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
 			cury = cury + drawString(encompassing_base.name, curx, cury, encompassing_base.can_base and dull_green_t or off_white_t2, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
+
+			cury = cury + off
 		end
 
 		if encompassing_core then

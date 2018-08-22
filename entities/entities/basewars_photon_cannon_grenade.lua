@@ -11,7 +11,7 @@ ENT.modelScale = 0.3
 ENT.material   = "models/props_combine/portalball001_sheet"
 
 ENT.damage          = 0
-ENT.damageRadius    = 512
+ENT.damageRadius    = 100
 ENT.damageRadiusSqr = ENT.damageRadius ^ 2
 ENT.damageKnockback = 0
 

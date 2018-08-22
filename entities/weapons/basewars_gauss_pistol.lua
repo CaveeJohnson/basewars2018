@@ -49,8 +49,6 @@ SWEP.ShowViewModel = true
 SWEP.ShowWorldModel = true
 SWEP.ViewModelBoneMods = {}
 
-SWEP.DrawAmmo = false
-
 sound.Add({
 	channel = CHAN_WEAPON,
 	name    = "bw.gauss_pistol.shoot1",

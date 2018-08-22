@@ -32,7 +32,7 @@ ENT.coreControlOperations = {
 local ext = basewars.createExtension"cloner"
 
 function ext:PostPlayerDeath(ply)
-	local cloner = ply:GetNW2Entity("cloner")
+	local cloner = ply:GetNW2Entity("bw_cloner")
 
 	if IsValid(cloner) and cloner:startHandlingRespawn(ply) then
 		ply.NextSpawnTime = CurTime() + 10 * 60 -- not inf incase of error = never respawn
@@ -109,7 +109,7 @@ function ENT:setPlayerToSpawnPos(ply)
 end
 
 function ENT:setupPlayerForRespawning(ply)
-	ply:SetNW2Entity("cloner", self)
+	ply:SetNW2Entity("bw_cloner", self)
 end
 
 function ENT:startHandlingRespawn(ply)

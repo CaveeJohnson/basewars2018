@@ -8,8 +8,18 @@ function ext:BW_DoScanEffect(core) -- doesn't actually get called yet
 	self.target = core
 
 	local a, c = {}, 0
-	for _, v in ipairs(ents.GetAll()) do
-		if core:encompassesEntity(v) and v.isBasewarsEntity and v.getCurrentValue and v:getCurrentValue() > 0 then
+
+	local encompassed, encompassed_count = core:getAreaEnts()
+	if encompassed_count == 0 then
+		core:requestAreaTransmit() -- maybe next time?
+
+		return
+	end
+
+	for i = 1, encompassed_count do
+		local v = encompassed[i]
+
+		if v.isBasewarsEntity and v.getCurrentValue and v:getCurrentValue() > 0 then
 			c = c + 1
 			a[c] = {basewars.getEntPrintName(v), v:getCurrentValue(), v}
 		end
@@ -22,7 +32,7 @@ function ext:BW_DoScanEffect(core) -- doesn't actually get called yet
 	local core_pos = core:GetPos()
 	local base = basewars.bases.getForPos(core_pos)
 
-	if not base then self.plysCount = 0 return true end -- aaaaaa
+	if not base then self.plysCount = 0 return end -- aaaaaa
 
 	c = 0
 	for _, v in ipairs(player.GetAll()) do
@@ -32,10 +42,6 @@ function ext:BW_DoScanEffect(core) -- doesn't actually get called yet
 	end
 
 	self.plysCount = c
-
-	-- this actually prevents anything else using it since its for drawing the effects
-	-- to make your own scan effect, remove this file.
-	return true
 end
 
 local font = ext:getTag()

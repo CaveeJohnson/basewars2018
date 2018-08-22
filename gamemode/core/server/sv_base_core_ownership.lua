@@ -16,6 +16,8 @@ function ext:ShouldPlayerSpawnObject(ply, trace)
 		local v = list[i]
 
 		if not (core == v or basewars.sameOwner(v, ply)) and ((pos and v:encompassesPos(pos)) or v:encompassesPos(pos2)) then
+			hook.Run("BW_DenyPlayerSpawnObject", ply)
+
 			return false
 		end
 	end

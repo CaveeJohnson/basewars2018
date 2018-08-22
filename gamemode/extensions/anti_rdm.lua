@@ -9,7 +9,7 @@ ext.nonHostileWeps = {
 	["basewars_hands"               ] = true,
 	["basewars_matter_manipulator"  ] = true,
 	["basewars_matter_reconstructor"] = true,
-}
+} -- TODO: config
 
 function ext:becomeHostile(ply)
 	if IsValid(ply) and ply:IsPlayer() and not ply.bw_isHostile then

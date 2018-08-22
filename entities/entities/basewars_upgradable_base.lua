@@ -20,11 +20,21 @@ local function addUpgradeFunctionality(e)
 		return math.max(500, self:getCurrentValue()) -- 500, 1000, 2000, 4000? seems good --TODO: config
 	end
 
+	function e:onUpgradeCallback(level, last)
+		-- STUB
+	end
+
+	local function upgradeCallback(self, name, old, new)
+		self:onUpgradeCallback(new, old)
+	end
+
 	function e:SetupDataTables()
 		BaseClass.SetupDataTables(self)
 
 		self:netVar("Int", "XP")
 		self:netVar("Int", "UpgradeLevel")
+
+		self:netVarCallback("UpgradeLevel", upgradeCallback)
 	end
 end
 

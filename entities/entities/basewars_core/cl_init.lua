@@ -21,6 +21,7 @@ function ENT.readNetwork()
 			if IsValid(ent) then ent:requestAreaTransmit() end
 		end)
 	else
+		ent.receivedGoodSnapshot = true
 		timer.Remove("request-area-ents-" .. tostring(ent))
 	end
 

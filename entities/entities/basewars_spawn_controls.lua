@@ -255,8 +255,9 @@ ENT.tabs[2] = {"Changelog", function(self, p, x, y, w, h)
 	p:Text("2018/06/30", "!DejaVu Sans@24", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 	p:Text("    * improved upgrades.", "!DejaVu Sans@20", x, y + 24 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 	p:Text("    * added a feed for money transactions.", "!DejaVu Sans@20", x, y + 24 + 20 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+	p:Text("    * fixed breaking props in raids.", "!DejaVu Sans@20", x, y + 24 + 20 + 20 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 
-	y = y + 24 + 20 + 20 + space + 10
+	y = y + 24 + 20 + 20 + 20 + space + 10
 
 end}
 

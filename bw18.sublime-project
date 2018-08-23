@@ -36,6 +36,10 @@
 			"path": "gamemode/items"
 		},
 		{
+			"name": "Resources",
+			"path": "gamemode/resources"
+		},
+		{
 			"name": "Entities",
 			"path": "entities/entities"
 		},

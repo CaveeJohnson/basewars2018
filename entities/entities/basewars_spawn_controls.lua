@@ -278,7 +278,11 @@ ENT.tabs[3] = {"Rules", function(self, p, x, y, w, h)
 	p:Text("      no AC unit, manual detections are permanent bans.", "!DejaVu Sans@20", x, y + 24 + space, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 end}
 
+local draw_sqr = 1024*1024
+
 function ENT:Draw()
+	if self:GetPos():DistToSqr(LocalPlayer():GetPos()) > draw_sqr then return end
+
 	local w, h = self.screenW, self.screenH
 	local p = self.gui
 

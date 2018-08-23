@@ -180,6 +180,16 @@ timer.Create(ext:getTag(), 1, 0, function()
 	end
 end)
 
+do
+	local arrow_green = Color(0, 255, 0)
+
+	function ext:BW_GetHUDArrowPos()
+		if IsValid(core) and encompassing_core ~= core then
+			return core:GetPos(), arrow_green
+		end
+	end
+end
+
 local money_notif_list = {}
 
 function ext:BW_OnMoneyNotification(amt, res)

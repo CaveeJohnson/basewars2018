@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"core.base-core-ownership-server"
+local ext = basewars.appendExtension"core.base-core-ownership"
 basewars.basecore = basewars.basecore or {}
 
 function basewars.basecore.assign(ply, core)

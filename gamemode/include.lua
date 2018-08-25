@@ -23,6 +23,7 @@ local function loadCS(file)
 end
 
 includeCS("shared.lua")
+if SERVER then include("sv_requirements.lua") end
 
 GM.luaFolder      = GM.Folder:sub(11, -1) .. "/"
 GM.gmFolder       = GM.luaFolder .. "gamemode/"
@@ -86,12 +87,12 @@ function basewars.loadExtFolder(dirName)
 	local dir = gm.gmFolder .. dirName
 	basewars.logf("loading extensions directory '%s'", dirName)
 
+	basewars.logf("    loaded %d shared files", recurseDirs(dir, includeCS, true))
+
 	if SERVER then
 		basewars.logf("    loaded %d server files", recurseDirs(dir .. "server/", include))
 	end
-
 	basewars.logf("    loaded %d client files", recurseDirs(dir .. "client/", loadCS))
-	basewars.logf("    loaded %d shared files", recurseDirs(dir, includeCS, true))
 end
 
 do

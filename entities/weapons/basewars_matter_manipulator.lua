@@ -9,13 +9,8 @@ SWEP.Purpose       = "Equipped with a massenergy &lt;-&gt; money conversion matr
 
 local reload       = SERVER and "R" or input.LookupBinding("reload"):upper()
 local use          = SERVER and "E" or input.LookupBinding("use"):upper()
-local speed        = SERVER and "E" or input.LookupBinding("speed"):upper()
-SWEP.Instructions  = ([=[
-  <color=192,192,192>LMB</color>\t[1] Create\t[2] Destroy
-  <color=192,192,192>RMB</color>\t[1] UNUSED\t[2] UNUSED
-  <color=192,192,192>]=] .. use    .. [=[</color>\t[1] Rotate\t[2] UNUSED
-  <color=192,192,192>]=] .. reload .. [=[</color>\tChange between [1] and [2]
-  <color=192,192,192>]=] .. speed  .. [=[</color>\tSnap to angle]=]):gsub("\\t", "\t")
+local speed        = SERVER and "SHIFT" or input.LookupBinding("speed"):upper()
+--SWEP.Instructions  = "remake in progress, press r to toggle mode"
 
 SWEP.Slot          = 0
 SWEP.SlotPos       = 3
@@ -48,8 +43,67 @@ SWEP.reloadSound   = Sound("weapons/ar2/ar2_empty.wav")
 SWEP.failSound     = Sound("buttons/button8.wav")
 SWEP.shootSound    = "weapons/airboat/airboat_gun_energy%d.wav"
 
-local ext = basewars.createExtension"matter-manipulator"
+local ext = basewars.createExtension"core.matter-manipulator"
 SWEP.ext  = ext
+basewars.matter_manipulator = basewars.matter_manipulator or {}
+
+do
+	local shade     = Color(20 , 20 , 20 , 200)
+	local off_white = Color(240, 240, 240, 255)
+
+	local reload = SERVER and "R"     or input.LookupBinding("reload"):upper()
+	local use    = SERVER and "E"     or input.LookupBinding("use"   ):upper()
+	local speed  = SERVER and "SHIFT" or input.LookupBinding("speed" ):upper()
+
+	local reverse = {
+		E = use,
+		SHIFT = speed,
+		["SHIFT+E"] = speed .. " + " .. use,
+	}
+
+	function ext:BW_BuildModeHUD(x, y, mm, fonts)
+		if not mm then return end
+		y = y - 10
+
+		self.mode      = self.mode or 1
+		self.modeAlpha = math.max((self.modeAlpha or 80) * 0.98, 80)
+		off_white.a    = self.modeAlpha
+		shade.a        = self.modeAlpha - 55
+
+		local mode = self.modes[self.mode]
+		if not mode then return end
+
+		y = y - draw.textOutlined(string.format("[%s] Change Mode", reload), fonts.font_smaller, x, y, off_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, shade)
+		for key, info in pairs(mode.instructions) do
+			key = key:upper()
+			y = y - draw.textOutlined(string.format("[%s] %s", reverse[key] or key, info), fonts.font_smaller, x, y, off_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, shade)
+		end
+
+		y = y - draw.textOutlined(string.format("MODE %02d: %s", self.mode, mode.name), fonts.font_main, x, y, off_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, shade)
+	end
+end
+
+function basewars.matter_manipulator.loadModes()
+	ext.modes = {}
+		hook.Run("BW_MatterManipulatorLoadModes", ext.modes)
+	ext.mode_count = #ext.modes
+end
+
+function basewars.matter_manipulator.getModeList()
+	return ext.modes, ext.mode_count
+end
+
+function SWEP:callForMode(event, ...)
+	local mode = ext.modes[self:GetFireMode()]
+
+	if mode[event] then
+		return mode[event](self, ...)
+	end
+end
+
+function SWEP:getModeColor()
+	return ext.modes[self:GetFireMode()].color
+end
 
 function ext:PlayerLoadout(ply)
 	ply:Give("basewars_matter_manipulator")
@@ -58,85 +112,46 @@ end
 ext.rtName = "bw_matter_manipulator_rt"
 ext.rtMatName = "!" .. ext.rtName .. "_mat"
 
-function ext:getAngles(ply)
-	local yaw = tonumber(ply:GetInfoNum("bw_mm_creation_yaw", 0)) or 0
-	local snap = tonumber(ply:GetInfoNum("gm_snapangles", 0)) or 0
-	if ply:KeyDown(IN_SPEED) then yaw = math.Round(yaw / snap) * snap end
+SWEP.VElements = {
+	["dials_light"]  = { type = "Sprite", sprite = "sprites/light_glow02", bone = "Base", rel = "dials", pos = Vector(0.699, 0.699, 0), size = { x = 1, y = 1 }, color = Color(255, 0, 0, 255), nocull = true, additive = true, vertexalpha = true, vertexcolor = true, ignorez = false},
+	["dials"]        = { type = "Model", model = "models/props_lab/reciever01a.mdl", bone = "Base", rel = "", pos = Vector(-0.201, 1.2, 6), angle = Angle(-1.17, 1.169, 90), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
+	["energy_cell1"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "Base", rel = "", pos = Vector(-0.101, -1.558, 1), angle = Angle(73.636, -26.883, 0), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
+	["energy_cell2"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "Base", rel = "", pos = Vector(0, -1.558, -0.519), angle = Angle(73.636, -26.883, 0), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
+	["energy_cell3"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "Base", rel = "", pos = Vector(0.09, -1.558, -1.759), angle = Angle(73.636, -26.883, 0), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
+	["screen"]       = { type = "Model", model = "models/props_phx/rt_screen.mdl", bone = "Base", rel = "", pos = Vector(2.7, 2.2, 7.792), angle = Angle(-90, 90, 0), size = Vector(0.08, 0.08, 0.08), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {}, submaterial = { [1] = ext.rtMatName } },
+}
 
-	local ang = Angle() --res.HitNormal:Angle()
-		ang.y = ang.y + yaw
-	ang:Normalize()
-
-	return ang
-end
-
-function ext:buyItem(ply, res)
-	local id = ply:GetInfo("bw_mm_creation_item", "error") or "error"
-	if id == "error" then return false end
-
-	return basewars.items.spawn(id, ply, res.HitPos, self:getAngles(ply), res.HitNormal)
-end
+SWEP.WElements = {
+	["energy_cell1"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "ValveBiped.Bip01_R_Hand", rel = "", pos = Vector(5.791, 0.418, -7.393), angle = Angle(180, 0, -40.91), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
+	["energy_cell2"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "ValveBiped.Bip01_R_Hand", rel = "", pos = Vector(3.635, 0.319, -6.954), angle = Angle(180, 0, -40.91), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
+	["energy_cell3"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "ValveBiped.Bip01_R_Hand", rel = "", pos = Vector(7.791, 0.518, -7.792), angle = Angle(180, 0, -40.91), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
+	["screen"]       = { type = "Model", model = "models/props_phx/rt_screen.mdl", bone = "ValveBiped.Bip01_R_Hand", rel = "", pos = Vector(6.752, 1.557, -4.301), angle = Angle(180, 0, 0), size = Vector(0.05, 0.05, 0.05), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
+}
 
 if CLIENT then
-	ext.creationItemCVar = CreateClientConVar("bw_mm_creation_item", "error", true, true, "The unique identifier for the selected item you are creating.")
-	ext.yawCVar          = CreateClientConVar("bw_mm_creation_yaw", "0", true, true, "The yaw offset of the entity.")
-	ext.snapCVar         = GetConVar("gm_snapangles")
+	local crosshairMat = surface.GetTextureID("sprites/hud/v_crosshair2")
 
-	function SWEP:FreezeMovement()
-		if not self:GetFireMode() and ext.creationItem and self:GetOwner():KeyDown(IN_USE) then
-			return true
-		elseif self.clampYawNext then
-			local cur = ext.yawCVar:GetFloat()
-			local snap = ext.snapCVar:GetFloat()
-			cur = math.Round(cur / snap) * snap
+	function SWEP:DoDrawCrosshair(x, y)
+		surface.SetTexture(crosshairMat)
+		surface.SetDrawColor(self:getModeColor())
 
-			RunConsoleCommand("bw_mm_creation_yaw", cur)
-			self.clampYawNext = nil
-		end
+		surface.DrawTexturedRectRotated(x, y, 32, 32, 90)
+		surface.DrawTexturedRectRotated(x, y, 32, 32, 0)
+
+		return true
 	end
 
-	function SWEP:Think()
-		local owner = self:GetOwner()
-		if not self:GetFireMode() and ext.creationItem and owner:KeyDown(IN_USE) then
-			local cmd = self:GetOwner():GetCurrentCommand()
-			local deg = cmd:GetMouseX() * 0.02
-
-			if math.abs(deg) > 0.001 then
-				local cur = ext.yawCVar:GetFloat()
-				cur = cur + deg
-
-				RunConsoleCommand("bw_mm_creation_yaw", cur)
-				if owner:KeyDown(IN_SPEED) then
-					self.clampYawNext = true
-				else
-					self.clampYawNext = nil
-				end
-			end
-		end
-
-		return BaseClass.Think(self)
+	function SWEP:getElementColor(name)
+		if name == "dials_light" then return self:getModeColor() end
 	end
 
-	function ext:PostItemsLoaded()
-		local id = self.creationItemCVar:GetString()
-
-		self.creationItemId   = id
-		self.creationItem     = basewars.items.get(id)
+	function SWEP:updateGhostEntity(res)
+		self.csEnt:SetNoDraw(true)
+		self:callForMode("updateGhostEntity", res)
 	end
 
-	function ext:setCreationItem(id, dontSwap)
-		if not dontSwap then
-			local wep = LocalPlayer():GetWeapon("basewars_matter_manipulator")
-
-			if IsValid(wep) then
-				input.SelectWeapon(wep)
-			end
-		end
-
-		self.creationItemId = id
-		self.creationItem = basewars.items.get(id)
-
-		RunConsoleCommand("bw_mm_creation_item", id)
+	function SWEP:cleanupGhostEntity()
+		if IsValid(self.csEnt) then self.csEnt:Remove() end
 	end
 
 	function SWEP:createGhostEntity()
@@ -153,82 +168,10 @@ if CLIENT then
 		self.csEnt:Spawn()
 	end
 
-	function SWEP:cleanupGhostEntity()
-		if IsValid(self.csEnt) then self.csEnt:Remove() end
-	end
-
 	function SWEP:Holster()
 		self:cleanupGhostEntity()
 
 		return BaseClass.Holster(self)
-	end
-
-	local function DropToFloor(ent)
-		local obb_mins   = ent:OBBMins()
-		local obb_maxs   = ent:OBBMaxs()
-
-		local res = util.TraceHull{
-			start  = ent:GetPos(),
-			endpos = ent:GetPos() - Vector(0, 0, 256),
-			filter = ent,
-			mins   = obb_mins,
-			maxs   = obb_maxs,
-		}
-
-		if res.Hit and res.HitTexture ~= "**empty**" then -- .hit is always true :v
-			ent:SetPos(res.HitPos)
-
-			return res.HitPos
-		end
-	end
-
-	local white = Color(255, 255, 255)
-	local red   = Color(255, 0  , 0  )
-
-	function SWEP:updateGhostEntity(res, item)
-		if self:GetFireMode() or not res then
-			self.csEnt:SetNoDraw(true)
-			return
-		end
-
-		if item then
-			self.csEnt:SetNoDraw(false)
-			self.csEnt:SetModel(item.model or "models/error.mdl")
-
-			local dot_maxs = res.HitNormal:Dot(self.csEnt:OBBMaxs())
-			local dot_mins = res.HitNormal:Dot(self.csEnt:OBBMins())
-			local off = math.max(dot_maxs, dot_mins) * res.HitNormal
-
-			local pos = res.HitPos + off
-			self.csEnt:SetPos(pos)
-
-			pos = DropToFloor(self.csEnt) or pos
-			self.ghostPos = pos
-
-			local owner = self:GetOwner()
-			local ang = ext:getAngles(owner)
-			self.csEnt:SetAngles(ang)
-			self.ghostAngs = ang
-
-			local col = item.color or white
-			if not basewars.items.canSpawn(item.item_id, owner, pos, ang) then
-				col = red
-			end
-
-			self.csEnt:SetColor(Color(col.r, col.g, col.b, 150))
-		else
-			self.csEnt:SetNoDraw(true)
-		end
-	end
-
-	cvars.AddChangeCallback("bw_mm_creation_item", function(_, old, new)
-		if ext.creationItemId == new then return end
-
-		ext:setCreationItem(new, true)
-	end, ext:getTag())
-
-	function ext:BW_SelectedEntityForPurchase(id)
-		self:setCreationItem(id, false)
 	end
 
 	local rtTex = GetRenderTargetEx(ext.rtName, 1024, 576, RT_SIZE_DEFAULT, MATERIAL_RT_DEPTH_NONE, 2, 0, IMAGE_FORMAT_RGBA8888)
@@ -241,6 +184,13 @@ if CLIENT then
 	local mediumFont = ext:getTag() .. "_med"
 	local smallFont  = ext:getTag() .. "_small"
 	local xsmallFont = ext:getTag() .. "_xsmall"
+
+	ext.fonts = {
+		largeFont = largeFont,
+		mediumFont = mediumFont,
+		smallFont = smallFont,
+		xsmallFont = xsmallFont,
+	}
 
 	surface.CreateFont(largeFont, {
 		font = "DejaVu Sans",
@@ -264,111 +214,20 @@ if CLIENT then
 		size = 52,
 	})
 
-	local function drawString(str, font, x, y, col, a, b)
-		return draw.text(str, font, x, y, col, a, b)
-	end
-
-	function SWEP:renderCreate(trace, item, w, h)
-		local x, y = 2, 2
-
-		if not item then
-			y = y + drawString("No item selected", largeFont, x, y)
-			y = y + drawString("HOLD " .. input.LookupBinding("+menu"):upper() .. " AND SELECT AN ITEM", smallFont, x, y)
-			y = y + drawString("FROM THE BASEWARS CATEGORY", xsmallFont, x, y)
-
-			y = h - 2
-
-			y = y - drawString("Reload to toggle mode!", smallFont, x, y, nil, nil, TEXT_ALIGN_BOTTOM)
-		else
-			self.icon:PaintManual()
-
-			y = y + drawString(item.name, mediumFont, x, y)
-			y = y + drawString(item.cost > 0 and string.format("Cost: %s", basewars.currency(item.cost)) or "Cost: FREE", smallFont, x, y)
-
-			y = h - 2
-
-			local res, err = basewars.items.canSpawn(item.item_id, self:GetOwner(), self.ghostPos, self.ghostAngs)
-			err = err or "Spawn OK!"
-
-			local col = res and Color(0, 200, 0) or Color(200, 0, 0)
-			y = y - drawString(err, xsmallFont, x, y, col, nil, TEXT_ALIGN_BOTTOM)
-		end
-	end
-
-	function SWEP:renderDestroy(trace, item, w, h)
-		local x, y = 2, 2
-
-		local ent = trace and trace.Entity or nil
-		if not IsValid(ent) then
-			y = y + drawString("Deconstructor", largeFont, x, y)
-			y = y + drawString("AIM AT AN ENTITY TO SEE MORE", smallFont, x, y)
-			y = y + drawString("INFORMATION AND DESTROY IT", xsmallFont, x, y)
-
-			y = h - 2
-
-			y = y - drawString("Reload to toggle mode!", smallFont, x, y, nil, nil, TEXT_ALIGN_BOTTOM)
-		else
-			local value    = basewars.items.getSaleValue(ent, self:GetOwner(), false)
-			local res, err = basewars.items.canSell(ent, self:GetOwner())
-
-			if value or res or ent.isBasewarsEntity then
-				value = value or 0
-
-				y = y + drawString(basewars.getEntPrintName(ent), mediumFont, x, y)
-				y = y + drawString(value > 0 and string.format("Return: %s", basewars.currency(value)) or "Return: NONE", smallFont, x, y)
-
-				y = h - 2
-
-				err = res and "Deconstruction OK!" or err or "Access denied!"
-				local col = res and Color(0, 200, 0) or Color(200, 0, 0)
-				y = y - drawString(err, xsmallFont, x, y, col, nil, TEXT_ALIGN_BOTTOM)
-
-				local spawned_time = CurTime() - ent:GetNW2Int("bw_boughtAt", 0)
-				res = spawned_time < 10 -- TODO: config, see items.lua
-
-				if res then
-					y = y - drawString(string.format("Refundable for %.1f more seconds.", 10 - spawned_time), xsmallFont, x, y, Color(200, 240, 200), nil, TEXT_ALIGN_BOTTOM)
-				end
-			else
-				y = y + drawString("Deconstructor", largeFont, x, y)
-				y = y + drawString("AIM AT AN ENTITY TO SEE MORE", smallFont, x, y)
-				y = y + drawString("INFORMATION AND DESTROY IT", xsmallFont, x, y)
-
-				y = h - 2
-
-				y = y - drawString("Reload to toggle mode!", smallFont, x, y, nil, nil, TEXT_ALIGN_BOTTOM)
-			end
-		end
-	end
-
 	function SWEP:RenderScreen()
 		local trace = self:trace()
-		local item = ext.creationItem
 
 		self:createGhostEntity()
-		self:updateGhostEntity(trace, item)
+		self:updateGhostEntity(trace)
 
 		local w, h = 1024, 576
-
-		local item_model =  item and item.model or "models/error.mdl"
-		if item and self.lastModelUpdate ~= item_model then
-			if not self.icon then
-				self.icon = vgui.Create("SpawnIcon")
-			end
-				self.icon:SetSize(h / 2, h / 2)
-				self.icon:SetPos (w - h / 2 - 2, h / 4)
-				self.icon:SetPaintedManually(true)
-				self.icon:SetModel(item_model)
-				self.icon:SetMouseInputEnabled(false)
-			self.lastModelUpdate = item_model
-		end
 
 		render.PushRenderTarget(rtTex)
 			render.ClearDepth()
 			render.Clear(50, 50, 50, 255)
 
 			cam.Start2D()
-				if self:GetFireMode() then self:renderDestroy(trace, item, w, h) else self:renderCreate(trace, item, w, h) end
+				self:callForMode("renderScreen", ext.fonts, trace, w, h)
 			cam.End2D()
 
 		render.PopRenderTarget()
@@ -377,45 +236,32 @@ if CLIENT then
 		ext.rtMat:SetTexture("$basetexture", rtTex)
 	end
 
-	local col  = Color(200, 200, 200, 255)
-	local col2 = Color(255, 100, 100, 255)
-	local crosshairMat = surface.GetTextureID("sprites/hud/v_crosshair2")
-
-	function SWEP:DoDrawCrosshair(x, y)
-		local fire_mode = self:GetFireMode()
-
-		surface.SetTexture(crosshairMat)
-		surface.SetDrawColor(fire_mode and col2 or col)
-
-		surface.DrawTexturedRectRotated(x, y, 32, 32, 90)
-		surface.DrawTexturedRectRotated(x, y, 32, 32, 0)
-
-		return true
+	function SWEP:FreezeMovement()
+		return self:callForMode("freezeMovement")
 	end
 
-	function SWEP:getElementColor(name)
-		if name == "dials_light" then return self:GetFireMode() and col2 or col end
+	function SWEP:Think()
+		self:callForMode("think", self:GetOwner())
+		return BaseClass.Think(self)
+	end
+
+	function SWEP:onModeChange(new)
+		ext.mode = tonumber(new) -- shit game
+		ext.modeAlpha = 1000
+
+		-- TODO: instructions
 	end
 end
 
-SWEP.VElements = {
-	["dials_light"]  = { type = "Sprite", sprite = "sprites/light_glow02", bone = "Base", rel = "dials", pos = Vector(0.699, 0.699, 0), size = { x = 1, y = 1 }, color = Color(255, 0, 0, 255), nocull = true, additive = true, vertexalpha = true, vertexcolor = true, ignorez = false},
-	["dials"]        = { type = "Model", model = "models/props_lab/reciever01a.mdl", bone = "Base", rel = "", pos = Vector(-0.201, 1.2, 6), angle = Angle(-1.17, 1.169, 90), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
-	["energy_cell1"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "Base", rel = "", pos = Vector(-0.101, -1.558, 1), angle = Angle(73.636, -26.883, 0), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
-	["energy_cell2"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "Base", rel = "", pos = Vector(0, -1.558, -0.519), angle = Angle(73.636, -26.883, 0), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
-	["energy_cell3"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "Base", rel = "", pos = Vector(0.09, -1.558, -1.759), angle = Angle(73.636, -26.883, 0), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
-	["screen"]       = { type = "Model", model = "models/props_phx/rt_screen.mdl", bone = "Base", rel = "", pos = Vector(2.7, 2.2, 7.792), angle = Angle(-90, 90, 0), size = Vector(0.08, 0.08, 0.08), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {}, submaterial = { [1] = ext.rtMatName } },
-}
-
-SWEP.WElements = {
-	["energy_cell1"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "ValveBiped.Bip01_R_Hand", rel = "", pos = Vector(5.791, 0.418, -7.393), angle = Angle(180, 0, -40.91), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
-	["energy_cell2"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "ValveBiped.Bip01_R_Hand", rel = "", pos = Vector(3.635, 0.319, -6.954), angle = Angle(180, 0, -40.91), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
-	["energy_cell3"] = { type = "Model", model = "models/items/combine_rifle_ammo01.mdl", bone = "ValveBiped.Bip01_R_Hand", rel = "", pos = Vector(7.791, 0.518, -7.792), angle = Angle(180, 0, -40.91), size = Vector(0.107, 0.107, 0.107), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
-	["screen"]       = { type = "Model", model = "models/props_phx/rt_screen.mdl", bone = "ValveBiped.Bip01_R_Hand", rel = "", pos = Vector(6.752, 1.557, -4.301), angle = Angle(180, 0, 0), size = Vector(0.05, 0.05, 0.05), color = Color(255, 255, 255, 255), surpresslightning = false, material = "", skin = 0, bodygroup = {} },
-}
-
 function SWEP:SetupDataTables()
-	self:NetworkVar("Bool", 0, "FireMode")
+	self:NetworkVar("Int", 0, "FireMode")
+end
+
+function SWEP:Initialize()
+	BaseClass.Initialize(self)
+	if CLIENT then return end
+
+	self:SetFireMode(1)
 end
 
 function SWEP:Reload()
@@ -424,11 +270,16 @@ function SWEP:Reload()
 
 	if CLIENT then return end
 
-	if not self:GetFireMode() then
-		self:SetFireMode(true)
+	local count = #ext.modes
+	local cur_mode = self:GetFireMode()
+
+	if cur_mode >= count then
+		self:SetFireMode(1)
 	else
-		self:SetFireMode(false)
+		self:SetFireMode(cur_mode + 1)
 	end
+
+	self:CallOnClient("onModeChange", self:GetFireMode())
 end
 
 local trace_res = {}
@@ -476,13 +327,10 @@ end
 
 function SWEP:PrimaryAttack()
 	if not self:trace() then return end
+	-- TODO: alt fire mode?
 
-	local res
-	if self:GetFireMode() then
-		res = self:Attack2(trace_res)
-	else
-		res = self:Attack1(trace_res)
-	end
+	local res = self:callForMode("primaryFire", trace_res)
+
 	if res then
 		self:DoShootEffect(trace_res.HitPos, trace_res.HitNormal, trace_res.Entity, trace_res.PhysicsBone, IsFirstTimePredicted())
 	else
@@ -506,3 +354,5 @@ end
 
 function SWEP:SecondaryAttack()
 end
+
+basewars.matter_manipulator.loadModes()

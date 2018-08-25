@@ -257,7 +257,7 @@ function ENT:ownershipCheck(ent)
 
 	local abs_owner = self:getAbsoluteOwner()
 
-	if isentity(ent) then
+	if IsValid(ent) then
 		if ent:IsPlayer() and abs_owner == ent:SteamID64() then
 			return true
 		elseif ent.getAbsoluteOwner and abs_owner == ent:getAbsoluteOwner() then

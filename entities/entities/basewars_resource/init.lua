@@ -20,6 +20,8 @@ function ENT:Initialize()
 	self:SetSolid(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 
+	self:Activate()
+
 	self:SetColor(res.color)
 end
 
@@ -32,4 +34,10 @@ function ENT:StartTouch(ent)
 
 		self:EmitSound("physics/metal/metal_box_impact_bullet1.wav") -- TODO:
 	end
+end
+
+function ENT:Use(ply)
+	if not (IsValid(ply) and ply:IsPlayer()) then return end
+
+	basewars.resources.pickup(ply, self)
 end

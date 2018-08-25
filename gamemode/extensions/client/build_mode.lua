@@ -7,6 +7,18 @@ surface.CreateFont(font_main, {
 	size = 22,
 })
 
+local font_smaller = ext:getTag() .. "_smaller"
+
+surface.CreateFont(font_smaller, {
+	font = "DejaVu Sans Bold",
+	size = 18,
+})
+
+ext.fonts = {
+	font_smaller = font_smaller,
+	font_main = font_main,
+}
+
 ext:addEntityTracker("prop", "wantProp")
 ext:addEntityTracker("ent" , "wantEntity")
 
@@ -33,7 +45,6 @@ local off_white = Color(240, 240, 240, 255)
 local drawString
 do
 	local shade = Color(20, 20, 20, 200)
-	--local max, min = math.max, math.min
 
 	function drawString(str, x, y, col, a1, a2)
 		return draw.textOutlined(str, font_main, x, y, col, a1, a2, shade)
@@ -42,11 +53,15 @@ end
 
 function ext:HUDPaint()
 	local ply = LocalPlayer()
-	if not (self:isBuilding(ply) or self:mmBuilding(ply)) then return end
+	local isMM = self:mmBuilding(ply)
+	if not (self:isBuilding(ply) or isMM) then return end
 
 	local scrW, scrH = ScrW(), ScrH()
 
-	drawString("BUILD MODE", scrW / 2, scrH - 50, off_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+	local x, y = scrW / 2, scrH - 50
+	y = y - drawString("BUILD MODE", x, y, off_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+
+	hook.Run("BW_BuildModeHUD", x, y, isMM, self.fonts)
 end
 
 function ext:buildingRender(ply)

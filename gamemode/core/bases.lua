@@ -549,6 +549,8 @@ map_locations["rp_eastcoast_v4b"] = {
 }
 
 ext.locations = map_locations[game.GetMap()]
+if not ext.locations then error("base locations for map not found?!") end
+
 ext.ownable = {}
 ext.locationCount = 0
 ext.ownableCount = 0

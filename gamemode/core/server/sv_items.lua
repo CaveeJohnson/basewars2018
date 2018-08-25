@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"core.items-server"
+local ext = basewars.appendExtension"core.items"
 basewars.items = basewars.items or {}
 
 ext.limiter = ext:establishGlobalTable("limiter")

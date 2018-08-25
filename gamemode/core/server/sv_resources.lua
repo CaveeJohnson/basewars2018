@@ -1,4 +1,4 @@
-local ext = basewars.createExtension"core.resources-server" -- unused so far
+local ext = basewars.appendExtension"core.resources" -- unused so far
 basewars.resources = basewars.resources or {}
 
 -- different kind of resource, the ingot models
@@ -16,7 +16,21 @@ function basewars.resources.spawnCache(id, amt, pos, ang)
 		ent:SetResourceID(id) -- TODO:
 		ent:SetResourceAmount(amt)
 	ent:Spawn()
-	ent:Activate()
 
 	return true
+end
+
+function basewars.resources.pickup(ply, ent)
+	if ent:GetClass() ~= "basewars_resource" or ent.hasPickedUp or ent.hasMerged then return end
+
+	if basewars.inventory.add(ply, ext:getInventoryHandle() .. ent:GetResourceID(), ent:GetResourceAmount()) then
+		ply:EmitSound("npc/combine_soldier/gear" .. math.random(1, 6) .. ".wav")
+
+		ent.hasPickedUp = true
+		ent.hasMerged = true
+
+		ent:Remove()
+	else
+		print("denied resource pickup?", ply, ext:getInventoryHandle() .. ent:GetResourceID(), ent:GetResourceAmount())
+	end
 end

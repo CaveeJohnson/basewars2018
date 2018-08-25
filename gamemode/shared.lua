@@ -47,6 +47,13 @@ do
 		return self.__tag
 	end
 
+	function basewars.extBase:getInventoryHandle()
+		if self.__item_tag then return self.__item_tag end
+		self.__item_tag = self.name .. ":"
+
+		return self.__item_tag
+	end
+
 	function basewars.extBase:establishGlobalTable(name)
 		basewars.__global[self.name] = basewars.__global[self.name] or {}
 
@@ -136,6 +143,16 @@ do
 		basewars.__ext[name] = new
 
 		return new
+	end
+
+	function basewars.appendExtension(name)
+		if basewars.__ext[name] then
+			basewars.logf("appending extension '%s'", name)
+		else
+			error(string.format("appending extension without existing extension? '%s'", name))
+		end
+
+		return basewars.__ext[name]
 	end
 
 	-- For those of you wondering, this returns a virtual interface to

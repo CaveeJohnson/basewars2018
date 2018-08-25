@@ -21,7 +21,7 @@ ENT.coreControlOpNameToCode = {
 
 ENT.coreControlOperations = {
 	[1] = {
-		func = function(panel, ent, ply)
+		func = function(ent, ply)
 			ent:setupPlayerForRespawning(ply)
 			return true
 		end,

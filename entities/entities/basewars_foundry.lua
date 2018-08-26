@@ -32,4 +32,6 @@ ENT.BaseActiveRate = -100
 
 ENT.PhysgunDisabled = true
 
+ENT.bw_inventory = {}
+
 easylua.EndEntity()

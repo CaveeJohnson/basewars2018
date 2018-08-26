@@ -14,7 +14,7 @@ end
 
 function basewars.inventory.canModifyStack(ply, ent, id, amt)
 	if CLIENT then ply = LocalPlayer() end
-	if not basewars.inventory.canModify(ply, ent) then return end
+	if not basewars.inventory.canModify(ply, ent) then return false end
 
 	local handler, data = id:match("^(.-):(.+)$")
 	if not handler then return false end
@@ -22,9 +22,10 @@ function basewars.inventory.canModifyStack(ply, ent, id, amt)
 	handler = basewars.__ext[handler]
 	if not handler then return false end
 
-	if handler.BW_CanModifyInventoryStack then
-		return handler:BW_CanModifyInventoryStack(ply, ent, id, amt)
-	end
+	if handler.BW_CanModifyInventoryStack and not handler:BW_CanModifyInventoryStack(ply, ent, data, amt) then return false end
+
+	if ent.BW_CanModifyInventoryStack and not ent:BW_CanModifyInventoryStack(ply, handler, data, amt) then return false end
+	if hook.Run("BW_CanModifyInventoryStackPostHandler", ply, ent, handler, data, amt) == false then return false end
 
 	return true
 end

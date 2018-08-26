@@ -34,6 +34,22 @@ do
 		return h
 	end
 
+	function draw.textLT(text, font, x, y, color)
+		setFont(font)
+		local _, h = getTextSize(text)
+
+		setTextPos(ceil(x), ceil(y))
+
+		if color then
+			drawColor(color.r, color.g, color.b, color.a)
+		else
+			drawColor(255, 255, 255, 255)
+		end
+
+		drawText(text)
+		return h
+	end
+
 	local function textInternal(text, font, x, y, color, xalign, yalign, w, h)
 		if xalign == TEXT_ALIGN_CENTER then
 			x = x - w / 2

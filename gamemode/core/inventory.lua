@@ -42,7 +42,7 @@ function basewars.inventory.resolveActions(id)
 	if not (handler and handler.BW_ResolveInventoryActions) then return end
 
 	local actions = handler:BW_ResolveInventoryActions(data)
-	return data, actions
+	return actions
 end
 
 function basewars.inventory.resolveData(id)

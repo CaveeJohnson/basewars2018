@@ -244,14 +244,14 @@ end
 function basewars.inventory.performAction(ply, ent, id, amt, action)
 	if not basewars.inventory.hasAmt(ent, id, amt) then return false end
 
-	local data, actions = basewars.inventory.resolveActions(id)
-	if not data then return false end
+	local actions = basewars.inventory.resolveActions(id)
+	if not actions then return false end
 
 	action = actions[action]
 	if not action then return false end
 
-	if (not action.canPerform or action.canPerform(ply, ent, data, amt)) and action.func(ply, ent, data, amt) then
-		basewars.inventory.add(ent, data, -amt)
+	if (not action.canPerform or action.canPerform(ply, ent, amt)) and action.func(ply, ent, amt) then
+		basewars.inventory.add(ent, id, -amt)
 	end
 
 	return true

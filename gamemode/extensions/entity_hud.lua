@@ -153,6 +153,8 @@ ext.maxDrawDistance = 200 ^ 2
 
 ext.fonts = {}
 
+ext.outlineColor = Color(0, 0, 0, 200)
+
 ext.titleFont = "BW.EntityPanel.Title.Font"
 surface.CreateFont(ext.titleFont, {
 	font = "DejaVu Sans",
@@ -678,7 +680,7 @@ do -- BW.EntityPanel.InfoLabel
 		surface.SetTextPos(0, 0)
 		surface.DrawText(name)
 
-		draw.textOutlinedLT(info, ext.infoFont, tw, 0, self.color, basewars.ui.color.outline)
+		draw.textOutlinedLT(info, ext.infoFont, tw, 0, self.color, ext.outlineColor) -- TODO:
 	end
 
 	vgui.Register("BW.EntityPanel.InfoLabel", PANEL, "EditablePanel")

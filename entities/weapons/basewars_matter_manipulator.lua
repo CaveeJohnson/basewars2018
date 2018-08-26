@@ -240,11 +240,6 @@ if CLIENT then
 		return self:callForMode("freezeMovement")
 	end
 
-	function SWEP:Think()
-		self:callForMode("think", self:GetOwner())
-		return BaseClass.Think(self)
-	end
-
 	function SWEP:onModeChange(new)
 		ext.mode = tonumber(new) -- shit game
 		ext.modeAlpha = 1000
@@ -253,8 +248,15 @@ if CLIENT then
 	end
 end
 
+function SWEP:Think()
+	self:callForMode("think", self:GetOwner())
+	return BaseClass.Think(self)
+end
+
 function SWEP:SetupDataTables()
 	self:NetworkVar("Int", 0, "FireMode")
+	self:NetworkVar("Int", 1, "Var1")
+	self:NetworkVar("Int", 2, "Var2")
 end
 
 function SWEP:Initialize()
@@ -280,6 +282,10 @@ function SWEP:Reload()
 	end
 
 	self:CallOnClient("onModeChange", self:GetFireMode())
+
+	-- shared data for usage in modes
+	self:SetVar1(0)
+	self:SetVar2(0)
 end
 
 local trace_res = {}
@@ -302,20 +308,23 @@ do
 	end
 end
 
-function SWEP:DoShootEffect(hitpos, hitnormal, entity, physbone, firstTimePredicted)
-	self:EmitSound(string.format(self.shootSound, math.random(1, 2)))
+function SWEP:DoShootEffect(hitpos, hitnormal, entity, physbone, firstTimePredicted, noSound, noIndicator)
+	if not noSound then self:EmitSound(string.format(self.shootSound, math.random(1, 2))) end
 
 	self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
 	self.Owner:SetAnimation(PLAYER_ATTACK1)
 
 	if not firstTimePredicted then return end
 
-	local effectdata = EffectData()
-		effectdata:SetOrigin(hitpos)
-		effectdata:SetNormal(hitnormal)
-		effectdata:SetEntity(entity)
-		effectdata:SetAttachment(physbone)
-	util.Effect("selection_indicator", effectdata)
+	local effectdata
+	if not noIndicator then
+		effectdata = EffectData()
+			effectdata:SetOrigin(hitpos)
+			effectdata:SetNormal(hitnormal)
+			effectdata:SetEntity(entity)
+			effectdata:SetAttachment(physbone)
+		util.Effect("selection_indicator", effectdata)
+	end
 
 	effectdata = EffectData()
 		effectdata:SetOrigin(hitpos)
@@ -329,26 +338,17 @@ function SWEP:PrimaryAttack()
 	if not self:trace() then return end
 	-- TODO: alt fire mode?
 
-	local res = self:callForMode("primaryFire", trace_res)
+	self.Primary.Automatic = false
+	local res, bypass = self:callForMode("primaryFire", trace_res)
 
-	if res then
-		self:DoShootEffect(trace_res.HitPos, trace_res.HitNormal, trace_res.Entity, trace_res.PhysicsBone, IsFirstTimePredicted())
-	else
-		self:EmitSound(self.failSound)
-	end
+	if not bypass then
+		if res then
+			self:DoShootEffect(trace_res.HitPos, trace_res.HitNormal, trace_res.Entity, trace_res.PhysicsBone, IsFirstTimePredicted(), false, false)
+		else
+			self:EmitSound(self.failSound)
+		end
 
-	self:SetNextPrimaryFire(CurTime() + 0.6)
-end
-
-function SWEP:Attack1(tr_res)
-	return ext:buyItem(self:GetOwner(), tr_res)
-end
-
-function SWEP:Attack2(tr_res)
-	if IsValid(tr_res.Entity) then
-		return basewars.items.sell(tr_res.Entity, self:GetOwner())
-	else
-		return false
+		self:SetNextPrimaryFire(CurTime() + 0.6)
 	end
 end
 

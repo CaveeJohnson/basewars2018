@@ -55,10 +55,11 @@ end
 function basewars.resources.getCacheModel(res)
 	res = istable(res) and res or basewars.resources.get(res)
 
-	if res.liquid then
+	local t = res.type
+	if t == "liquid" then
 		return "models/props_junk/plasticbucket001a.mdl"
-	elseif res.refined then
-		return "models/okxapack/valuables/valuable_bar.mdl"
+	elseif t == "bar" then
+		return "models/okxapack/valuables/valuable_bar.mdl", res.dull and 2 or 1
 	else
 		return "models/props_junk/rock001a.mdl"
 	end

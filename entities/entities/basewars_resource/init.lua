@@ -7,22 +7,17 @@ function ENT:Initialize()
 	local res = basewars.resources.get(self:GetResourceID()) -- TODO:
 	if not res then error(string.format("basewars_resource: created with invalid resource '%s'", self:GetResourceID())) end
 
-	if res.liquid then
-		self:SetModel("models/props_junk/plasticbucket001a.mdl")
-	elseif res.refined then
-		self:SetModel("models/okxapack/valuables/valuable_bar.mdl") -- TODO: content
-		self:SetSkin(res.dull and 2 or 1)
-	else
-		self:SetModel("models/props_junk/rock001a.mdl")
-	end
+	local model, skin = basewars.resources.getCacheModel(res)
+
+	self:SetModel(model)
+	if skin and skin > 0 then self:SetSkin(skin) end
+	self:SetColor(res.color)
 
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)
 
 	self:Activate()
-
-	self:SetColor(res.color)
 end
 
 function ENT:StartTouch(ent)

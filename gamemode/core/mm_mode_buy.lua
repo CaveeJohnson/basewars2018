@@ -198,5 +198,6 @@ if CLIENT then
 end
 
 function mode:primaryFire(tr_res)
-	return ext:buyItem(self:GetOwner(), tr_res)
+	local ok = ext:buyItem(self:GetOwner(), tr_res)
+	return ok
 end

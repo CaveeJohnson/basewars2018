@@ -13,32 +13,49 @@ function ext:PostEntityCreated(ent)
 end
 
 function ext:SharedEntityTakeDamage(ent, dmginfo)
-	if ent.__healthOverride and not ent.beingDestructed and not ent.markedAsDestroyed then
-		local newHealth = ent:Health() - dmginfo:GetDamage()
+	if not (ent.__healthOverride and not ent.beingDestructed and not ent.markedAsDestroyed) then
+		ent = ent:GetParent()
+		if not IsValid(ent) then return end
 
-		if newHealth <= 0 then
-			ent.markedAsDestroyed = true
+		if ent.isBasewarsEntity then
+			ent:OnTakeDamage(dmginfo)
 
-			hook.Run("BW_OnNonBasewarsEntityDestroyed", ent, dmginfo:GetAttacker(), dmginfo:GetInflictor(), true) -- DOCUMENT:
-			SafeRemoveEntity(ent)
-		else
-			ent:SetHealth(newHealth)
-			local percent = math.Clamp(newHealth / ent:GetMaxHealth(), 0, 0.9) + 0.1
+			return
+		elseif not (ent.__healthOverride and not ent.beingDestructed and not ent.markedAsDestroyed) then
+			return
+		end
+	end
 
-			local now = ent:GetColor()
-			local orig = ent.originalColor or now
-			local last = ent.lastColor or now
+	local newHealth = ent:Health() - dmginfo:GetDamage()
+
+	if newHealth <= 0 then
+		ent.markedAsDestroyed = true
+
+		hook.Run("BW_OnNonBasewarsEntityDestroyed", ent, dmginfo:GetAttacker(), dmginfo:GetInflictor(), true) -- DOCUMENT:
+		SafeRemoveEntity(ent)
+	else
+		ent:SetHealth(newHealth)
+
+		local toColor = ent:GetChildren()
+		table.insert(toColor, ent)
+
+		for _, v in ipairs(toColor) do
+			local percent = math.Clamp(newHealth / v:GetMaxHealth(), 0, 0.9) + 0.1
+
+			local now  = v:GetColor()
+			local orig = v.originalColor or now
+			local last = v.lastColor or now
 
 			if now ~= orig and now ~= last then
-				ent.originalColor = now
+				v.originalColor = now
 			else
-				ent.originalColor = orig
+				v.originalColor = orig
 			end
 
 			local new = Color(orig.r * percent, orig.g * percent, orig.b * percent, 255)
-			ent:SetColor(new)
+			v:SetColor(new)
 
-			ent.lastColor = new
+			v.lastColor = new
 		end
 	end
 end

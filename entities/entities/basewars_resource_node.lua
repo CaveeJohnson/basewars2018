@@ -55,6 +55,48 @@ do
 	end
 end
 
+sound.Add({
+	channel = CHAN_AUTO,
+	name    = "bw.resource_node.break1",
+	level   = 80,
+	sound   = {"physics/concrete/rock_impact_hard1.wav", "physics/concrete/rock_impact_hard2.wav", "physics/concrete/rock_impact_soft1.wav"},
+	volume  = 1,
+	pitch   = {80, 100}
+})
+
+sound.Add({
+	channel = CHAN_AUTO,
+	name    = "bw.resource_node.break2",
+	level   = 80,
+	sound   = {"physics/concrete/rock_impact_hard3.wav", "physics/concrete/rock_impact_hard4.wav", "physics/concrete/rock_impact_soft2.wav"},
+	volume  = 1,
+	pitch   = {80, 100}
+})
+
+sound.Add({
+	channel = CHAN_AUTO,
+	name    = "bw.resource_node.break3",
+	level   = 80,
+	sound   = {"physics/concrete/rock_impact_hard5.wav", "physics/concrete/rock_impact_hard6.wav", "physics/concrete/rock_impact_soft3.wav"},
+	volume  = 1,
+	pitch   = {80, 100}
+})
+
+function ENT:onMinedEffect()
+	timer.Simple(0, function() -- TODO: HACK: fuck this game, some bullshit about weapons and prediction, dont care, this works
+		if not IsValid(self) then return end
+
+		local effect = EffectData()
+			effect:SetOrigin(self:LocalToWorld(self:OBBCenter()))
+			effect:SetMagnitude(10)
+			effect:SetScale(3)
+			effect:SetRadius(3)
+		util.Effect("Sparks", effect)
+	end)
+
+	self:EmitSound(string.format("bw.resource_node.break%d", math.random(1, 3)))
+end
+
 if SERVER then
 	function ENT:Initialize()
 		self:PhysicsInit(SOLID_VPHYSICS)
@@ -76,6 +118,30 @@ if SERVER then
 
 		self:SetRichness(rich)
 		self:SetRarity(rare)
+	end
+
+	function ENT:onMined(hitPos)
+		local ores = self:getOreInfo()
+		local random = math.random() * 100
+
+		local accounted = 0
+		local ore = "coal"
+		local amt = math.floor(math.random() * 3 + self:GetRichness() / 15)
+
+		for _, v in SortedPairsByMemberValue(ores, "percentage", true) do
+			accounted = accounted + v.percentage
+
+			if random <= accounted then
+				ore = v.id
+				amt = amt - math.floor(v.rarity / 35)
+				break
+			end
+		end
+
+		amt = math.max(1, amt)
+		basewars.resources.spawnCache(ore, amt, hitPos, AngleRand())
+
+		self:onMinedEffect()
 	end
 end
 

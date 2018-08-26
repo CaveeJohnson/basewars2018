@@ -7,6 +7,37 @@ function ENT:Initialize()
 	self:SetModel(self.Model)
 	self:SetSkin(self.Skin)
 
+	if self.SubModels then
+		self.subModels = {}
+
+		for _, v in ipairs(self.SubModels) do
+			local ent = ents.Create("prop_physics")
+				ent.bw_subModel = true
+				ent:SetPos   (self:LocalToWorld      (v.pos))
+				ent:SetAngles(self:LocalToWorldAngles(v.ang))
+				ent:SetModel (v.model)
+				ent:SetSkin  (v.skin or 0)
+			ent:Spawn()
+			ent:Activate()
+
+			ent:SetParent(self)
+			ent.PhysgunDisabled = true
+
+			table.insert(self.subModels, ent)
+		end
+
+		timer.Simple(0, function()
+			if not IsValid(self) then return end
+
+			for _, ent in ipairs(self.subModels) do
+				if IsValid(ent) then
+					-- stuff may be out of order
+					ent:CPPISetOwner(self:CPPIGetOwner())
+				end
+			end
+		end)
+	end
+
 	self:PhysicsInit(SOLID_VPHYSICS)
 	self:SetSolid(SOLID_VPHYSICS)
 	self:SetMoveType(MOVETYPE_VPHYSICS)

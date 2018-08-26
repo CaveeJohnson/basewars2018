@@ -10,7 +10,7 @@ function ext:PostItemsLoaded()
 	for i = 1, count do
 		local r = res[i]
 
-		if r.ore then
+		if r.type == "ore" then
 			table.insert(self.oreRef, r)
 		end
 	end
@@ -28,7 +28,7 @@ function ext:generateInfo(node)
 		if node_rare >= rare and rare >= node_rare - 30 then
 			total_skew = total_skew + (100 - rare)
 
-			table.insert(info, {name = r.name, rarity = rare, color = r.color})
+			table.insert(info, {name = r.name, rarity = rare, color = r.color, id = r.resource_id})
 		end
 	end
 

@@ -605,6 +605,32 @@ do -- BW.EntityPanel.InfoContainer
 	vgui.Register("BW.EntityPanel.InfoContainer", PANEL, "EditablePanel")
 end
 
+local function rgbToHSV(c)
+	local r, g, b = c.r / 255, c.g / 255, c.b / 255
+
+	local max, min = math.max(r, g, b), math.min(r, g, b)
+	local h, s, v
+	v = max
+
+	local d = max - min
+	if max == 0 then s = 0 else s = d / max end
+
+	if max == min then
+		h = 0 -- achromatic
+	else
+		if max == r then
+		h = (g - b) / d
+		if g < b then h = h + 6 end
+		elseif max == g then h = (b - r) / d + 2
+		elseif max == b then h = (r - g) / d + 4
+		end
+		h = h / 6
+	end
+
+	return h * 360, s, v, c.a
+end
+
+
 do -- BW.EntityPanel.InfoLabel
 	local PANEL = {}
 
@@ -633,7 +659,8 @@ do -- BW.EntityPanel.InfoLabel
 	end
 
 	function PANEL:setColor(color)
-		self.color = color
+		local h, s, v = rgbToHSV(color)
+		self.color = HSVToColor(h, s, math.Clamp(v, 0.5, 1))
 	end
 
 	function PANEL:calcSize()
@@ -651,13 +678,7 @@ do -- BW.EntityPanel.InfoLabel
 		surface.SetTextPos(0, 0)
 		surface.DrawText(name)
 
-		surface.SetTextColor(255, 255, 255, 20)
-		surface.SetTextPos(tw + 1, 1)
-		surface.DrawText(info)
-
-		surface.SetTextColor(self.color)
-		surface.SetTextPos(tw, 0)
-		surface.DrawText(info)
+		draw.textOutlinedLT(info, ext.infoFont, tw, 0, self.color, basewars.ui.color.outline)
 	end
 
 	vgui.Register("BW.EntityPanel.InfoLabel", PANEL, "EditablePanel")

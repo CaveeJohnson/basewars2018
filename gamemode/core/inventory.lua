@@ -53,7 +53,7 @@ function basewars.inventory.resolveData(id)
 	if not (handler and handler.BW_ResolveInventoryData) then return end
 
 	local item_data = handler:BW_ResolveInventoryData(data)
-	return data, item_data
+	return item_data
 end
 
 -- may as well just put client stuff here

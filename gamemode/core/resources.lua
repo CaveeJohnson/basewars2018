@@ -84,7 +84,7 @@ function ext:BW_ResolveInventoryData(data)
 	item_data.model       = basewars.resources.getCacheModel(resource)
 	item_data.model_skin  = resource.dull and 2 or 1
 	item_data.model_color = resource.color
-	item_data.color       = resource
+	item_data.color       = resource.color
 	item_data.info        = {Formula = resource.formula}
 
 	data_cache[data] = item_data

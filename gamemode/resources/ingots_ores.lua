@@ -74,3 +74,12 @@ basewars.resources.create "coal_anth" {
 	rarity = 30,
 	fuel_value = 90,
 }
+
+--[[
+basewars.resources.create "diamond" {
+	formula = "C",
+	name = "Diamond",
+	color = Color(207,181,59),
+	type = "ore",
+	rarity = 85,
+}]]

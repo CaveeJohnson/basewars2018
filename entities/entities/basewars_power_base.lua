@@ -34,12 +34,7 @@ function ENT:updateEnergyThroughput(name, old, new)
 	end
 
 	if self.isUpgradableEntity and self.multEnergyTP then
-		if base >= 0 then
-			base = base * self:getProductionMultiplier()
-		else
-			base = base / self:getProductionMultiplier()
-		end
-
+		base = base * self:getProductionMultiplier() -- generators make more, stuff consumes more
 		base = math.floor(base)
 	end
 

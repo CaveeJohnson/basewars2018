@@ -12,7 +12,7 @@ function ENT:Initialize()
 
 		for _, v in ipairs(self.SubModels) do
 			local ent = ents.Create("prop_physics")
-				ent.bw_subModel = true
+				ent:SetNW2Bool("bw_subModel", true)
 				ent:SetPos   (self:LocalToWorld      (v.pos))
 				ent:SetAngles(self:LocalToWorldAngles(v.ang))
 				ent:SetModel (v.model)
@@ -135,4 +135,45 @@ function ENT:canUse(act, caller, type, value)
 	if self.beingDestructed or self.markedAsDestroyed then return false end
 
 	return true
+end
+
+function ENT:loopSound(name, sound, volume)
+	self.loopedSounds = self.loopedSounds or {}
+
+	local patch = self.loopedSounds[name]
+	if patch then
+		if not patch:IsPlaying() then
+			patch:Play()
+		end
+
+		patch:ChangeVolume(volume)
+		return patch
+	end
+
+	patch = CreateSound(self, sound)
+	patch:Play()
+	patch:SetSoundLevel(60)
+	patch:ChangeVolume(volume)
+
+	self.loopedSounds[name] = patch
+	return patch
+end
+
+function ENT:stopSound(name)
+	self.loopedSounds = self.loopedSounds or {}
+
+	local patch = self.loopedSounds[name]
+	if patch then
+		patch:Stop()
+	end
+end
+
+function ENT:OnRemove()
+	if self.loopedSounds then
+		for _, v in pairs(self.loopedSounds) do
+			v:Stop()
+		end
+	end
+
+	BaseClass.OnRemove(self)
 end

@@ -356,3 +356,7 @@ function SWEP:SecondaryAttack()
 end
 
 basewars.matter_manipulator.loadModes()
+
+function ext:PostReloaded()
+	basewars.matter_manipulator.loadModes()
+end

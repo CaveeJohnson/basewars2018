@@ -283,16 +283,66 @@ function basewars.getCleanupTime()
 	return (hook.Run("GetPlayerCleanupTime") or def) - 10 -- -10 since we can't take risks of a slow frame or two causing us to be too late
 end
 
-function basewars.moneyPopout(ent, money)
-	if not (money and money ~= 0) then return end
+function basewars.moneyPopout(ent, money, offset)
+	if not (IsValid(ent) and money and money ~= 0) then return end
 
 	local ed = EffectData()
-		ed:SetOrigin(ent:LocalToWorld(ent:OBBCenter()))
+		ed:SetOrigin(ent:LocalToWorld(offset or ent:OBBCenter()))
 		ed:SetEntity(ent)
 
 		ed:SetRadius(ent:BoundingRadius() + 10)
 		ed:SetScale(money)
 	util.Effect("basewars_money_popout", ed, true, true)
+end
+
+do
+	local net_tag = "bw-text-popout"
+
+	if CLIENT then
+		net.Receive(net_tag, function()
+			local ent = net.ReadEntity()
+			local text = net.ReadString()
+			local inverse = net.ReadBool()
+			local color = net.ReadColor()
+			local offset = net.ReadVector()
+
+			basewars.textPopout(ent, text, inverse, color, offset)
+		end)
+	else
+		util.AddNetworkString(net_tag)
+	end
+
+	function basewars.textPopout(ent, text, inverse, color, offset)
+		if not (IsValid(ent) and text) then return end
+
+		if color and color.a == 0 then color = nil
+		elseif color then color.a = 255 end
+
+		if SERVER then
+			net.Start(net_tag)
+				net.WriteEntity(ent)
+				net.WriteString(text)
+				net.WriteBool(inverse)
+				net.WriteColor(color or color_transparent)
+				net.WriteVector(offset)
+			net.Broadcast()
+
+			return
+		end
+
+		ent.bw_lastTextPopout = { -- we're limited on what data we can give the effect
+			inverse = inverse,
+			col = color,
+			str = text
+		}
+
+		local ed = EffectData()
+			ed:SetOrigin(ent:LocalToWorld(offset or ent:OBBCenter()))
+			ed:SetEntity(ent)
+
+			ed:SetRadius(ent:BoundingRadius() + 10)
+		util.Effect("basewars_text_popout", ed, true, true)
+	end
 end
 
 function basewars.destructWithEffect(ent, time, money)

@@ -16,6 +16,10 @@ if CLIENT then
 		local x, y = 2, 2
 
 		local ent = trace and trace.Entity or nil
+		if IsValid(ent) and IsValid(ent:GetParent()) then
+			ent = ent:GetParent()
+		end
+
 		if not IsValid(ent) then
 			y = y + draw.text("Deconstructor", fonts.largeFont, x, y)
 			y = y + draw.text("AIM AT AN ENTITY TO SEE MORE", fonts.smallFont, x, y)
@@ -60,8 +64,13 @@ if CLIENT then
 end
 
 function mode:primaryFire(tr_res)
-	if IsValid(tr_res.Entity) then
-		return basewars.items.sell(tr_res.Entity, self:GetOwner())
+	local ent = tr_res and tr_res.Entity or nil
+	if IsValid(ent) and IsValid(ent:GetParent()) then
+		ent = ent:GetParent()
+	end
+
+	if IsValid(ent) then
+		return basewars.items.sell(ent, self:GetOwner())
 	else
 		return false
 	end

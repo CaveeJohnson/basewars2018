@@ -49,7 +49,7 @@ function ext:OnPhysgunReload(physgun, ply)
 end
 
 function ext:CanTool(ply, trace, tool)
-	if tool == "dynamite" then
+	if tool == "dynamite" or tool == "duplicator" then
 		if not ply:IsSuperAdmin() then return false end return
 	end
 

@@ -65,6 +65,8 @@ function ENT:openMenu(t)
 
 	local frm = vgui.Create("DFrame")
 
+	frm:SetTitle("Foundry")
+
 	local foundry_inv = frm:Add("BWUI.Inventory")
 
 	foundry_inv:setEntity(self)

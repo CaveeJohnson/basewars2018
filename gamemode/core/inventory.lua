@@ -19,7 +19,7 @@ function basewars.inventory.canModifyStack(ply, ent, id, amt)
 	local handler_string, data = id:match("^(.-):(.+)$")
 	if not handler_string then return false end
 
-	handler = basewars.__ext[handler_string]
+	local handler = basewars.__ext[handler_string]
 	if not handler then return false end
 
 	if handler.BW_CanModifyInventoryStack and handler:BW_CanModifyInventoryStack(ply, ent, data, amt) == false then return false end

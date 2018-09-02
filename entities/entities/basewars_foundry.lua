@@ -43,8 +43,106 @@ local net_tag = "bw-foundry"
 
 if CLIENT then
 
-function ENT:openMenu()
-	print(self, "opened menu")
+local ext = basewars.createExtension"foundry-menu"
+
+ext.awaiting = {}
+
+function ext:BW_ReceivedInventory(ent, inv)
+	for ent in pairs(self.awaiting) do
+		self.awaiting[ent] = nil
+		Entity(ent):openMenu(true)
+	end
+end
+
+function ENT:openMenu(t)
+	if not (t or basewars.inventory.request(self)) then return end
+
+	if not t then
+		ext.awaiting[self:EntIndex()] = true
+
+		return
+	end
+
+	local frm = vgui.Create("DFrame")
+
+	local foundry_inv = frm:Add("BWUI.Inventory")
+
+	foundry_inv:setEntity(self)
+	foundry_inv:setMinTileWidth(10)
+	foundry_inv:setMaxTileWidth(10)
+	foundry_inv:setMinTileHeight(2)
+	foundry_inv:setMaxTileHeight(2)
+
+	foundry_inv:setFilter(function(_, item, amount)
+		return basewars.inventory.trade(nil, self, item, amount)
+	end)
+
+	local local_inv = frm:Add("BWUI.Inventory")
+
+	local_inv:setEntity(LocalPlayer())
+	local_inv:setMinTileWidth(10)
+	local_inv:setMaxTileWidth(10)
+	local_inv:setMinTileHeight(2)
+	local_inv:setMaxTileHeight(2)
+
+	local_inv:setFilter(function(_, item, amount)
+		return basewars.inventory.trade(nil, self, item, -amount)
+	end)
+
+	local button = frm:Add("DButton")
+
+	function button.doDisable()
+		self:doAlloying(false)
+		button:SetText("Enable Alloying")
+		button:SetImage("icon16/add.png")
+		button.DoClick = button.doEnable
+	end
+
+	function button.doEnable()
+		self:doAlloying(true)
+		button:SetText("Disable Alloying")
+		button:SetImage("icon16/delete.png")
+		button.DoClick = button.doDisable
+	end
+
+	if self:isAlloyingEnabled() then
+		button.doEnable()
+	else
+		button.doDisable()
+	end
+
+	local PerformLayout = frm.PerformLayout
+	function frm:PerformLayout(w, h)
+		-- TODO: REPLACE THIS AIDS AS FUCK CODE JESUS CHRIST
+		-- (i tried docking but it was always too autistic to work)
+
+		foundry_inv:SetPos(8, 8 + 24)
+		local_inv:SetPos(8, 8 + 24 + foundry_inv:GetTall() + 8)
+
+		button:SetSize(128, 32)
+		button:SetPos(8, 8 + 24 + foundry_inv:GetTall() + 8 + local_inv:GetTall() + 8)
+
+		self:SetSize(
+			math.max(foundry_inv:GetWide(), local_inv:GetWide()) + 8 + 8,
+			24 + 8 + 8 + 8 + 8 + foundry_inv:GetTall() + local_inv:GetTall() + button:GetTall()
+		)
+
+		PerformLayout(self, w, h)
+	end
+
+	frm:InvalidateLayout(true)
+	frm:InvalidateChildren(true)
+	frm:Center()
+	frm:MakePopup()
+end
+
+function ENT:doAlloying(val)
+	if self:isAlloyingEnabled() == val then return end
+
+	net.Start("bw-foundry")
+	net.WriteEntity(self)
+	net.WriteBool(val)
+	net.SendToServer()
 end
 
 net.Receive(net_tag, function()
@@ -88,6 +186,9 @@ do
 		}
 	end
 end
+
+
+scripted_ents.Register(ENT, ENT.ClassName)
 
 return end
 

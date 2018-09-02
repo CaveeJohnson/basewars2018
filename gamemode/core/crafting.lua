@@ -115,17 +115,42 @@ function ext:BW_ResolveInventoryData(data)
 	item_data.color       = self:lookupRarityColor(blueprint.rarity)
 	item_data.info        = {}
 
-	item_data.info["Rarity"]     = self:lookupRarityName(blueprint.rarity)
+	item_data.info["Blueprint Rarity"]     = self:lookupRarityName(blueprint.rarity)
 	item_data.info["Craft Time"] = blueprint.craft_time
 
-	for id, amt in ipairs(blueprint.recipe) do
+	item_data.info["Recipe"] = {}
+
+	for id, amt in pairs(blueprint.recipe) do
 		-- for the love of fuck don't make a blueprint require itself or stack overflow will happen
 		local recipe_item_data = basewars.inventory.resolveData(id)
 
 		if recipe_item_data then
-			item_data.info[recipe_item_data.name] = amt
+			item_data.info["Recipe"][recipe_item_data.name] = amt
 		else
-			item_data.info[id .. " (broken?!)"] = amt
+			item_data.info["Recipe"][id .. " (broken?!)"] = amt
+		end
+	end
+
+	item_data.info["Makes"] = {}
+
+	local makes = blueprint.makes
+	if istable(makes) then
+		for id, amt in pairs(makes) do
+			local recipe_item_data = basewars.inventory.resolveData(id)
+
+			if recipe_item_data then
+				item_data.info["Makes"][recipe_item_data.name] = amt
+			else
+				item_data.info["Makes"][id .. " (broken?!)"] = amt
+			end
+		end
+	else
+		local recipe_item_data = basewars.inventory.resolveData(makes)
+
+		if recipe_item_data then
+			item_data.info["Makes"][recipe_item_data.name] = 1
+		else
+			item_data.info["Makes"][id .. " (broken?!)"] = 1
 		end
 	end
 

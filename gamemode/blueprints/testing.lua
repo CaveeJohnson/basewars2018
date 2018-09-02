@@ -47,7 +47,7 @@ basewars.crafting.create "test_legendary" {
 	rarity = BLUEPRINT_RARITY_LEGENDARY,
 
 	recipe = {
-		["core.resources:irdium"] = 10,
+		["core.resources:iridium"] = 10,
 	},
 	makes = "core.resources:iridium_electrum"
 }

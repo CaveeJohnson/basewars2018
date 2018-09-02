@@ -1,3 +1,5 @@
+setfenv(1, _G)
+
 local ext = basewars.createExtension"core.inventory"
 basewars.inventory = basewars.inventory or {}
 
@@ -16,16 +18,16 @@ function basewars.inventory.canModifyStack(ply, ent, id, amt)
 	if CLIENT then ply = LocalPlayer() end
 	if not basewars.inventory.canModify(ply, ent) then return false end
 
-	local handler, data = id:match("^(.-):(.+)$")
+	local handler_string, data = id:match("^(.-):(.+)$")
+	if not handler_string then return false end
+
+	handler = basewars.__ext[handler_string]
 	if not handler then return false end
 
-	handler = basewars.__ext[handler]
-	if not handler then return false end
+	if handler.BW_CanModifyInventoryStack and handler:BW_CanModifyInventoryStack(ply, ent, data, amt) == false then return false end
 
-	if handler.BW_CanModifyInventoryStack and not handler:BW_CanModifyInventoryStack(ply, ent, data, amt) then return false end
-
-	if ent.BW_CanModifyInventoryStack and not ent:BW_CanModifyInventoryStack(ply, handler, data, amt) then return false end
-	if hook.Run("BW_CanModifyInventoryStackPostHandler", ply, ent, handler, data, amt) == false then return false end
+	if ent.BW_CanModifyInventoryStack and ent:BW_CanModifyInventoryStack(ply, handler_string, data, amt) == false then return false end
+	if hook.Run("BW_CanModifyInventoryStackPostHandler", ply, ent, handler_string, data, amt) == false then return false end
 
 	return true
 end

@@ -122,7 +122,7 @@ function ENT:Use(ply)
 end
 
 function ENT:BW_CanModifyInventoryStack(ply, handler, data, amt)
-	if handler ~= "core.resources" then return false end -- we only accept resources
+	return handler == "core.resources" -- we only accept resources
 end
 
 ENT.outOffset = Vector(-30, -90 , 50)

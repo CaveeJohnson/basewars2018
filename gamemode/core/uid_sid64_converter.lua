@@ -37,6 +37,8 @@ end
 
 function basewars.getOwnerSID64(ent)
 	local _, owner_id = ent:CPPIGetOwner()
+	if not owner_id then return nil end
+
 	owner_id = basewars.playerUIDToSID64(owner_id)
 
 	if owner_id:match("STEAM_") then

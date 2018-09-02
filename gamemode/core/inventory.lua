@@ -1,5 +1,3 @@
-setfenv(1, _G)
-
 local ext = basewars.createExtension"core.inventory"
 basewars.inventory = basewars.inventory or {}
 

@@ -20,7 +20,14 @@ function basewars.dumpPropModel(parent)
 			local pos = parent:WorldToLocal(ent:GetPos())
 			local ang = parent:WorldToLocalAngles(ent:GetAngles())
 			local mdl = ent:GetModel()
-			print(string.format("\t{model = \"%s\"%s, pos = Vector(%s, %s, %s), ang = Angle(%s, %s, %s)},", mdl, (" "):rep(model_len - string.len(mdl)), r(pos.x), r(pos.y), r(pos.z), r(ang.p), r(ang.y), r(ang.r)))
+
+			local xtr = ""
+			local mat = ent:GetMaterial()
+			if mat and mat ~= "" then
+				xtr = xtr .. ", mat = \"" .. mat .. "\""
+			end
+
+			print(string.format("\t{model = \"%s\"%s, pos = Vector(%s, %s, %s), ang = Angle(%s, %s, %s)%s},", mdl, (" "):rep(model_len - string.len(mdl)), r(pos.x), r(pos.y), r(pos.z), r(ang.p), r(ang.y), r(ang.r), xtr))
 		end
 	end
 	print("}")

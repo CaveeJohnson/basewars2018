@@ -3,6 +3,18 @@ AddCSLuaFile("cl_init.lua")
 include("shared.lua")
 DEFINE_BASECLASS(ENT.Base)
 
+function ENT:onSubModelInit(ent)
+
+end
+
+function ENT:postSubModelInit(tbl)
+
+end
+
+function ENT:onInit()
+
+end
+
 function ENT:Initialize()
 	self:SetModel(self.Model)
 	self:SetSkin(self.Skin)
@@ -17,12 +29,15 @@ function ENT:Initialize()
 				ent:SetAngles(self:LocalToWorldAngles(v.ang))
 				ent:SetModel (v.model)
 				ent:SetSkin  (v.skin or 0)
+
+				if v.mat then ent:SetMaterial(v.mat) end
 			ent:Spawn()
 			ent:Activate()
 
 			ent:SetParent(self)
 			ent.PhysgunDisabled = true
 
+			self:onSubModelInit(ent)
 			table.insert(self.subModels, ent)
 		end
 
@@ -35,6 +50,8 @@ function ENT:Initialize()
 					ent:CPPISetOwner(self:CPPIGetOwner())
 				end
 			end
+
+			self:postSubModelInit(self.subModels)
 		end)
 	end
 
@@ -54,6 +71,8 @@ function ENT:Initialize()
 
 	self:SetMaxHealth(self.BaseHealth)
 	self:SetHealth(self.BaseHealth)
+
+	self:onInit()
 end
 
 ENT.repairSounds = {"physics/metal/metal_barrel_impact_hard5.wav", "physics/metal/metal_barrel_impact_hard6.wav", "physics/metal/metal_barrel_impact_hard7.wav"}

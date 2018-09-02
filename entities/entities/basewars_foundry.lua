@@ -25,12 +25,12 @@ ENT.SubModels = {
 	{model = "models/props_combine/combine_barricade_med01a.mdl" , pos = Vector( -28,  -16,   33), ang = Angle(   0,  -90,    0)},
 }
 ENT.BaseHealth = 2500
-ENT.BasePassiveRate = -10
+ENT.BasePassiveRate = 0
 ENT.BaseActiveRate = -100
 
 ENT.PhysgunDisabled = true
 
-ENT.bw_inventory = {}
+ENT.canStoreResources = true
 
 function ENT:SetupDataTables()
 	BaseClass.SetupDataTables(self)
@@ -91,7 +91,27 @@ end
 
 return end
 
+function ENT:onInit()
+	self.bw_inventory = {}
+end
+
 util.AddNetworkString(net_tag)
+
+do
+	local function validate(ply, ent)
+		if ent:GetClass() ~= "basewars_foundry" then return false end
+		if not basewars.inventory.canModify(ply, ent) then return false end
+
+		return true
+	end
+
+	net.Receive(net_tag, function(_, ply)
+		local ent = net.ReadEntity()
+		if not validate(ply, ent) then return end
+
+		self:setAlloyingEnabled(net.ReadBool())
+	end)
+end
 
 function ENT:Use(ply)
 	if not (IsValid(ply) and ply:IsPlayer()) then return end
@@ -182,15 +202,18 @@ function ENT:processInventory()
 						local new_id = "core.resources:" .. new
 						local new_amt = max_process_alloy * mult
 
-						stuff_out[new_res.name] = (stuff_out[new_res.name] or 0) + new_amt
-						print("consuming", new_amt, new_res.name)
+						--print("consuming", new_amt, new_res.name)
 						if stuff_in[new_res.name] then
-							print("stuff_in already contained, neutralizing?", stuff_in[new_res.name], " -> ", stuff_in[new_res.name] - new_amt)
+							--print("stuff_in already contained, neutralizing?", stuff_in[new_res.name], " -> ", stuff_in[new_res.name] - new_amt)
 							stuff_in[new_res.name] = stuff_in[new_res.name] - new_amt
 
 							if stuff_in[new_res.name] <= 0 then
 								stuff_in[new_res.name] = nil
 							end
+						end
+
+						if stuff_out[new_res.name] or not stuff_out[new_res.name .. " Ore"] then
+							stuff_out[new_res.name] = (stuff_out[new_res.name] or 0) + new_amt
 						end
 
 						inv[new_id] = inv[new_id] - new_amt

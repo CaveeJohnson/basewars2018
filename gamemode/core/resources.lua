@@ -31,17 +31,13 @@ function basewars.resources.createResourceEx(id, tbl)
 end
 
 function basewars.resources.create(id)
-	if istable(id) then
-		basewars.resources.createResourceEx(nil, id)
-	end
-
 	return function(tbl)
 		basewars.resources.createResourceEx(id, tbl)
 	end
 end
 
 function basewars.resources.get(id)
-	return resources[id]
+	return resources[id] or resources[id:gsub(ext:getInventoryHandle(), "")]
 end
 
 function basewars.resources.getTable()
@@ -77,7 +73,7 @@ function ext:BW_ResolveInventoryData(data)
 	if data_cache[data] then return data_cache[data] end
 
 	local resource = resources[data]
-	if not resource then error(string.format("resource in inventory without valid id? '%s'", data)) end
+	if not resource then return nil end
 
 	local item_data = {}
 	item_data.name        = resource.name

@@ -40,6 +40,10 @@
 			"path": "gamemode/resources"
 		},
 		{
+			"name": "Blueprints",
+			"path": "gamemode/blueprints"
+		},
+		{
 			"name": "Entities",
 			"path": "entities/entities"
 		},

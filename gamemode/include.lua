@@ -25,12 +25,13 @@ end
 includeCS("shared.lua")
 if SERVER then include("sv_requirements.lua") end
 
-GM.luaFolder      = GM.Folder:sub(11, -1) .. "/"
-GM.gmFolder       = GM.luaFolder .. "gamemode/"
+GM.luaFolder       = GM.Folder:sub(11, -1) .. "/"
+GM.gmFolder        = GM.luaFolder .. "gamemode/"
 
-GM.itemFolder     = GM.gmFolder .. "items/"
-GM.resourceFolder = GM.gmFolder .. "resources/"
-GM.configFolder   = GM.gmFolder .. "config/"
+GM.itemFolder      = GM.gmFolder .. "items/"
+GM.resourceFolder  = GM.gmFolder .. "resources/"
+GM.blueprintFolder = GM.gmFolder .. "blueprints/"
+GM.configFolder    = GM.gmFolder .. "config/"
 
 do
 	local ext = basewars.createExtension"core.itemLoader"
@@ -44,6 +45,10 @@ do
 			basewars.loadResourceFolder("")
 			_, count = basewars.resources.getList()
 			basewars.logf("    loaded %d resources total", count)
+
+			basewars.loadBlueprintFolder("")
+			_, count = basewars.crafting.getList()
+			basewars.logf("    loaded %d blueprints total", count)
 
 			collectgarbage() -- tables that might be discarded
 		hook.Run("PostItemsLoaded")
@@ -128,6 +133,24 @@ do
 
 		basewars.logf("    loaded %d resource files", recurseDirs(dir, resourceLoad))
 		RESOURCE = nil
+	end
+end
+
+do
+	local function blueprintLoad(path, name)
+		BLUEPRINT = {}
+
+		includeCS(path)
+		if not BLUEPRINT.discard and next(BLUEPRINT) then basewars.crafting.createBlueprintEx(name:gsub("%.lua", ""), BLUEPRINT) end
+	end
+
+	function basewars.loadBlueprintFolder(dirName)
+		local gm = GM or GAMEMODE
+		local dir = gm.blueprintFolder .. dirName
+		basewars.logf("loading blueprint directory 'blueprints/%s'", dirName)
+
+		basewars.logf("    loaded %d blueprint files", recurseDirs(dir, blueprintLoad))
+		BLUEPRINT = nil
 	end
 end
 

@@ -47,10 +47,10 @@ end
 
 function basewars.inventory.resolveData(id)
 	local handler, data = id:match("^(.-):(.+)$")
-	if not handler then return end
+	if not handler then return false end
 
 	handler = basewars.__ext[handler]
-	if not (handler and handler.BW_ResolveInventoryData) then return end
+	if not (handler and handler.BW_ResolveInventoryData) then return false end
 
 	local item_data = handler:BW_ResolveInventoryData(data)
 	return item_data
@@ -118,6 +118,7 @@ net.Receive(net_tag_update, function()
 
 	print("receive local inventory update for", id, amt)
 
+	if amt <= 0 then amt = nil end
 	ply.bw_inventory[id] = amt
 	hook.Run("BW_ReceivedLocalInventoryUpdate", ply, id, amt)
 end)

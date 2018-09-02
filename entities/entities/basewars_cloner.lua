@@ -39,30 +39,8 @@ function ext:PostPlayerDeath(ply)
 	end
 end
 
-function ENT:animate(seq_name, dur)
-	local seq = self:LookupSequence(seq_name)
-	self:SetSequence(seq)
-
-	local tid = tostring(self) .. "animate"
-	local now = CurTime()
-	timer.Create(tid, 0, 0, function()
-		if not IsValid(self) then
-			return timer.Remove(tid)
-		end
-
-		local r = (CurTime() - now) / dur
-		if r >= 1 then
-			self:ResetSequence(seq)
-			self:SetCycle(1)
-			return timer.Remove(tid)
-		end
-
-		self:SetCycle(r)
-	end)
-end
-
 function ENT:Think()
-	self.BaseClass.Think(self)
+	BaseClass.Think(self)
 
 	if CLIENT then return end
 

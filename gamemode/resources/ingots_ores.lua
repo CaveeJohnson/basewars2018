@@ -21,7 +21,7 @@ basewars.resources.create "tin_ore" {
 	color = Color(211,212,213),
 	type = "ore",
 	rarity = 15,
-	refines_to = {gold = 1, electrum = 0.075}
+	refines_to = {tin = 1, copper = 0.075}
 }
 
 basewars.resources.create "tin" {
@@ -30,15 +30,6 @@ basewars.resources.create "tin" {
 	name = "Tin",
 	dull = true,
 	color = Color(211,212,213),
-}
-
-
-basewars.resources.create "bronze" {
-	formula = "Cu3 Sn",
-	type = "bar",
-	name = "Bronze",
-	color = Color(182,82,0),
-	alloyed_from = {copper = 0.75, tin = 0.25}
 }
 
 
@@ -73,15 +64,6 @@ basewars.resources.create "silver" {
 	type = "bar",
 	name = "Silver",
 	color = Color(160,170,177),
-}
-
-
-basewars.resources.create "electrum" {
-	formula = "Ag Au",
-	type = "bar",
-	name = "Electrum",
-	color = Color(186,172,116),
-	alloyed_from = {gold = 0.5, silver = 0.5}
 }
 
 
@@ -126,65 +108,12 @@ basewars.resources.create "uranium_235" {
 }
 
 
-basewars.resources.create "coal" {
-	formula = "C10 +",
-	name = "Coal",
-	color = Color(30, 30, 30),
-	type = "ore",
-	rarity = 0,
-	fuel_value = 50,
-}
-
-basewars.resources.create "coal_anth" {
-	formula = "C240 H90 +",
-	name = "Hard Coal",
-	color = Color(31, 17, 3),
-	type = "ore",
-	rarity = 30,
-	fuel_value = 90,
-}
-
-basewars.resources.create "diamond" {
-	formula = "C",
-	name = "Diamond",
-	color = Color(185, 242, 255),
-	type = "ore",
-	rarity = 85,
-}
-
-
-basewars.resources.create "lapis" {
-	formula = "Al6 Si6 S3 +",
-	name = "Lapis Lazuli",
-	color = Color(38, 97, 156),
-	type = "ore",
-	rarity = 40,
-}
-
-
 basewars.resources.create "iridium_ore" {
 	formula = "Ir",
 	name = "Iridium Ore",
 	color = Color(255, 255, 255),
 	type = "ore",
 	rarity = 98,
-}
-
-basewars.resources.create "iridium" {
-	formula = "Ir",
-	name = "Refined Iridium",
-	color = Color(255, 255, 255),
-	type = "bar",
-	alloys_from = {iridium_ore = 8, diamond = 20}
-}
-
-
-basewars.resources.create "iridium_electrum" {
-	formula = "Ir Ag8 Au8",
-	name = "Iridium Electrum Alloy",
-	color = Color(217,210,179),
-	type = "bar",
-	alloys_from = {iridium = 1, electrum = 8}
 }
 
 
@@ -203,13 +132,4 @@ basewars.resources.create "iron" {
 	dull = true,
 	name = "Iron",
 	color = Color(230, 231, 232),
-}
-
-
-basewars.resources.create "steel" {
-	formula = "Fe99 C",
-	type = "bar",
-	name = "Steel",
-	color = Color(102, 102, 102),
-	alloyed_from = {iron = 2, coal_anth = 15}
 }

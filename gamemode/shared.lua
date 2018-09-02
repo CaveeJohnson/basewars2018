@@ -192,7 +192,7 @@ do
 			end
 		end
 
-		return string.Comma(math.Truncate(num, 2))
+		return string.Comma(math.floor(num))
 	end
 
 	function basewars.nsigned(num)

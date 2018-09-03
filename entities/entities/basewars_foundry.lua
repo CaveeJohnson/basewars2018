@@ -212,7 +212,7 @@ do
 		local ent = net.ReadEntity()
 		if not validate(ply, ent) then return end
 
-		self:setAlloyingEnabled(net.ReadBool())
+		ent:setAlloyingEnabled(net.ReadBool())
 	end)
 end
 

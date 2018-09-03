@@ -184,7 +184,7 @@ function basewars.inventory.set(ent, id, amt)
 	if ent:IsPlayer() then
 		net.Start(net_tag_update)
 			net.WriteString(id)
-			net.WriteInt(amt, 32)
+			net.WriteDouble(amt)
 		net.Send(ent)
 	end
 
@@ -209,7 +209,7 @@ function basewars.inventory.add(ent, id, amt)
 	if ent:IsPlayer() then
 		net.Start(net_tag_update)
 			net.WriteString(id)
-			net.WriteInt(existing, 32)
+			net.WriteDouble(existing)
 		net.Send(ent)
 	end
 
@@ -283,7 +283,7 @@ net.Receive(net_tag_trade, function(len, ply)
 	local ent = net.ReadEntity()
 	if not IsValid(ent) then return end
 
-	if not basewars.inventory.trade(ply, ent, net.ReadString(), net.ReadInt(32)) then return end
+	if not basewars.inventory.trade(ply, ent, net.ReadString(), net.ReadDouble()) then return end
 
 	reply(net_tag_request, ply, ent, true, inventory) -- reply with the request tag, just update the inventory for them
 end)
@@ -294,5 +294,5 @@ net.Receive(net_tag_action, function(len, ply)
 	if not IsValid(ent) then return end
 	if not basewars.inventory.canModify(ply, ent) then return end
 
-	basewars.inventory.performAction(ply, ent, net.ReadString(), net.ReadUInt(32), net.ReadString())
+	basewars.inventory.performAction(ply, ent, net.ReadString(), net.ReadDouble(), net.ReadString())
 end)

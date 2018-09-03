@@ -70,7 +70,7 @@ function basewars.inventory.trade(_, ent, id, amt) -- for compat with sv api
 	net.Start(net_tag_trade)
 		net.WriteEntity(ent)
 		net.WriteString(id)
-		net.WriteInt(amt, 32)
+		net.WriteDouble(amt)
 	net.SendToServer()
 
 	return true
@@ -92,7 +92,7 @@ function basewars.inventory.performAction(_, ent, id, amt, action)  -- for compa
 	net.Start(net_tag_action)
 		net.WriteEntity(ent)
 		net.WriteString(id)
-		net.WriteUInt(amt, 32)
+		net.WriteDouble(amt)
 		net.WriteString(action)
 	net.SendToServer()
 
@@ -113,7 +113,7 @@ end)
 
 net.Receive(net_tag_update, function()
 	local id = net.ReadString()
-	local amt = net.ReadInt(32)
+	local amt = net.ReadDouble()
 	local ply = LocalPlayer()
 
 	print("receive local inventory update for", id, amt)

@@ -1,6 +1,6 @@
 -- setfenv(1, _G)
 
-local ext = basewars.createExtension"local-inventory"
+local ext = basewars.createExtension"inventory-gui"
 
 ext.listeners     = {}
 ext.listeners_loc = {}
@@ -636,7 +636,7 @@ do -- BWUI.Inventory.Tile
 
 		if f_amount >= 0.01 then
 			draw.textOutlined(
-				string.format("%.3g", f_amount),
+				string.format("%.1f%%", math.floor(f_amount * 1000) / 10),
 				basewars.ui.font_sans12,
 				w - 4,
 				h - 4,

@@ -189,9 +189,6 @@ do
 	end
 end
 
-
-scripted_ents.Register(ENT, ENT.ClassName)
-
 return end
 
 function ENT:onInit()

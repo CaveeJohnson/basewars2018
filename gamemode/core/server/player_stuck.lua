@@ -31,7 +31,6 @@ end
 
 function ext:BW_FixStuck(ply, ang, scale)
 	local old = ply:GetPos()
-	local new = ply:GetPos()
 	if not self:BW_IsStuck(ply, old) then return true end -- we handle it since it DOESN'T NEED handling
 
 	self.old = old

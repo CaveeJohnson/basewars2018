@@ -1,4 +1,3 @@
-local dir = "basewars2018"
 local ext = basewars.appendExtension"core.inventory"
 basewars.inventory = basewars.inventory or {}
 

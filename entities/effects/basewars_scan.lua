@@ -54,8 +54,8 @@ function EFFECT:Render()
 	local old = mat:GetFloat("$alpha")
 	mat:SetFloat("$alpha", self.alpha / 255)
 
-	for i = 1, self.ringCount do
-		local ring = self.rings[i]
+	for n = 1, self.ringCount do
+		local ring = self.rings[n]
 		ring = ring + mr * (FrameTime() * rate)
 
 		if ring >= 0 then

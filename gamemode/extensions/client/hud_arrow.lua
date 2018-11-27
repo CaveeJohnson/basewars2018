@@ -104,7 +104,7 @@ mat:SetScale(Vector(0.5, .1, .5))
 
 local color_white_vec = Vector(1, 1, 1)
 function ext:HUDPaint()
-	local pos, col = hook.Run("BW_GetHUDArrowPos")
+	local pos, new_col = hook.Run("BW_GetHUDArrowPos")
 	if not pos then return end
 
 	cam.Start3D(Vector(-60, 0, -40), Angle(), 110)
@@ -114,10 +114,10 @@ function ext:HUDPaint()
 		mat:SetAngles(local_angle)
 
 		cam.PushModelMatrix(mat)
-			if col then material:SetVector("$color", Vector(col.r / 255, col.g / 255, col.b / 255)) end
+			if new_col then material:SetVector("$color", Vector(new_col.r / 255, new_col.g / 255, new_col.b / 255)) end
 				render.SetMaterial(material)
 				obj:Draw()
-			if col then material:SetVector("$color", color_white_vec) end
+			if new_col then material:SetVector("$color", color_white_vec) end
 		cam.PopModelMatrix()
 	cam.End3D()
 end

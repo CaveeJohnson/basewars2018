@@ -133,8 +133,9 @@ do -- util
 	end
 
 	local function hsvToRgb(h, s, v)
+		h = h / 60
+
 		local c = v * s
-		local h = h / 60
 		local x = c * (1 - math_abs(h % 2 - 1))
 		local m = v - c
 
@@ -223,12 +224,12 @@ do -- BWUI.Base
 
 	function PANEL:sizeWideTo(width, time)
 		if not width or width == -1 then return false end
-		return self:queueAnimation(time, self:GetWide(), width, self.SetWide, func)
+		return self:queueAnimation(time, self:GetWide(), width, self.SetWide, nil)
 	end
 
 	function PANEL:sizeTallTo(height, time)
 		if not height or height == -1 then return false end
-		return self:queueAnimation(time, self:GetTall(), height, self.SetTall, func)
+		return self:queueAnimation(time, self:GetTall(), height, self.SetTall, nil)
 	end
 
 	function PANEL:sizeTo(width, height, time, func)
@@ -352,7 +353,7 @@ do -- BWUI.Text
 
 		local lastfont = "Default"
 
-		local n = #data
+		--local n = #data
 
 		local ourdata = {}
 

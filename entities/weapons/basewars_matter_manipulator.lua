@@ -7,9 +7,9 @@ SWEP.PrintName     = "MATTER MANIPULATOR"
 -- Contact and author are same as base
 SWEP.Purpose       = "Equipped with a massenergy &lt;-&gt; money conversion matrix, the easiest way to create items on the go."
 
-local reload       = SERVER and "R" or input.LookupBinding("reload"):upper()
+--[[local reload       = SERVER and "R" or input.LookupBinding("reload"):upper()
 local use          = SERVER and "E" or input.LookupBinding("use"):upper()
-local speed        = SERVER and "SHIFT" or input.LookupBinding("speed"):upper()
+local speed        = SERVER and "SHIFT" or input.LookupBinding("speed"):upper()]]
 --SWEP.Instructions  = "remake in progress, press r to toggle mode"
 
 SWEP.Slot          = 0

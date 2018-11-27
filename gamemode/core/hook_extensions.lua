@@ -87,7 +87,7 @@ end
 function GM:PlayerSpawnSWEP(ply, ...)
 	if hook.Run("ShouldPlayerSpawnObject", ply, ply:GetEyeTrace(), "swep", ...) == false then return false end
 
-	return self.BaseClass.PlayerSpawnSENT(self, ply, ...)
+	return self.BaseClass.PlayerSpawnSWEP(self, ply, ...)
 end
 
 function GM:PlayerSpawnVehicle(ply, ...)

@@ -85,6 +85,19 @@ function SWEP:ShouldDropOnDie()
 	return false
 end
 
+function SWEP:Think()
+
+end
+
+function SWEP:PrimaryAttack()
+
+end
+
+function SWEP:SecondaryAttack()
+
+end
+
+
 if CLIENT then
 	surface.CreateFont("bw_ck_base_weapon_selection_blur", {
 		font = "HalfLife2",
@@ -449,80 +462,80 @@ if CLIENT then
 		return pos, ang
 	end
 
-	local hasGarryFixedBoneScalingYet = false
+	do
+		local vec1 = Vector(1, 1, 1)
+		local vec0 = Vector()
+		local ang0 = Angle()
 
-	local vec1 = Vector(1, 1, 1)
-	local vec0 = Vector()
-	local ang0 = Angle()
+		local identity_bone = {
+			scale = vec1,
+			pos = vec0,
+			angle = ang0,
+		}
 
-	local identity_bone = {
-		scale = vec1,
-		pos = vec0,
-		angle = ang0,
-	}
+		-- TODO: see below workarounds
 
-	function SWEP:ckUpdateBonePositions(vm)
-		local bone_mods = self.ViewModelBoneMods
-		if not bone_mods then
-			return self:ckResetBonePositions(vm)
-		end
-
-		local count = vm:GetBoneCount()
-		if not count or count == 0 then return end
-
-		-- workaround
-		if not hasGarryFixedBoneScalingYet then
-			for i = 0, count do
-				local bonename = vm:GetBoneName(i)
-
-				if not bone_mods[bonename] then
-					bone_mods[bonename] = identity_bone
-				end
+		function SWEP:ckUpdateBonePositions(vm)
+			local bone_mods = self.ViewModelBoneMods
+			if not bone_mods then
+				return self:ckResetBonePositions(vm)
 			end
-		end
 
-		for name, v in pairs(bone_mods) do
-			local bone = vm:LookupBone(name)
+			local count = vm:GetBoneCount()
+			if not count or count == 0 then return end
 
-			if bone then
-				local scale = Vector(v.scale.x, v.scale.y, v.scale.z)
+			-- <workaround>
+				for i = 0, count do
+					local bonename = vm:GetBoneName(i)
 
-				-- workaround
-				if not hasGarryFixedBoneScalingYet then
-					local total_scale = Vector(1, 1, 1)
-
-					local current_bone = vm:GetBoneParent(bone)
-					while current_bone >= 0 do
-						local parent_scale = bone_mods[vm:GetBoneName(current_bone)].scale
-						total_scale = total_scale * parent_scale
-
-						current_bone = vm:GetBoneParent(current_bone)
+					if not bone_mods[bonename] then
+						bone_mods[bonename] = identity_bone
 					end
+				end
+			-- </workaround>
 
-					scale = scale * total_scale
-				end
+			for name, v in pairs(bone_mods) do
+				local bone = vm:LookupBone(name)
 
-				if vm:GetManipulateBoneScale(bone) ~= scale then
-					vm:ManipulateBoneScale(bone, scale)
-				end
-				if vm:GetManipulateBoneAngles(bone) ~= v.angle then
-					vm:ManipulateBoneAngles(bone, v.angle)
-				end
-				if vm:GetManipulateBonePosition(bone) ~= v.pos then
-					vm:ManipulateBonePosition(bone, v.pos)
+				if bone then
+					local scale = Vector(v.scale.x, v.scale.y, v.scale.z)
+
+					-- <workaround>
+						local total_scale = Vector(1, 1, 1)
+
+						local current_bone = vm:GetBoneParent(bone)
+						while current_bone >= 0 do
+							local parent_scale = bone_mods[vm:GetBoneName(current_bone)].scale
+							total_scale = total_scale * parent_scale
+
+							current_bone = vm:GetBoneParent(current_bone)
+						end
+
+						scale = scale * total_scale
+					-- </workaround>
+
+					if vm:GetManipulateBoneScale(bone) ~= scale then
+						vm:ManipulateBoneScale(bone, scale)
+					end
+					if vm:GetManipulateBoneAngles(bone) ~= v.angle then
+						vm:ManipulateBoneAngles(bone, v.angle)
+					end
+					if vm:GetManipulateBonePosition(bone) ~= v.pos then
+						vm:ManipulateBonePosition(bone, v.pos)
+					end
 				end
 			end
 		end
-	end
 
-	function SWEP:ckResetBonePositions(vm)
-		local count = vm:GetBoneCount()
-		if not count or count == 0 then return end
+		function SWEP:ckResetBonePositions(vm)
+			local count = vm:GetBoneCount()
+			if not count or count == 0 then return end
 
-		for i = 0, count do
-			vm:ManipulateBoneScale   (i, vec1)
-			vm:ManipulateBoneAngles  (i, ang0)
-			vm:ManipulateBonePosition(i, vec0)
+			for i = 0, count do
+				vm:ManipulateBoneScale   (i, vec1)
+				vm:ManipulateBoneAngles  (i, ang0)
+				vm:ManipulateBonePosition(i, vec0)
+			end
 		end
 	end
 end

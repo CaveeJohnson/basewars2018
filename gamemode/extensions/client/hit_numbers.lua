@@ -24,7 +24,7 @@ function ext:getHitPos(ent, dmginfo)
 end
 
 local none = Color(0, 0, 0, 0)
-function mixColor(incol, adcol)
+local function mixColor(incol, adcol)
 	adcol = adcol or none
 
 	return Color(
@@ -46,9 +46,8 @@ ext.colorLookup = {
 }
 --  DMG_BURN ENERGYBEAM PLASMA RADIATION CRUSH VEHICLE CLUB FALL
 
-function rnSign()
-	local rn = math.random()
-	return rn < 0.5 and -1 or 1
+local function rnSign()
+	return math.random() < 0.5 and -1 or 1
 end
 
 ext.dist_sqr = 512 * 512

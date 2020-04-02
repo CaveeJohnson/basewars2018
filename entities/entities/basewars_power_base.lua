@@ -4,7 +4,7 @@ ENT.Base = "basewars_base"
 ENT.Type = "anim"
 DEFINE_BASECLASS(ENT.Base)
 
-ENT.PrintName = "Basewars 2018 Base Power"
+ENT.PrintName = "Basewars Base Power"
 
 ENT.isPoweredEntity = true
 

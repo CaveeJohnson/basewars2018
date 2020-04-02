@@ -5,7 +5,7 @@ local font_normal = ext:getTag() .. "_normal"
 
 ext.tutorialIntroText = [[
 <font=font_normal>
-Welcome to Basewars 2018, you will now face your first decision.
+Welcome to Basewars, you will now face your first decision.
 
 <color=200,200,200>If you ALREADY KNOW HOW TO PLAY, you can skip this tutorial.
 If you HAVE NOT PLAYED BEFORE, or are USED TO THE 2015 VERSION, you will NEED to become acquainted.
@@ -59,7 +59,7 @@ function ext:BW_PostContentNotification()
 	if done then return end
 
 	local frame = vgui.Create("DFrame")
-		frame:SetTitle("Basewars 2018 Edition Tutorial...")
+		frame:SetTitle("Basewars Edition Tutorial...")
 		frame:SetDraggable(false)
 		frame:ShowCloseButton(false)
 		frame:SetBackgroundBlur(true)

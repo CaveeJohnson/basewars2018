@@ -45,7 +45,7 @@ do
 	ENT.Type = "anim"
 	ENT.isUpgradableEntity = true
 
-	ENT.PrintName = "Basewars 2018 Powered Upgradable"
+	ENT.PrintName = "Basewars Powered Upgradable"
 
 	addUpgradeFunctionality(ENT)
 	scripted_ents.Register(ENT, "basewars_power_upgradable")
@@ -59,7 +59,7 @@ do
 
 	ENT.multEnergyTP = true
 
-	ENT.PrintName = "Basewars 2018 Powered Sub Upgradable"
+	ENT.PrintName = "Basewars Powered Sub Upgradable"
 
 	addUpgradeFunctionality(ENT)
 	scripted_ents.Register(ENT, "basewars_power_sub_upgradable")
@@ -71,7 +71,7 @@ do
 	ENT.Type = "anim"
 	ENT.isUpgradableEntity = true
 
-	ENT.PrintName = "Basewars 2018 Base Upgradable"
+	ENT.PrintName = "Basewars Base Upgradable"
 
 	addUpgradeFunctionality(ENT)
 	--scripted_ents.Register(ENT, "basewars_upgradable_base")

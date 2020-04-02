@@ -6,7 +6,7 @@ DEFINE_BASECLASS(ENT.Base)
 
 ENT.RenderGroup = RENDERGROUP_BOTH
 
-ENT.PrintName = "Basewars 2018 Base Entity"
+ENT.PrintName = "Basewars Base Entity"
 
 ENT.Model = "models/props_interiors/pot02a.mdl"
 ENT.Skin = 0

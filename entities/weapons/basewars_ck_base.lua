@@ -3,7 +3,7 @@ AddCSLuaFile()
 SWEP.Base          = "weapon_base"
 DEFINE_BASECLASS     "weapon_base"
 
-SWEP.PrintName     = "Basewars 2018 Construction Kit Base"
+SWEP.PrintName     = "Basewars Construction Kit Base"
 
 SWEP.Author        = GAMEMODE.Author .. ", Clavus"
 SWEP.Contact       = GAMEMODE.Website

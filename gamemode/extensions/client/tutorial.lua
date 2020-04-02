@@ -59,7 +59,7 @@ function ext:BW_PostContentNotification()
 	if done then return end
 
 	local frame = vgui.Create("DFrame")
-		frame:SetTitle("Basewars Edition Tutorial...")
+		frame:SetTitle("Hexahedron Basewars Tutorial...")
 		frame:SetDraggable(false)
 		frame:ShowCloseButton(false)
 		frame:SetBackgroundBlur(true)

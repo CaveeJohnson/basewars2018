@@ -12,7 +12,7 @@ All code by Hexahedron Studios, who are:
 	Ling
 	Frumorn
 	Rob
-	Squigglesquiggle
+	Camila
 	Moku
 ]]
 GM.Copyright = "Copyright \xc2\xa9 2017-2018 Hexahedron Studios"

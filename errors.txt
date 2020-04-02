@@ -21,3 +21,10 @@ gamemodes/basewars/gamemode/core/uid_sid64_converter.lua:42: attempt to index lo
 
 -- spawning core in wall, maybe drop to floor fucks it
 gamemodes/basewars/entities/entities/basewars_core/init.lua:189: core with no base at 2591.649902 -2178.377930 3.956268
+
+lua/includes/extensions/net.lua:103: bad argument #1 to 'pairs' (table expected, got nil)
+  1. pairs - [C]:-1
+   2. WriteTable - lua/includes/extensions/net.lua:103
+    3. reply - gamemodes/basewars/gamemode/core/server/sv_inventory.lua:12
+     4. func - gamemodes/basewars/gamemode/core/server/sv_inventory.lua:287
+      5. unknown - lua/includes/extensions/net.lua:32

@@ -75,7 +75,7 @@ function EFFECT:Render()
 			render.EndBeam()
 		end
 
-		self.rings[i] = ring
+		self.rings[n] = ring
 	end
 
 	mat:SetFloat("$alpha", old or 1)

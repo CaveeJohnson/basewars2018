@@ -69,32 +69,41 @@ do
 	local shade = Color(20, 20, 20, 200)
 	local max, min = math.max, math.min
 
+	local textOutlined = draw.textOutlined
 	function drawString(str, x, y, col, a1, a2, font)
-		shade.a = math.max(0, col.a - 55)
-		return draw.textOutlined(str, font or main_font, x, y, col, a1, a2, shade)
+		shade.a = max(1, col.a - 55)
+		return textOutlined(str, font or main_font, x, y, col, a1, a2, shade)
 	end
 
+	local textOutlinedLT = draw.textOutlinedLT
 	function drawStringLT(str, x, y, col, font)
-		shade.a = math.max(0, col.a - 55)
-		return draw.textOutlinedLT(str, font or main_font, x, y, col, shade)
+		shade.a = max(1, col.a - 55)
+		return textOutlinedLT(str, font or main_font, x, y, col, shade)
 	end
 
+	local setColor = surface.SetDrawColor
+	local drawRect = surface.DrawRect
 	function drawBar(x, y, w, h, col1, col2, frac)
 		frac = max(frac, 0)
 
-		surface.SetDrawColor(col1)
-		surface.DrawRect(x, y, w, h)
+		setColor(col1)
+		drawRect(x, y, w, h)
 
-		local over = false
-		local iter = 0
-		while frac > 0.01 and iter < 5 do
-			local rem = min(frac, 1)
-			surface.SetDrawColor(over and over_load_t or col2)
-			surface.DrawRect(x, y, w * rem, h)
+		if frac > 1 then
+			local over = false
+			local iter = 0
+			while frac > 0.01 and iter < 5 do
+				local rem = min(frac, 1)
+				setColor(over and over_load_t or col2)
+				drawRect(x, y, w * rem, h)
 
-			frac = frac - rem
-			over = true
-			iter = iter + 1
+				frac = frac - rem
+				over = true
+				iter = iter + 1
+			end
+		elseif frac > 0.01 then
+			setColor(col2)
+			drawRect(x, y, w * frac, h)
 		end
 
 		return h
@@ -190,14 +199,16 @@ do
 	end
 end
 
-local money_notif_list = {}
+local money_notif_list, money_notif_list_count = {}, 0
 
 function ext:BW_OnMoneyNotification(amt, res)
 	table.insert(money_notif_list, 1, {amt, res, CurTime(), 500})
 
 	local count = #money_notif_list
+	money_notif_list_count = math.min(count, 10)
+
 	while count > 10 do
-		table.remove(money_notif_list,count)
+		table.remove(money_notif_list, count)
 		count = count - 1
 	end
 end
@@ -237,9 +248,10 @@ function ext:HUDPaint()
 			cury = cury - drawString(level_text_final, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
 			cury = cury - drawString(basewars.versionString .. " | not representative of release version", curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM, version_font)
 
-			local count = math.min(#money_notif_list, 10)
+			local count = money_notif_list_count
 			if count ~= 0 then
 				cury = cury - 4
+				local new_count = 0
 
 				surface.SetFont(version_font)
 				-- £9,999.99 qn  --
@@ -255,10 +267,12 @@ function ext:HUDPaint()
 						data[4] = data[4] - 1
 
 						if data[4] > 1 then
-							lookup_replacement[#lookup_replacement + 1] = data
+							new_count = new_count + 1
+							lookup_replacement[new_count] = data
 						end
 					else
-						lookup_replacement[#lookup_replacement + 1] = data
+						new_count = new_count + 1
+						lookup_replacement[new_count] = data
 					end
 
 					local alpha = math.min(data[4], 255)
@@ -268,6 +282,7 @@ function ext:HUDPaint()
 				end
 
 				money_notif_list = lookup_replacement
+				money_notif_list_count = new_count
 			end
 		else
 			cury = cury - drawString("FATAL ERROR", curx, cury, pure_red, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)

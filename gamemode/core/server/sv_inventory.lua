@@ -229,7 +229,7 @@ function basewars.inventory.trade(ply, ent, id, amt)
 		end
 	else
 		if not (
-			basewars.inventory.hasAmt(ent, id,  amt) and
+			basewars.inventory.hasAmt(ent, id, -amt) and
 			basewars.inventory.add   (ent, id,  amt) and
 			basewars.inventory.add   (ply, id, -amt)
 		) then
@@ -283,6 +283,7 @@ net.Receive(net_tag_trade, function(len, ply)
 	if not IsValid(ent) then return end
 
 	if not basewars.inventory.trade(ply, ent, net.ReadString(), net.ReadDouble()) then return end
+	local inventory = basewars.inventory.get(ent)
 
 	reply(net_tag_request, ply, ent, true, inventory) -- reply with the request tag, just update the inventory for them
 end)

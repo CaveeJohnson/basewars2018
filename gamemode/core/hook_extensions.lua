@@ -11,7 +11,7 @@ end
 
 function GM:OnEntityCreated(ent, ...)
 	local a = {...}
-	timer.Simple(0, function()
+	timer.Simple(engine.TickInterval()*2, function()
 		if IsValid(ent) then
 			hook.Run("PostEntityCreated", ent, unpack(a))
 		end
@@ -109,7 +109,7 @@ function GM:PlayerSpawn(ply, ...)
 	end
 
 	local a = {...}
-	timer.Simple(0, function()
+	timer.Simple(engine.TickInterval()*2, function()
 		if IsValid(ply) then hook.Run("PostPlayerSpawn", ply, unpack(a)) end
 	end)
 

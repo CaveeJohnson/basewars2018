@@ -9,21 +9,20 @@ We would also like to ask you to **not share any code or files from this gamemod
 
 ---------
 
-If you have any concerns about anything, feel free to contact [Q2F2](mailto:q2f2@hexahedron.pw) or [Ling](mailto:ling@hexahedron.pw).
-You can alternatively contact us via [Steam](http://steamcommunity.com/groups/hexahedronic) or [Discord](https://discord.gg/stdEJkF).
+If you have any concerns about anything, feel free to contact [Q2F2](mailto:q2f2@hexahedron.pw).
 
 ----
 
 ### The following are the legally binding terms
 
 *As a condition of providing a Contribution, you agree that:*
-- *You grant Hexahedron Studios a non-exclusive, irrevocable, royalty-free, worldwide license
+- *You grant asterum a non-exclusive, irrevocable, royalty-free, worldwide license
 to make, use, sell, reproduce, modify, distribute (directly and indirectly),
 and publicly display and perform the Contribution, and any derivative works
-that Hexahedron Studios may make from the Contribution, under any intellectual property you
+that asterum may make from the Contribution, under any intellectual property you
 own or have the right to license.*
 - *You warrant and represent that the Contribution is your original creation,
-that you have the authority to grant this license to Hexahedron Studios, and that this
+that you have the authority to grant this license to asterum, and that this
 license does not require the permission of any third party.  Otherwise, you
 provide your Contribution "as is" without warranties.*
 

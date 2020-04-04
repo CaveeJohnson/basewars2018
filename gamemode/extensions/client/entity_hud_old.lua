@@ -1,5 +1,3 @@
-do return end
-
 local ext = basewars.createExtension"entity-hud"
 
 ext.maxDrawDistance  = 200 ^ 2

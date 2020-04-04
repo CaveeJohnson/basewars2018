@@ -306,7 +306,7 @@ function ENT:Draw()
 
 	p:Text(string.format("Welcome to the server! There are currently %d free base locations (%d total), and %d faction(s).", total_bases - used_bases, total_bases, fac_count), "!DejaVu Sans@28", x, y, color_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
 
-	p:Text("Copyright \xc2\xa9 2017-2018 Hexahedron Studios", "!DejaVu Sans@14", w - space, h - space, color_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
+	p:Text(GAMEMODE.Copyright, "!DejaVu Sans@14", w - space, h - space, color_white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
 
 	y = y + 28 + 20
 

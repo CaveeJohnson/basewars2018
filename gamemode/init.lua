@@ -14,7 +14,7 @@ for _, v in ipairs(spawnicons) do
 end
 
 -- Stuff for server, remove from here in future
-resource.AddWorkshop("1132466603") -- stormfox
+-- resource.AddWorkshop("1132466603") -- stormfox
 
 resource.AddWorkshop("160250458" ) -- wire
 resource.AddWorkshop("173482196" ) -- sprops

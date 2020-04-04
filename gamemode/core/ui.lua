@@ -1,5 +1,6 @@
 -- setfenv(1, _G)
 if SERVER then return end -- has to be here because of load order
+do return end
 
 local ext = basewars.createExtension"core.ui"
 

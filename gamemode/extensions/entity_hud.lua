@@ -3,6 +3,8 @@
 
 local ext = basewars.createExtension"entity-hud"
 
+do return end
+
 ext.opNameToCode = {
 	connect = {1, "Connect"},
 	disconnect = {2, "Disconnect"},

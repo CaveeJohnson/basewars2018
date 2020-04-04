@@ -1,21 +1,17 @@
 DeriveGamemode("sandbox")
 
 GM.Name      = "Basewars"
-GM.Author    = "Hexahedron Studios"
-GM.Website   = "http://hexahedron.pw/"
+GM.Author    = "asterum collective"
+GM.Website   = "http://catgirls.co/"
 
 GM.Credits   = [[
-All code by Hexahedron Studios, who are:
-	Q2F2
-	Ghosty
-	Zeni
-	Ling
-	Frumorn
-	Rob
-	Camila
-	Moku
+All code by the asterum collective, who are:
+Q2F2 (Orbitei, Kobayashi-san�~z�2title)
+et al
 ]]
-GM.Copyright = "Copyright \xc2\xa9 2017-2018 Hexahedron Studios"
+
+local current_year = os.date("%Y") -- ITS CURRENT YEAR
+GM.Copyright = "Copyright \xc2\xa9 2017-" .. current_year .. " " .. GM.Author
 
 
 basewars = basewars or {}

@@ -13,6 +13,9 @@ function ext:BW_DoScanEffect(core) -- doesn't actually get called yet
 	if encompassed_count == 0 then
 		core:requestAreaTransmit() -- maybe next time?
 
+		self.started = nil
+		self.target = nil
+
 		return
 	end
 
@@ -77,6 +80,7 @@ function ext:HUDPaint()
 	render.SetColorModulation(1, 0.2, 0.2)
 	render.SetBlend(0.4)
 		local targs = self.targetEnts
+		print(self.showAmt)
 		for i = 1, self.showAmt do
 			local v = targs[i][3]
 

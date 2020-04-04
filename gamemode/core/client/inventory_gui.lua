@@ -2,6 +2,8 @@
 
 local ext = basewars.createExtension"inventory-gui"
 
+do return end
+
 ext.listeners     = {}
 ext.listeners_loc = {}
 

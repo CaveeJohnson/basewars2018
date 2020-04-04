@@ -27,7 +27,10 @@ function ext:ShutDown()
 end
 
 function ext:PlayerSpawn(ply)
-	player_manager.SetPlayerClass(ply, "player_extended")
+	-- https://github.com/Facepunch/garrysmod/commit/2135ca054403de0d1eb4fc9e0a65d2d43db653f7#diff-14e2ec13c5f420b600de1a2e1fbdddc7
+	-- YEAH FUCKING NICE ONE ROBOTBOY LETS RANDOMLY CHANGE SHIT WITHOUT CHECKING WHAT WE ARE DOING AND SETUP THE CLASS EVERY TIME THE ID IS CHANGED DUMB FUCKING APE
+	-- BTW THE WIKI STILL SAYS TO FUCKING USE THIS ON PLAYERSPAWN AND MAKES NO GUARUNTEE OF IT NOT BECOMING INVALID
+	-- player_manager.SetPlayerClass(ply, "player_extended")
 end
 
 function ext:PostPlayerInitialSpawn(ply)

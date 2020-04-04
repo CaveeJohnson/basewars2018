@@ -3,9 +3,9 @@
 	"base"        "sandbox"
 	"title"       "Basewars"
 	"version"     "GIT"
-	"description" "Hexahedron Basewars redesigned, 2020 edition."
+	"description" "asterum basewars redesigned, 2020 edition."
 
-	"author_name" "Hexahedron Studios"
+	"author_name" "asterum"
 	"author_url"  "http://hexahedron.pw/"
 
 	"hide"        "0"

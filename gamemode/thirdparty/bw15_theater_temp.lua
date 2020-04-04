@@ -1,3 +1,5 @@
+do return end
+
 local reload = theater and theater.screen
 theater = {screen = reload}
 

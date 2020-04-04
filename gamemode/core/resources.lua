@@ -51,6 +51,10 @@ end
 function basewars.resources.getCacheModel(res)
 	res = istable(res) and res or basewars.resources.get(res)
 
+	if res.model then
+		return res.model, res.skin
+	end
+
 	local t = res.type
 	if t == "liquid" then
 		return "models/props_junk/plasticbucket001a.mdl"

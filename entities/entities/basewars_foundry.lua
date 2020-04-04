@@ -36,6 +36,7 @@ function ENT:SetupDataTables()
 	BaseClass.SetupDataTables(self)
 
 	self:netVar("Bool", "AlloyingEnabled")
+	self:netVar("Double", "NextFoundryThink")
 end
 
 local net_tag = "bw-foundry"
@@ -361,8 +362,7 @@ function ENT:Think()
 	BaseClass.Think(self)
 
 	local ct = CurTime()
-	if self.nextFoundryThink and self.nextFoundryThink > ct then return end
-	self.nextFoundryThink = ct + 10
+	if self:getNextFoundryThink() and self:getNextFoundryThink() > ct then return end
 
 	if not (self:isPowered() and self:processInventory()) then
 		self:stopSound("machine_ambient")
@@ -371,12 +371,12 @@ function ENT:Think()
 			self:setActive(false)
 		end
 
-		self.nextFoundryThink = ct + 20
+		self:setNextFoundryThink(ct + 20)
 
 		return
 	end
 
-	self.nextFoundryThink = ct + 10
+	self:setNextFoundryThink(ct + 10)
 
 	self:loopSound("machine_ambient", "ambient/levels/canals/manhack_machine_loop1.wav", 0.5)
 	self:EmitSound("ambient/levels/canals/headcrab_canister_open1.wav")

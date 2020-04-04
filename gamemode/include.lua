@@ -32,6 +32,7 @@ GM.itemFolder      = GM.gmFolder .. "items/"
 GM.resourceFolder  = GM.gmFolder .. "resources/"
 GM.blueprintFolder = GM.gmFolder .. "blueprints/"
 GM.configFolder    = GM.gmFolder .. "config/"
+GM.isosnubFolder   = GM.gmFolder .. "isosnub/"
 
 do
 	local ext = basewars.createExtension"core.itemLoader"
@@ -49,6 +50,10 @@ do
 			basewars.loadBlueprintFolder("")
 			_, count = basewars.crafting.getList()
 			basewars.logf("    loaded %d blueprints total", count)
+
+			basewars.loadIsosnubFolder("")
+			_, count = basewars.isosnub.templates.getList()
+			basewars.logf("    loaded %d isosnubs total", count)
 
 			collectgarbage() -- tables that might be discarded
 		hook.Run("PostItemsLoaded")
@@ -151,6 +156,20 @@ do
 
 		basewars.logf("    loaded %d blueprint files", recurseDirs(dir, blueprintLoad))
 		BLUEPRINT = nil
+	end
+end
+
+do
+	local function isosnubLoad(path, name)
+		includeCS(path)
+	end
+
+	function basewars.loadIsosnubFolder(dirName)
+		local gm = GM or GAMEMODE
+		local dir = gm.isosnubFolder .. dirName
+		basewars.logf("loading isosnub directory 'isosnub/%s'", dirName)
+
+		basewars.logf("    loaded %d isosnub files", recurseDirs(dir, isosnubLoad))
 	end
 end
 

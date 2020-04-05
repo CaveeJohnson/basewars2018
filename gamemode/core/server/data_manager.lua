@@ -78,12 +78,11 @@ function ext:LoadPlayerData(ply)
 end
 
 function basewars.data.initVarDefault(ply, var, initial, callback)
-	ply = basewars.data.sid64(ply)
+	local sid64 = basewars.data.sid64(ply)
 	var = var:lower()
 
 	if useSQL then
-		local q = basewars._database:prepare("INSERT IGNORE INTO players (sid64) VALUES (?)")
-		q:setString(1, ply)
+		local q = basewars._database:query(string.format("INSERT IGNORE INTO players (sid64) VALUES ('%s')", sid64))
 
 		function q:onSuccess(data)
 			-- defaults are on the table
@@ -117,14 +116,14 @@ function basewars.data.initVarDefault(ply, var, initial, callback)
 end
 
 function basewars.data.savePlayerVar(ply, var, val, callback)
-	ply = basewars.data.sid64(ply)
+	local sid64 = basewars.data.sid64(ply)
 	var = var:lower()
 
 	if useSQL then
-		local q = basewars._database:query(string.format("UPDATE players SET `%s` = '%s' WHERE sid64 = '?'", var, val, ply))
+		local q = basewars._database:query(string.format("UPDATE players SET `%s` = '%s' WHERE sid64 = '%s'", var, val, sid64))
 
 		function q:onSuccess(row)
-			if row[1] and callback then callback(ply, var, row[1][var]) end
+			if callback then callback(ply, var, val) end
 		end
 
 		function q:onError(err, sql)
@@ -144,13 +143,13 @@ function basewars.data.savePlayerVar(ply, var, val, callback)
 end
 
 function basewars.data.loadPlayerVar(ply, var, callback)
-	ply = basewars.data.sid64(ply)
+	local sid64 = basewars.data.sid64(ply)
 	var = var:lower()
 
 	if useSQL then
-		local q = basewars._database:query(string.format("SELECT `%s` FROM players WHERE sid64 = '%s'", var, ply))
+		local q = basewars._database:query(string.format("SELECT `%s` FROM players WHERE sid64 = '%s'", var, sid64))
 
-		function q:onSuccess(row, r2, r3)
+		function q:onSuccess(row)
 			if row[1] and callback then callback(ply, var, row[1][var]) end
 		end
 

@@ -37,6 +37,8 @@ function ENT:SetupDataTables()
 
 	self:netVar("Bool", "AlloyingEnabled")
 	self:netVar("Double", "NextFoundryThink")
+	self:netVar("Int", "FoundryThinkDelay")		-- it's impossible to know whether this think delay was caused by lack of resources/power or regular operation
+
 end
 
 local net_tag = "bw-foundry"
@@ -55,15 +57,254 @@ function ext:BW_ReceivedInventory(ent, inv)
 	end
 end
 
+
+local function CreateItem(res, pnl)
+	local btn = vgui.Create("FButton", pnl)
+
+	btn:Dock(TOP)
+	btn:SetTall(48)
+	btn:DockPadding(4, 0, 4, 0)
+	btn:DockMargin(4, 4, 4, 4)
+
+	local mdl = vgui.Create("DModelPanel", btn)
+	mdl:Dock(LEFT)
+	mdl:SetWide(48)
+	mdl:SetMouseInputEnabled(false)
+
+	local resmdl, resskin = basewars.resources.getCacheModel(res)
+
+	mdl:SetModel(resmdl)
+	if resskin then mdl.Entity:SetSkin(resskin) end 
+	if res.color then mdl:SetColor(res.color) end 
+
+		local mn, mx = mdl.Entity:GetRenderBounds()
+		local size = 0
+		size = math.max( size, math.abs( mn.x ) + math.abs( mx.x ) )
+		size = math.max( size, math.abs( mn.y ) + math.abs( mx.y ) )
+		size = math.max( size, math.abs( mn.z ) + math.abs( mx.z ) )
+
+		mdl:SetFOV( 45 )
+		mdl:SetCamPos( Vector( size, size, size ) )
+		mdl:SetLookAt( ( mn + mx ) * 0.5 )
+
+	return btn
+end
+
+local function AddSmelting(res, pnl, amt)
+	local btn = CreateItem(res, pnl)
+	local amtcol = Color(140, 140, 140)
+
+	function btn:PostPaint(w, h)
+		draw.SimpleText(res.name, "OSB24", 48 + 12, 4, color_white, 0, 5)
+		draw.SimpleText("Amount: x" .. amt, "OS18", 48 + 12, 24, amtcol, 0, 5)
+	end
+end
+
+local function AddSmelted(res, pnl, amt)
+	local btn = CreateItem(res, pnl)
+	local amtcol = Color(140, 140, 140)
+
+	function btn:PostPaint(w, h)
+		draw.SimpleText(res.name .. " Bar", "OSB24", 48 + 12, 4, color_white, 0, 5)
+		draw.SimpleText("Amount: x" .. amt, "OS18", 48 + 12, 24, amtcol, 0, 5)
+	end
+end
+
+
+local input_width = 260
+local output_width = 260
+
+local arrow_size = 64 --processing arrow size in px
+local power_size = 35 --no power icon size in px
+
+local ore_width = 36	--ore icon isn't a 1:1 ratio
+local ore_height = 32
+
+local pw_ore_pad = 6 --padding between no-power icon and no-ores icon 
+
+local nopower_color = Color(170, 60, 60)
+
+local time_color = Color(120, 120, 120)
+local wrong_time_color = Color(200, 100, 100)
+
+local regular_delay = 10 -- if next think delay isn't 10 seconds then something went wrong and the timer will be red instead
+
+
+
+local ore_url, ore_name = "https://i.imgur.com/cVE102V.png", "ore.png"
+local arr_url, arr_name = "https://i.imgur.com/jFHSu7s.png", "arr_right.png"
+local pw_url, pw_name = "https://i.imgur.com/poRxTau.png", "electricity.png"
+
+function ENT:hasRefineables()
+
+	for name, amt in pairs(self.bw_inventory) do 
+		local id = basewars.inventory.getId(name)
+		local res = basewars.resources.get(id)
+
+		if res.refines_to then 
+			return true 
+		end 
+	end
+
+	return false
+end
+
 function ENT:openMenu(t)
 	if not (t or basewars.inventory.request(self)) then return end
 
 	if not t then
 		ext.awaiting[self:EntIndex()] = true
-
 		return
 	end
 
+	if IsValid(self.Frame) then return end
+
+	local ent = self
+
+	local ff = vgui.Create("FFrame")
+	self.Frame = ff
+
+	ff:SetSize(700, 450)
+	ff:Center()
+	ff.Shadow = {}
+
+	ff:PopIn()
+	ff:MakePopup()
+
+	local left, top, right, bottom = ff:GetDockPadding()
+
+	left = left + 12
+	top = top + 36
+	right = right + 12
+	bottom = bottom + 12
+
+	ff:DockPadding(left, top, right, bottom)
+
+	local inv = self.bw_inventory
+
+	local res_input = vgui.Create("FScrollPanel", ff)
+	res_input:Dock(LEFT)
+	res_input:SetWide(input_width)
+
+	res_input.GradBorder = true
+
+
+	res_output = vgui.Create("FScrollPanel", ff)
+	res_output:Dock(RIGHT)
+	res_output:SetWide(output_width)
+
+	res_output.GradBorder = true
+
+	for name, amt in pairs(inv) do
+	
+		local id = basewars.inventory.getId(name)
+
+		local res = basewars.resources.get(id)
+		if not res then error("epic, couldn't get " .. id) return end
+
+		if res.refines_to then
+			AddSmelting(res, res_input, amt)
+		else
+			AddSmelted(res, res_output, amt)
+		end
+
+	end
+
+	local empty_space = ff:GetWide() - left - right - res_input:GetWide() - res_output:GetWide()
+
+	local arr_x = left + input_width + empty_space / 2 - arrow_size / 2
+	local arr_y = ff:GetTall() / 2 - arrow_size / 2
+
+	local timecol = time_color:Copy()
+
+	function ff:PostPaint(w, h)
+
+		-- Draw text above input/output fields
+
+			draw.SimpleText("Refineables", "DV28", res_input.X + res_input:GetWide() / 2, res_input.Y - 4, color_white, 1, TEXT_ALIGN_BOTTOM)
+			draw.SimpleText("Output", "DV28", res_output.X + res_output:GetWide() / 2, res_output.Y - 4, color_white, 1, TEXT_ALIGN_BOTTOM)
+
+		-- Draw white refining-process arrow
+
+			
+
+			surface.SetDrawColor(color_black)
+			surface.DrawMaterial(arr_url, arr_name, arr_x, arr_y, arrow_size, arrow_size)
+
+			local sx, sy = self:LocalToScreen(arr_x, arr_y) --for render.SetScissorRect as it takes screen coords, not local
+
+			local delay = ent:getFoundryThinkDelay()
+			local fillX = (delay - (ent:getNextFoundryThink() - CurTime())) / delay * arrow_size
+
+			if delay ~= regular_delay then
+				self:LerpColor(timecol, wrong_time_color, 0.3, 0, 0.4)
+			else
+				self:LerpColor(timecol, time_color, 0.3, 0, 0.4)
+			end
+
+			draw.SimpleText(delay .. "s.", "OS24", arr_x + arrow_size / 2, arr_y - 4, timecol, 1, 4)
+
+			render.SetScissorRect(sx, sy, sx + fillX, sy + arrow_size, true)
+
+				surface.SetDrawColor(color_white)
+				surface.DrawMaterial(arr_url, arr_name, arr_x, arr_y, arrow_size, arrow_size)
+
+			render.SetScissorRect(0, 0, 0, 0, false)
+
+	end
+
+	local pw = vgui.Create("Icon", ff)
+	pw:SetPos(arr_x + arrow_size / 2 - power_size - pw_ore_pad/2, arr_y + arrow_size + 6)
+	pw:SetSize(power_size, power_size)
+
+	pw.IconURL = pw_url
+	pw.IconName = pw_name
+
+	local pow_frac = (ent:isPowered() and 1 or 0)
+
+	local unpow_col = nopower_color:Copy()
+	pw.Color = unpow_col
+
+	function pw:Think()
+
+		unpow_col.a = (1 - pow_frac) * 255
+
+		if ent:isPowered() then
+			pow_frac = math.min(pow_frac + FrameTime(), 1)
+		else
+			pow_frac = math.max(pow_frac - FrameTime(), 0)
+		end
+
+	end
+
+	local nores_col = nopower_color:Copy()
+
+	local res = vgui.Create("Icon", ff)
+	res:SetPos(arr_x + arrow_size / 2 + pw_ore_pad/2, arr_y + arrow_size + 6)
+	res:SetSize(ore_width, ore_height)
+
+	res.IconURL = ore_url
+	res.IconName = ore_name
+
+	local res_frac = (ent:hasRefineables() and 1 or 0)
+
+	local nores_col = nopower_color:Copy()
+	res.Color = nores_col
+
+	function res:Think()
+		local has_ref = ent:hasRefineables()
+
+		nores_col.a = (1 - res_frac) * 255
+
+		if has_ref then
+			res_frac = math.min(res_frac + FrameTime(), 1)
+		else
+			res_frac = math.max(res_frac - FrameTime(), 0)
+		end
+
+	end
+
+	--[[
 	local frm = vgui.Create("DFrame")
 
 	frm:SetTitle("Foundry")
@@ -137,6 +378,7 @@ function ENT:openMenu(t)
 	frm:InvalidateChildren(true)
 	frm:Center()
 	frm:MakePopup()
+	]]
 end
 
 function ENT:doAlloying(val)
@@ -371,12 +613,14 @@ function ENT:Think()
 			self:setActive(false)
 		end
 
-		self:setNextFoundryThink(ct + 20)
+		self:setNextFoundryThink(ct + 2)
+		self:setFoundryThinkDelay(2)
 
 		return
 	end
 
 	self:setNextFoundryThink(ct + 10)
+	self:setFoundryThinkDelay(10)
 
 	self:loopSound("machine_ambient", "ambient/levels/canals/manhack_machine_loop1.wav", 0.5)
 	self:EmitSound("ambient/levels/canals/headcrab_canister_open1.wav")

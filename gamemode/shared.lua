@@ -362,6 +362,92 @@ function basewars.destructWithEffect(ent, time, money)
 	end
 end
 
+if CLIENT then
+	file.CreateDir("basewars_href")
+
+	local color_mat = Material("color")
+
+	local PNG_HEADER = "^\x89\x50\x4E\x47"
+	local JPG_HEADER = "^\xFF\xD8"
+
+	local formats = {
+		jpg = true,
+		png = true,
+		dat = true,
+	}
+
+	function basewars.hrefMat(url)
+		local state    = nil
+		local material = nil
+
+		local uid = url:match("([^/]+)$"):gsub("[^%.]+$", ""):gsub("[^%w]", "_"):Trim("_"):Trim() -- victory royale
+
+		for f in pairs(formats) do
+			local path = "basewars_href/" .. uid .. "." .. f
+
+			if file.Exists(path, "DATA") then
+				material = Material("../data/" .. path)
+
+				if material:IsError() then
+					material = nil
+				else
+					state = true
+					break
+				end
+			end
+		end
+
+		if not state then
+			http.Fetch(url, function(body, sz, headers, code)
+				if code >= 400 and code < 600 then
+					basewars.logf("href-resource: got error on fetch: http code %s", tostring(code))
+					return
+				end
+
+				if sz <= 4 then
+					basewars.logf("href-resource: got error on fetch: tiny size")
+					return
+				end
+
+				local png = body:match(PNG_HEADER)
+				local jpg = body:match(JPG_HEADER)
+				if not (png or jpg) then
+					basewars.logf("href-resource: got error on fetch: unknown format %s", body:sub(1, 8))
+					return
+				end
+
+				local ext = (jpg and "jpg") or (png and "png") or "dat"
+				local path = uid .. "." .. ext
+
+				file.Write("basewars_href/" .. path, body)
+
+				material = Material("../data/basewars_href/" .. path)
+				if not material:IsError() then
+					state = true
+				else
+					basewars.logf("href-resource: failed to load material after save")
+				end
+			end, function(err)
+				basewars.logf("href-resource: got error on fetch: %s", err)
+			end)
+		end
+
+		return function(x, y, w, h)
+			if not (state and material) then
+				local delta = math.abs(math.sin(CurTime() * 10)) * 55
+
+				surface.SetDrawColor(200 + delta, 180 + delta, 200 + delta, 255)
+				surface.SetMaterial(color_mat)
+			else
+				surface.SetDrawColor(255, 255, 255, 255)
+				surface.SetMaterial(material)
+			end
+
+			surface.DrawTexturedRect(x, y, w, h)
+		end
+	end
+end
+
 concommand.Add("gamemode_reload", function(p)
 	if SERVER and IsValid(p) and not p:IsAdmin() then return end
 	hook.Run("OnReloaded")

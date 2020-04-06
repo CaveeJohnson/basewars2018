@@ -8,7 +8,7 @@ function basewars.inventory.canModify(ply, ent)
 	if CLIENT then ply = LocalPlayer() end
 	if ply == ent then return true end
 
-	if ent:CPPIGetOwner() ~= ply then return false end
+	if ent:CPPIGetOwner() ~= ply and not ent.inventoryCanAccessAnyone then return false end
 	if ply:GetPos():DistToSqr(ent:GetPos()) > dist_sqr then return false end
 
 	return true

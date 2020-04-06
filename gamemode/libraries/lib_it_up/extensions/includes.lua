@@ -43,11 +43,11 @@ FInc.IncludeRealms = includes
 
 local BlankFunc = function() end
 
-function FInc.Recursive(name, realm, nofold, searchpath, callback)	--even though with "nofold" it's not really recursive
+function FInc.Recursive(name, realm, nofold, callback)	--even though with "nofold" it's not really recursive
 	if not NeedToInclude(realm) then return end
 	callback = callback or BlankFunc
 
-	local file, folder = file.Find( searchpath or name, "LUA" )
+	local file, folder = file.Find( name, "LUA" )
 
 	local path = name:match("(.+/).+$") or ""
 	local wildcard = name:match(".+/(.+)$")
@@ -55,9 +55,7 @@ function FInc.Recursive(name, realm, nofold, searchpath, callback)	--even though
 	for k,v in pairs(file) do
 		if not v:match(".+%.lua$") then continue end --if file doesn't end with .lua, ignore it
 		local inc_name = path .. v
-		if inc_name:match("extensions/includes%.lua") then print("not including myself, ok?") continue end --don't include yourself lol
-
-		print("including", inc_name)
+		if inc_name:match("extensions/includes%.lua") then continue end --don't include yourself
 
 		if loading then files = files + 1 end
 
@@ -70,14 +68,13 @@ function FInc.Recursive(name, realm, nofold, searchpath, callback)	--even though
 
 	end
 
-	print("nofolder?", nofold)
 	if not nofold then
 		for k,v in pairs(folder) do
 
 			-- path/ .. found_folder  .. /  .. wildcard_used
 			-- muhaddon/newfolder/*.lua
-			print("recursive: calling itself with", path .. v .. "/" .. wildcard)
-			FInc.Recursive(path .. v .. "/" .. wildcard, realm, nil, nil, callback)
+
+			FInc.Recursive(path .. v .. "/" .. wildcard, realm, nil, callback)
 		end
 	end
 
@@ -142,8 +139,7 @@ function FInc.FromHere(name, realm, nofold, cb)
 		return
 	end
 
-	print("calling recursive with", name, path .. name)
-	FInc.Recursive(name, realm, nofold, path .. name, cb)
+	FInc.Recursive(path .. name, realm, nofold, cb)
 
 end
 

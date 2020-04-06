@@ -1,7 +1,9 @@
 local ext = basewars.createExtension"core.inventory"
 basewars.inventory = basewars.inventory or {}
 
+
 local dist_sqr = 1024 * 1024 -- a lot but this is more of a 'stop cheaters remotely accessing base' than a distance check
+
 function basewars.inventory.canModify(ply, ent)
 	if CLIENT then ply = LocalPlayer() end
 	if ply == ent then return true end
@@ -54,6 +56,13 @@ function basewars.inventory.resolveData(id)
 
 	local item_data = handler:BW_ResolveInventoryData(data)
 	return item_data
+end
+
+function basewars.inventory.getId(id) --surprised this isn't a function
+	local handler, data = id:match("^(.-):(.+)$")
+	if not data then return false end
+
+	return data
 end
 
 -- may as well just put client stuff here

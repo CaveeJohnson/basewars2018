@@ -7,6 +7,7 @@ DEFINE_BASECLASS(ENT.Base)
 ENT.PrintName = "Foundry"
 
 ENT.Model = "models/props_combine/combine_interface003.mdl"
+
 ENT.SubModels = {
 	{model = "models/props_lab/tpplugholder_single.mdl"          , pos = Vector(  -4,   49,   50), ang = Angle(   0,    0,    0)},
 	{model = "models/props_combine/combine_smallmonitor001.mdl"  , pos = Vector( -12, -158,    4), ang = Angle(   0,    0,    0)},
@@ -23,14 +24,68 @@ ENT.SubModels = {
 	{model = "models/props_combine/combine_barricade_med01a.mdl" , pos = Vector( -28,   42,   33), ang = Angle(   0,   90,    0)},
 	{model = "models/props_combine/combine_smallmonitor001.mdl"  , pos = Vector( -12, -158,   29), ang = Angle(   0,    0,    0)},
 	{model = "models/props_combine/combine_barricade_med01a.mdl" , pos = Vector( -28,  -16,   33), ang = Angle(   0,  -90,    0)},
+	--{model = "models/props/cs_office/TV_plasma.mdl"              , pos = Vector (-15, -113,   50), ang = Angle(   0,    0,    0)}
 }
+
+--net.ReadFloat has float imprecision apparently
+--this var controls the decimal to which floats will be rounded
+
+local float_round = 5
+
+
+
+
 ENT.BaseHealth = 2500
 ENT.BasePassiveRate = 0
 ENT.BaseActiveRate = -100
 
+ENT.isFoundry = true
+
 ENT.PhysgunDisabled = true
 
 ENT.canStoreResources = true
+
+ENT.renderBounds = {}
+ENT.renderBounds.min = Vector (5.3033447265625, 72.049575805664, 95.973670959473)
+ENT.renderBounds.max = Vector (-57.216064453125, -174.36408996582, -0.34375)
+
+
+--screen config:
+
+	--screen itself:
+
+	ENT.screenModelPosition = Vector(-15, -113, 50)
+	ENT.screenModelName = "models/props/cs_office/TV_plasma.mdl"
+
+	ENT.screenPosition = Vector(-8.7, -132.5, 75)
+
+	--gear spinning:
+
+	ENT.maxGearSpeed = 120 	--in degrees
+	ENT.maxGearAccelTime = 3 --seconds till max gear speed is reached
+	ENT.maxGearDecelTime = 6 --seconds till gear speed drops to 0 from max
+
+	ENT.gearMinAlpha = 80 --gears will fade to this alpha when they stop spinning
+
+	--status text:
+	ENT.inactiveColor = Color(220, 80, 80)
+	ENT.activeColor = Color(50, 150, 230)
+
+	--history:
+	ENT.maxHistory = 6 	--max entries before oldest gets erased
+						--please make sure no more than this number of different items can be processed/outputted at once
+
+	ENT.historyFont = "DV18" --aka dejavu 18
+
+	ENT.historyBG = Color(45, 45, 45)
+	ENT.historyHighlight = Color(70, 70, 70)
+	ENT.historyHighlightDelay = 0.8 --new items remain highlighted for this many seconds 
+
+	ENT.historyFadeOutTime = 1
+	ENT.historyFadeInTime = 0.7
+
+	ENT.textLossCol = Color(200, 100, 100)
+	ENT.textGainCol = Color(100, 230, 100)
 
 function ENT:SetupDataTables()
 	BaseClass.SetupDataTables(self)
@@ -57,7 +112,6 @@ function ext:BW_ReceivedInventory(ent, inv)
 	end
 end
 
-
 local function CreateItem(res, pnl)
 	local btn = vgui.Create("FButton", pnl)
 
@@ -74,8 +128,8 @@ local function CreateItem(res, pnl)
 	local resmdl, resskin = basewars.resources.getCacheModel(res)
 
 	mdl:SetModel(resmdl)
-	if resskin then mdl.Entity:SetSkin(resskin) end 
-	if res.color then mdl:SetColor(res.color) end 
+	if resskin then mdl.Entity:SetSkin(resskin) end
+	if res.color then mdl:SetColor(res.color) end
 
 		local mn, mx = mdl.Entity:GetRenderBounds()
 		local size = 0
@@ -130,23 +184,401 @@ local wrong_time_color = Color(200, 100, 100)
 local regular_delay = 10 -- if next think delay isn't 10 seconds then something went wrong and the timer will be red instead
 
 
-
 local ore_url, ore_name = "https://i.imgur.com/cVE102V.png", "ore.png"
 local arr_url, arr_name = "https://i.imgur.com/jFHSu7s.png", "arr_right.png"
 local pw_url, pw_name = "https://i.imgur.com/poRxTau.png", "electricity.png"
 
+
 function ENT:hasRefineables()
 
-	for name, amt in pairs(self.bw_inventory) do 
+	for name, amt in pairs(self.bw_inventory) do
 		local id = basewars.inventory.getId(name)
 		local res = basewars.resources.get(id)
 
-		if res.refines_to then 
-			return true 
-		end 
+		if res.refines_to then
+			return true
+		end
 	end
 
 	return false
+end
+
+-- turns out clientside props either disappear when you load in or don't appear at all
+-- as a result, the screens can disappear entirely if you don't check for their existence every frame
+-- ty garry
+
+function ENT:makeScreen()
+
+	if not IsValid(self.screenModel) and not self.failedToMakeScreen then
+
+		self.gear = draw.GetMaterial("https://i.imgur.com/yRJAvam.png", "gear.png", "smooth mips", function(mat)
+			self.gear = mat
+		end).mat
+
+		local mdl = ents.CreateClientProp()
+		self.screenModel = mdl
+
+		if not mdl or not IsValid(mdl) then --rip
+			self.failedToMakeScreen = true
+			return
+		end
+
+		local vm = Matrix()
+		vm:SetScale(Vector(1, 0.7, 0.7))
+
+		mdl:SetNoDraw(true)
+		mdl:SetModel(self.screenModelName)
+
+		mdl:SetPos(self:LocalToWorld(self.screenModelPosition))
+		mdl:EnableMatrix("RenderMultiply", vm)
+
+	end
+
+end
+
+function ENT:onInit()
+	self:makeScreen()
+
+	self.gearSpeed = 0
+
+	self.gearCol = color_white:Copy()
+	self.gearCol.a = self.gearMinAlpha --it's probably going to be inactive
+
+	self.gearRot = 0
+
+	self.statusCol = self.inactiveColor:Copy()
+	self.statusFrac = 0 		--0 = inactive, 1 = active; this is used for color lerping
+
+	self.history = {
+		ins = {},	--bars that got created
+		outs = {}	--ores that got yeeted
+	}
+
+	self.status_dtext = DeltaText():SetFont("DV36")
+	self.status = self.status_dtext:AddText("Status: ")
+
+	local num, frag = self.status:AddFragment("Stopped.")
+	self.statusFrag = num
+	frag.Color = self.inactiveColor:Copy()
+
+	self.status_dtext:CycleNext()
+end
+
+local function DrawMask(ent, w, h)
+	surface.SetDrawColor(color_white)
+	surface.DrawRect(0, 0, w, h)
+end
+
+function ENT:drawScreenModel()
+
+	local mdl = self.screenModel
+
+	local pos = self:LocalToWorld(self.screenModelPosition)
+	local ang = self:GetAngles()
+
+	mdl:SetPos(pos)
+	mdl:SetAngles(ang)
+
+	ang:RotateAroundAxis(ang:Forward(), 90)
+	ang:RotateAroundAxis(ang:Right(), -90)
+	mdl:DrawModel()
+
+	pos = self:LocalToWorld(self.screenPosition)
+
+	local sW, sH = ScrW(), ScrH()
+
+	local w, h = 780, 464
+	--local w, h = 390, 232
+
+	cam.Start3D2D(pos, ang, 0.05)
+		local ok, err = pcall(draw.Masked, DrawMask, self.drawScreen, nil, nil, self, w, h)
+		--self:drawScreen()
+	cam.End3D2D()
+
+	if not ok then
+		printf("[BW] Foundry error! %s", err)
+	end
+end
+
+local gearCol = color_white:Copy()
+
+--pref is prefix ("+" / "-")
+
+local function PaintHistory(self, tbl, pref, x, y, w, h)
+	local ft = FrameTime()
+
+	local fadeout = ft / (1 / self.historyFadeOutTime)
+	local fadein = ft / (1 / self.historyFadeInTime)
+
+	local maxhist = self.maxHistory
+	local hidel = self.historyHighlightDelay
+	local histBG = self.historyBG
+
+	local clean = 0 --never modify a table you're looping over etc. etc. lua is doodoo
+
+	local ins_len = #tbl
+
+	surface.SetFont(self.historyFont) --no other fonts are going to be used
+
+	--this is done because floats don't work very well with surface
+	--by rounding them we get rid of 1px misalignments all over the place
+
+	local boxH = math.ceil(h * 0.06)
+	local boxYPad = boxH + math.ceil(h * 0.01)
+
+	local minboxW = math.ceil(w * 0.2)
+
+	local len = #tbl
+	local curoffy = 0
+
+	for i=0, len-1 do
+
+		local k = i + 1
+		local v = tbl[k]
+
+		local overflowing = ins_len - maxhist
+		local frac = v.frac
+
+		if k > overflowing then --we're not getting removed so it's fine
+
+			v.frac = math.min(frac + fadein, 1)
+
+		else					--we're overflowing history so let's start removing
+
+			v.frac = math.max(frac - fadeout, 0)
+
+			if v.frac == 0 then
+				clean = clean + 1
+			end
+
+			curoffy = curoffy + boxYPad * Ease(1 - frac, 0.4)
+
+		end
+
+		local a = v.frac * 255
+		v.a = a
+
+		local hifrac = math.max((CurTime() - v.time - hidel) / hidel, 0)
+
+		local bgcol = v.bg_col
+ 		local txcol = v.tx_col
+
+		LerpColor(hifrac, bgcol, histBG)
+
+		bgcol.a = a
+		txcol.a = a
+
+		local tW, tH = v.tW, v.tH
+
+		local boxW = math.max(tW + 8, minboxW)
+
+		local boxx = x - boxW/2 + minboxW/2	--center the box as well
+		local boxy = y + boxYPad * i - curoffy
+
+		draw.RoundedBox(8, boxx, boxy, boxW, boxH, bgcol)
+	
+			surface.SetTextColor(txcol)
+
+			surface.SetTextPos(	boxx + boxW/2 - tW/2,
+								boxy + boxH/2 - tH/2)
+
+			surface.DrawText(v.text)
+
+	end
+
+	for i=1, clean do
+		table.remove(tbl, 1)
+	end
+
+end
+
+--local hist = bench("history", 1500)
+
+
+function ENT:drawScreen(w, h)
+
+	local ft = FrameTime()
+
+	draw.RoundedBox(8, 0, 0, w, h, Colors.DarkGray)
+
+	self.gearRot = self.gearRot - (Ease(self.gearSpeed, 2) * self.maxGearSpeed * ft)
+
+	local rot = self.gearRot % 360
+	self.gearRot = rot
+
+	local alpha_frac = math.min(self.gearSpeed * (1 / 0.2), 1) 	-- gears will slightly fade if maximum gear speed is less than 20%
+																-- but no less than self.gearMinAlpha will remain
+
+	local a = self.gearMinAlpha + alpha_frac * (255 - self.gearMinAlpha)
+	gearCol.a = a
+
+	surface.SetDrawColor(gearCol)
+
+	if self.gear then
+		surface.SetMaterial(self.gear)
+		surface.DrawTexturedRectRotated(w * 0.25, h * 0.98, 384, 384, rot)
+		surface.DrawTexturedRectRotated(w * 0.7, h * 1.1, 384, 384, -rot)
+	else
+		draw.LegacyLoading(w*0.5, h*0.5, 192, 192)
+	end
+
+	--surface.DrawMaterial("https://i.imgur.com/yRJAvam.png", "gear.png", w * 0.25, h * 0.98, 384, 384, rot)
+	--surface.DrawMaterial("https://i.imgur.com/yRJAvam.png", "gear.png", w * 0.7, h * 1.1, 384, 384, -rot)
+
+	--these apparently cause an overhead of about 0.0035ms per call compared to just drawing regularly
+	--for reference, drawing two of these icons with regular setmaterial + texturedrectrotated is 0.014ms
+	--so that's an overhead of about 20%
+
+	local status
+	local desired_color
+
+	local statpiece = self.status --deltatext piece
+
+	if self:isActive() then
+		status = "Working..."
+		self.statusFrac = math.min(self.statusFrac + ft*2, 1)
+		desired_color = self.activeColor
+
+		--on stop, new text(lift) will go V
+		--on stop, old text(drop) will go -^ = V
+
+		statpiece:SetDropStrength(28)
+		statpiece:SetLiftStrength(-28)
+	else
+		status = "Stopped."
+		self.statusFrac = math.max(self.statusFrac - ft, 0)
+		desired_color = self.inactiveColor
+
+		--on stop, new text(lift) will go ^
+		--on stop, old text(drop) will go -V = ^
+
+		statpiece:SetDropStrength(-28)
+		statpiece:SetLiftStrength(28)
+	end
+
+	local _, frag = statpiece:ReplaceText(self.statusFrag, status)
+
+	if frag then
+		frag.Color = desired_color
+	end
+
+	self.status_dtext:Paint(12, 8)
+
+	--hist:Open()
+		PaintHistory(self, self.history.ins, "+", w*0.43, h*0.02, w, h)
+		PaintHistory(self, self.history.outs, "-", w*0.73, h*0.02, w, h)
+	--hist:Close():print()
+end
+
+--[[
+	"history" took 545.055ms (avg. across 1500 calls: 0.363ms)
+	"foundry" took 784.152ms (avg. across 1500 calls: 0.523ms)
+
+	not good but i optimized history as much as i could, i don't think i can squeeze any more performance
+	you could always just decrease the history amount though
+]]
+
+--local fb = bench("foundry", 1500)
+
+function ENT:Draw()
+	self:DrawModel()
+
+	--fb:Open()
+
+	if not draw.Masked then return end --did i not upload panellib?
+
+	self.gearSpeed = self.gearSpeed or 0 --apparently :Draw can get called earlier than :Initialize
+
+	if IsValid(self.screenModel) then
+		self:drawScreenModel()
+	else
+		self:makeScreen()
+	end
+
+	if self:isActive() then
+		self.gearSpeed = math.min(self.gearSpeed + FrameTime() / self.maxGearAccelTime, 1)
+	else
+		self.gearSpeed = math.max(self.gearSpeed - FrameTime() / self.maxGearDecelTime, 0)
+	end
+
+	--fb:Close():print()
+end
+
+--[[
+	:doChange gets called when items in the refinery get changed (right after ENT:processInventory())
+]]
+
+function ENT:doChange(chin, chout)
+	local ins, outs = self.history.ins, self.history.outs
+
+	--offy controls the Y offset and is used for animating
+	--entries going up, pushing out the old entries
+
+	--a is the alpha, calculated from frac
+
+	--frac is for animating, frametime increments, you know the deal
+	surface.SetFont(self.historyFont)
+
+	for k,v in pairs(chin) do
+		local text = k .. ": " .. "+" .. v
+		local tW, tH = surface.GetTextSize(text)
+
+		ins[#ins + 1] = {
+			name = k,
+			amt = v,
+
+			text = text,
+			tW = tW,
+			tH = tH, --caching so we don't have to get size every frame
+
+			frac = 0,
+			time = CurTime(),
+
+			offy = 0,
+			a = 0,
+
+			bg_col = self.historyHighlight:Copy(),
+			tx_col = self.textGainCol
+		}
+
+		if #ins > self.maxHistory then
+			ins[1].fade = true
+		end
+	end
+
+	for k,v in pairs(chout) do
+		local text = k .. ": " .. "-" .. v
+		local tW, tH = surface.GetTextSize(text)
+
+		outs[#outs + 1] = {
+			name = k,
+			amt = v,
+
+			text = text,
+			tW = tW,
+			tH = tH,
+
+			frac = 0,
+			time = CurTime(),
+
+			offy = 0,
+			a = 0,
+
+			bg_col = self.historyHighlight:Copy(),
+			tx_col = self.textLossCol
+		}
+
+		if #outs > self.maxHistory then
+			outs[1].fade = true
+		end
+	end
+
+end
+
+function ENT:OnRemove()
+	if IsValid(self.screenModel) then
+		self.screenModel:Remove()
+	end
 end
 
 function ENT:openMenu(t)
@@ -196,7 +628,7 @@ function ENT:openMenu(t)
 	res_output.GradBorder = true
 
 	for name, amt in pairs(inv) do
-	
+
 		local id = basewars.inventory.getId(name)
 
 		local res = basewars.resources.get(id)
@@ -225,8 +657,7 @@ function ENT:openMenu(t)
 			draw.SimpleText("Output", "DV28", res_output.X + res_output:GetWide() / 2, res_output.Y - 4, color_white, 1, TEXT_ALIGN_BOTTOM)
 
 		-- Draw white refining-process arrow
-
-			
+		
 
 			surface.SetDrawColor(color_black)
 			surface.DrawMaterial(arr_url, arr_name, arr_x, arr_y, arrow_size, arrow_size)
@@ -254,7 +685,7 @@ function ENT:openMenu(t)
 	end
 
 	local pw = vgui.Create("Icon", ff)
-	pw:SetPos(arr_x + arrow_size / 2 - power_size - pw_ore_pad/2, arr_y + arrow_size + 6)
+	pw:SetPos(arr_x + arrow_size/2 - power_size - pw_ore_pad/2, arr_y + arrow_size + 6)
 	pw:SetSize(power_size, power_size)
 
 	pw.IconURL = pw_url
@@ -277,10 +708,18 @@ function ENT:openMenu(t)
 
 	end
 
+	function pw:OnCursorEntered()
+
+	end
+
+	function pw:OnCursorExited()
+
+	end
+
 	local nores_col = nopower_color:Copy()
 
 	local res = vgui.Create("Icon", ff)
-	res:SetPos(arr_x + arrow_size / 2 + pw_ore_pad/2, arr_y + arrow_size + 6)
+	res:SetPos(arr_x + arrow_size/2 + pw_ore_pad/2, arr_y + arrow_size + 6)
 	res:SetSize(ore_width, ore_height)
 
 	res.IconURL = ore_url
@@ -304,81 +743,6 @@ function ENT:openMenu(t)
 
 	end
 
-	--[[
-	local frm = vgui.Create("DFrame")
-
-	frm:SetTitle("Foundry")
-
-	local foundry_inv = frm:Add("BWUI.Inventory")
-
-	foundry_inv:setEntity(self)
-	foundry_inv:setMinTileWidth(10)
-	foundry_inv:setMaxTileWidth(10)
-	foundry_inv:setMinTileHeight(2)
-	foundry_inv:setMaxTileHeight(2)
-
-	foundry_inv:setFilter(function(_, item, amount)
-		return basewars.inventory.trade(nil, self, item, amount)
-	end)
-
-	local local_inv = frm:Add("BWUI.Inventory")
-
-	local_inv:setEntity(LocalPlayer())
-	local_inv:setMinTileWidth(10)
-	local_inv:setMaxTileWidth(10)
-	local_inv:setMinTileHeight(2)
-	local_inv:setMaxTileHeight(2)
-
-	local_inv:setFilter(function(_, item, amount)
-		return basewars.inventory.trade(nil, self, item, -amount)
-	end)
-
-	local button = frm:Add("DButton")
-
-	function button.doDisable()
-		self:doAlloying(false)
-		button:SetText("Enable Alloying")
-		button:SetImage("icon16/add.png")
-		button.DoClick = button.doEnable
-	end
-
-	function button.doEnable()
-		self:doAlloying(true)
-		button:SetText("Disable Alloying")
-		button:SetImage("icon16/delete.png")
-		button.DoClick = button.doDisable
-	end
-
-	if self:isAlloyingEnabled() then
-		button.doEnable()
-	else
-		button.doDisable()
-	end
-
-	local PerformLayout = frm.PerformLayout
-	function frm:PerformLayout(w, h)
-		-- TODO: REPLACE THIS AIDS AS FUCK CODE JESUS CHRIST
-		-- (i tried docking but it was always too autistic to work)
-
-		foundry_inv:SetPos(8, 8 + 24)
-		local_inv:SetPos(8, 8 + 24 + foundry_inv:GetTall() + 8)
-
-		button:SetSize(128, 32)
-		button:SetPos(8, 8 + 24 + foundry_inv:GetTall() + 8 + local_inv:GetTall() + 8)
-
-		self:SetSize(
-			math.max(foundry_inv:GetWide(), local_inv:GetWide()) + 8 + 8,
-			24 + 8 + 8 + 8 + 8 + foundry_inv:GetTall() + local_inv:GetTall() + button:GetTall()
-		)
-
-		PerformLayout(self, w, h)
-	end
-
-	frm:InvalidateLayout(true)
-	frm:InvalidateChildren(true)
-	frm:Center()
-	frm:MakePopup()
-	]]
 end
 
 function ENT:doAlloying(val)
@@ -391,7 +755,28 @@ function ENT:doAlloying(val)
 end
 
 net.Receive(net_tag, function()
-	net.ReadEntity():openMenu()
+	local open_menu = net.ReadBool()
+	local ent = net.ReadEntity()
+
+	if open_menu then
+		ent:openMenu()
+	else
+		local stuff_in, stuff_out = {}, {}
+
+		local in_amt = net.ReadUInt(8)
+		for i=1, in_amt do
+			local key = net.ReadString()
+			stuff_in[key] = math.Round(net.ReadFloat(), float_round)
+		end
+
+		local out_amt = net.ReadUInt(8)
+		for i=1, out_amt do
+			local key = net.ReadString()
+			stuff_out[key] = math.Round(net.ReadFloat(), float_round)
+		end
+
+		ent:doChange(stuff_in, stuff_out)
+	end
 end)
 
 do
@@ -460,6 +845,7 @@ function ENT:Use(ply)
 	if not (IsValid(ply) and ply:IsPlayer()) then return end
 
 	net.Start(net_tag)
+		net.WriteBool(true)
 		net.WriteEntity(self)
 	net.Send(ply)
 end
@@ -585,6 +971,26 @@ function ENT:processInventory()
 		end
 	end
 
+	local in_amt = table.Count(stuff_in)
+	local out_amt = table.Count(stuff_out)
+
+	net.Start(net_tag)
+		net.WriteBool(false)
+		net.WriteEntity(self)
+
+		net.WriteUInt(in_amt, 8)
+		for name, amt in pairs(stuff_in) do 
+			net.WriteString(name)
+			net.WriteFloat(amt)
+		end
+
+		net.WriteUInt(out_amt, 8)
+		for name, amt in pairs(stuff_out) do 
+			net.WriteString(name)
+			net.WriteFloat(amt)
+		end
+	net.SendPVS(self:GetPos())
+	--[[
 	local off, i = self.inOffset, 0
 	for name, amt in pairs(stuff_in) do
 		i = i + 1
@@ -596,7 +1002,7 @@ function ENT:processInventory()
 		i = i + 1
 		basewars.textPopout(self, string.format("-%.3g %s", amt, name), true, nil, Vector(off.x, off.y, off.z + (i * 5)))
 	end
-
+	]]
 	return done_stuff
 end
 
@@ -619,8 +1025,8 @@ function ENT:Think()
 		return
 	end
 
-	self:setNextFoundryThink(ct + 10)
-	self:setFoundryThinkDelay(10)
+	self:setNextFoundryThink(ct + 5)
+	self:setFoundryThinkDelay(5)
 
 	self:loopSound("machine_ambient", "ambient/levels/canals/manhack_machine_loop1.wav", 0.5)
 	self:EmitSound("ambient/levels/canals/headcrab_canister_open1.wav")
@@ -630,3 +1036,5 @@ function ENT:Think()
 		self:setActive(true)
 	end
 end
+
+--("54.36.228.129", "u30626_HnoXz5lLbJ", "962baJiPxpJfRO7Y", "s30626_basewars")

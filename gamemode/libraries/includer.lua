@@ -1,7 +1,7 @@
 AddCSLuaFile()
 
 include("lib_it_up/extensions/includes.lua") --manually include that for easier inclusion
-
+AddCSLuaFile("lib_it_up/extensions/includes.lua")
 --[[
 	_CL, _SH and _SV are supported
 ]]

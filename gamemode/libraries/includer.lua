@@ -6,6 +6,10 @@ include("lib_it_up/extensions/includes.lua") --manually include that for easier 
 	_CL, _SH and _SV are supported
 ]]
 
+FInc.FromHere("hdl/*", _SH)
+FInc.FromHere("cl_quickmenus.lua", _CL)
+
+
 local lib_files = 0
 
 FInc.FromHere("lib_it_up/*", _SH, nil, function(path)

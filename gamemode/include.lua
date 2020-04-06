@@ -177,3 +177,5 @@ end
 basewars.loadExtFolder("core/")
 basewars.loadExtFolder("extensions/")
 basewars.loadExtFolder("thirdparty/")
+
+include("libraries/includer.lua")

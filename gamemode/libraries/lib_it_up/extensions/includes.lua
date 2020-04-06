@@ -57,11 +57,9 @@ function FInc.Recursive(name, realm, nofold, searchpath, callback)	--even though
 		local inc_name = path .. v
 		if inc_name:match("extensions/includes%.lua") then print("not including myself, ok?") continue end --don't include yourself lol
 
-		print("including", v)
+		print("including", inc_name)
 
 		if loading then files = files + 1 end
-
-		
 
 		if includes[realm] then
 			callback (inc_name, includes[realm] (inc_name))
@@ -72,12 +70,13 @@ function FInc.Recursive(name, realm, nofold, searchpath, callback)	--even though
 
 	end
 
+	print("nofolder?", nofold)
 	if not nofold then
 		for k,v in pairs(folder) do
 
 			-- path/ .. found_folder  .. /  .. wildcard_used
 			-- muhaddon/newfolder/*.lua
-
+			print("recursive: calling itself with", path .. v .. "/" .. wildcard)
 			FInc.Recursive(path .. v .. "/" .. wildcard, realm, nil, nil, callback)
 		end
 	end
@@ -113,6 +112,8 @@ function FInc.FromHere(name, realm, nofold, cb)
 	local search = "gamemodes/(%s/gamemode/.+)" --we'll need to capture [gamemodename/gamemode/*]
 	search = search:format(gm)
 
+	print("fromhere: #1", where)
+
 	local gm_where = where:match(search)
 
 	if not gm_where then
@@ -120,6 +121,8 @@ function FInc.FromHere(name, realm, nofold, cb)
 	else										--or addonname/lua/(addon_file.lua)
 		where = gm_where
 	end
+	
+	print("fromhere: #2", where)
 
 	if not where or where:sub(-4) ~= ".lua" then
 		local err = "FInc.FromHere called from invalid path! %s\n"
@@ -139,6 +142,7 @@ function FInc.FromHere(name, realm, nofold, cb)
 		return
 	end
 
+	print("calling recursive with", name, path .. name)
 	FInc.Recursive(name, realm, nofold, path .. name, cb)
 
 end

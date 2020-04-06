@@ -87,6 +87,40 @@ ENT.renderBounds.max = Vector (-57.216064453125, -174.36408996582, -0.34375)
 	ENT.textLossCol = Color(200, 100, 100)
 	ENT.textGainCol = Color(100, 230, 100)
 
+--vgui config:
+
+	--input/output windows width
+
+	local input_width = 260
+	local output_width = 260
+
+	local arrow_size = 64 --processing arrow size in px
+	local power_size = 35 --no power icon size in px
+
+	local regular_delay = 10 	-- if next think delay isn't 10 seconds then something went wrong and the timer will be red instead
+								-- currently foundry doesn't network if something went wrong but we can deduce it by the timer
+
+	local wrong_time_color = Color(200, 100, 100)
+
+	--icons
+	local ore_width = 36	--ore icon isn't a 1:1 ratio
+	local ore_height = 32
+
+	local pw_ore_pad = 6 --padding between no-power and no-ores warning icons
+
+	local nopower_color = Color(170, 60, 60)
+
+	local time_color = Color(120, 120, 120)
+	
+
+	local warning_textcolor = Color(200, 120, 120) 	--when you hover the icon, there's a popup cloud saying what this means
+													--this is the color for the text
+
+
+	local ore_url, ore_name = "https://i.imgur.com/cVE102V.png", "ore.png"
+	local arr_url, arr_name = "https://i.imgur.com/jFHSu7s.png", "arr_right.png"
+	local pw_url, pw_name = "https://i.imgur.com/poRxTau.png", "electricity.png"
+
 function ENT:SetupDataTables()
 	BaseClass.SetupDataTables(self)
 
@@ -163,30 +197,6 @@ local function AddSmelted(res, pnl, amt)
 		draw.SimpleText("Amount: x" .. amt, "OS18", 48 + 12, 24, amtcol, 0, 5)
 	end
 end
-
-
-local input_width = 260
-local output_width = 260
-
-local arrow_size = 64 --processing arrow size in px
-local power_size = 35 --no power icon size in px
-
-local ore_width = 36	--ore icon isn't a 1:1 ratio
-local ore_height = 32
-
-local pw_ore_pad = 6 --padding between no-power icon and no-ores icon 
-
-local nopower_color = Color(170, 60, 60)
-
-local time_color = Color(120, 120, 120)
-local wrong_time_color = Color(200, 100, 100)
-
-local regular_delay = 10 -- if next think delay isn't 10 seconds then something went wrong and the timer will be red instead
-
-
-local ore_url, ore_name = "https://i.imgur.com/cVE102V.png", "ore.png"
-local arr_url, arr_name = "https://i.imgur.com/jFHSu7s.png", "arr_right.png"
-local pw_url, pw_name = "https://i.imgur.com/poRxTau.png", "electricity.png"
 
 
 function ENT:hasRefineables()
@@ -376,7 +386,7 @@ local function PaintHistory(self, tbl, pref, x, y, w, h)
 		local boxy = y + boxYPad * i - curoffy
 
 		draw.RoundedBox(8, boxx, boxy, boxW, boxH, bgcol)
-	
+
 			surface.SetTextColor(txcol)
 
 			surface.SetTextPos(	boxx + boxW/2 - tW/2,
@@ -657,7 +667,7 @@ function ENT:openMenu(t)
 			draw.SimpleText("Output", "DV28", res_output.X + res_output:GetWide() / 2, res_output.Y - 4, color_white, 1, TEXT_ALIGN_BOTTOM)
 
 		-- Draw white refining-process arrow
-		
+	
 
 			surface.SetDrawColor(color_black)
 			surface.DrawMaterial(arr_url, arr_name, arr_x, arr_y, arrow_size, arrow_size)
@@ -709,11 +719,19 @@ function ENT:openMenu(t)
 	end
 
 	function pw:OnCursorEntered()
+		if pow_frac == 1 then return end
+		local cl = self:AddCloud("pw_notif", "No power!")
 
+		cl:SetRelPos( 	(arr_x + arrow_size/2) - self.X, 
+						48
+					) 
+		cl.YAlign = 0
+		cl.Middle = 0.5
+		cl:SetTextColor(warning_textcolor)
 	end
 
 	function pw:OnCursorExited()
-
+		self:RemoveCloud("pw_notif")
 	end
 
 	local nores_col = nopower_color:Copy()
@@ -743,6 +761,21 @@ function ENT:openMenu(t)
 
 	end
 
+	function res:OnCursorEntered()
+		if res_frac == 1 then return end
+		local cl = self:AddCloud("res_notif", "No ores to refine!")
+
+		cl:SetRelPos( 	(arr_x + arrow_size/2) - self.X, 
+						48
+					) 
+		cl.YAlign = 0
+		cl.Middle = 0.5
+		cl:SetTextColor(warning_textcolor)
+	end
+
+	function res:OnCursorExited()
+		self:RemoveCloud("res_notif")
+	end
 end
 
 function ENT:doAlloying(val)

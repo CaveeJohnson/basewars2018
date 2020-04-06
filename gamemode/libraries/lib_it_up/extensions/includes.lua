@@ -49,7 +49,7 @@ function FInc.Recursive(name, realm, nofold, searchpath, callback)	--even though
 
 	local file, folder = file.Find( searchpath or name, "LUA" )
 
-	local path = name:match("(.+/).+$")
+	local path = name:match("(.+/).+$") or ""
 	local wildcard = name:match(".+/(.+)$")
 
 	for k,v in pairs(file) do

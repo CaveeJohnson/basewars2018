@@ -49,7 +49,7 @@ end
 function benchmark:Close()
 	if self._Start == 0 then Error("Can't close what you didn't open!") end
 
-	self._Dur = SysTime() - self._Start
+	self._Dur = self._Dur + (SysTime() - self._Start)
 
 	self._Start = 0
 
@@ -80,7 +80,13 @@ end
 
 function benchmark:__tostring(...)
 	local str = "\"%s\" took %.3fms"
-	str = str:format(self.Name, InMS(self:Read()))
+	local ms = InMS(self:Read())
+	str = str:format(self.Name, ms)
+
+	if self.Frames then 
+		str = str .. (" (avg. across %d calls: %.3fms)"):format(self.Frames, ms / self.Frames)
+	end
+
 	return str
 end
 

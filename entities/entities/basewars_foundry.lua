@@ -75,14 +75,18 @@ ENT.renderBounds.max = Vector (-57.216064453125, -174.36408996582, -0.34375)
 	ENT.maxHistory = 6 	--max entries before oldest gets erased
 						--please make sure no more than this number of different items can be processed/outputted at once
 
+	ENT.historyTime = 30 --if history remained on-screen for more than this time, they fade out anyway
+
 	ENT.historyFont = "DV18" --aka dejavu 18
 
 	ENT.historyBG = Color(45, 45, 45)
 	ENT.historyHighlight = Color(70, 70, 70)
 	ENT.historyHighlightDelay = 0.8 --new items remain highlighted for this many seconds 
 
-	ENT.historyFadeOutTime = 1
-	ENT.historyFadeInTime = 0.7
+	ENT.historyFadeOutTime = 1 --controls the fading out animation + moving the history up
+	ENT.historyFadeInTime = 0.7  --controls the fading in animation (changing alpha of new entries)
+
+	ENT.historyEasing = 0.3 		--easing: 0-1 = easing out, 1+ = easing in, <0 = in-out
 
 	ENT.textLossCol = Color(200, 100, 100)
 	ENT.textGainCol = Color(100, 230, 100)
@@ -317,8 +321,8 @@ local gearCol = color_white:Copy()
 local function PaintHistory(self, tbl, pref, x, y, w, h)
 	local ft = FrameTime()
 
-	local fadeout = ft / (1 / self.historyFadeOutTime)
-	local fadein = ft / (1 / self.historyFadeInTime)
+	local fadeout = ft / self.historyFadeOutTime
+	local fadein = ft / self.historyFadeInTime
 
 	local maxhist = self.maxHistory
 	local hidel = self.historyHighlightDelay
@@ -340,6 +344,7 @@ local function PaintHistory(self, tbl, pref, x, y, w, h)
 
 	local len = #tbl
 	local curoffy = 0
+	local ease = self.historyEasing
 
 	for i=0, len-1 do
 
@@ -348,12 +353,13 @@ local function PaintHistory(self, tbl, pref, x, y, w, h)
 
 		local overflowing = ins_len - maxhist
 		local frac = v.frac
+		local myoff = curoffy 
 
-		if k > overflowing then --we're not getting removed so it's fine
+		if k > overflowing and CurTime() - v.time <= self.historyTime then 	--we're not getting removed so it's fine
 
 			v.frac = math.min(frac + fadein, 1)
 
-		else					--we're overflowing history so let's start removing
+		else																--we're overflowing history or our time is up so let's start removing
 
 			v.frac = math.max(frac - fadeout, 0)
 
@@ -361,8 +367,18 @@ local function PaintHistory(self, tbl, pref, x, y, w, h)
 				clean = clean + 1
 			end
 
-			curoffy = curoffy + boxYPad * Ease(1 - frac, 0.4)
+			local easefrac = Ease(1 - frac, ease)
 
+			curoffy = curoffy + boxYPad * easefrac
+
+			--V takes care of a bug where deleting due to time forced queue downwards (overflowing = negative)
+				--i'm not willing to scan for the amount of timed-out entries
+
+			if overflowing > 0 then 
+				myoff = boxYPad * overflowing * easefrac 
+			else 
+				myoff = boxYPad * k * easefrac 
+			end
 		end
 
 		local a = v.frac * 255
@@ -371,7 +387,7 @@ local function PaintHistory(self, tbl, pref, x, y, w, h)
 		local hifrac = math.max((CurTime() - v.time - hidel) / hidel, 0)
 
 		local bgcol = v.bg_col
- 		local txcol = v.tx_col
+		local txcol = v.tx_col
 
 		LerpColor(hifrac, bgcol, histBG)
 
@@ -383,7 +399,7 @@ local function PaintHistory(self, tbl, pref, x, y, w, h)
 		local boxW = math.max(tW + 8, minboxW)
 
 		local boxx = x - boxW/2 + minboxW/2	--center the box as well
-		local boxy = y + boxYPad * i - curoffy
+		local boxy = y + boxYPad * i - myoff
 
 		draw.RoundedBox(8, boxx, boxy, boxW, boxH, bgcol)
 
@@ -402,7 +418,7 @@ local function PaintHistory(self, tbl, pref, x, y, w, h)
 
 end
 
---local hist = bench("history", 1500)
+local hist = bench("history", 1500)
 
 
 function ENT:drawScreen(w, h)
@@ -481,14 +497,13 @@ function ENT:drawScreen(w, h)
 end
 
 --[[
-	"history" took 545.055ms (avg. across 1500 calls: 0.363ms)
-	"foundry" took 784.152ms (avg. across 1500 calls: 0.523ms)
+	"history" took 469.551ms (avg. across 1500 calls: 0.313ms)
+	"foundry" took 729.804ms (avg. across 1500 calls: 0.487ms)
 
-	not good but i optimized history as much as i could, i don't think i can squeeze any more performance
-	you could always just decrease the history amount though
+	not good
 ]]
 
---local fb = bench("foundry", 1500)
+local fb = bench("foundry", 1500)
 
 function ENT:Draw()
 	self:DrawModel()
@@ -1058,8 +1073,8 @@ function ENT:Think()
 		return
 	end
 
-	self:setNextFoundryThink(ct + 5)
-	self:setFoundryThinkDelay(5)
+	self:setNextFoundryThink(ct + 2)
+	self:setFoundryThinkDelay(2)
 
 	self:loopSound("machine_ambient", "ambient/levels/canals/manhack_machine_loop1.wav", 0.5)
 	self:EmitSound("ambient/levels/canals/headcrab_canister_open1.wav")

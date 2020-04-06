@@ -590,12 +590,12 @@ if CLIENT then
 	end
 
 	function BuckEffect:Think()	
-		if self.FadeTime && CurTime() > self.FadeTime then
+		if self.FadeTime and CurTime() > self.FadeTime then
 			self.Alpha = Lerp(13 * self.FadeSpeed * FrameTime(), self.Alpha, 0)
 			self.FadeSize = Lerp(2 * self.FadeSpeed * FrameTime(), self.FadeSize, 0)
 		end
 
-		if self.DieTime && CurTime() > self.DieTime then
+		if self.DieTime and CurTime() > self.DieTime then
 			self.Emitter:Finish()
 			return false
 		end
@@ -640,9 +640,9 @@ if CLIENT then
 
 		local vm = self.Owner:GetViewModel()
 
-		if IsValid(GetViewEntity()) && (self.Owner == GetViewEntity()) && IsValid(vm) then
+		if IsValid(GetViewEntity()) and (self.Owner == GetViewEntity()) and IsValid(vm) then
 			self.StartPos = vm:GetAttachment(vm:LookupAttachment("muzzle")).Pos
-		elseif IsValid(GetViewEntity()) && self.Owner != GetViewEntity() && self.Weapon && self.Weapon:LookupAttachment("muzzle") && self.Weapon:GetAttachment(self.Weapon:LookupAttachment("muzzle")) then
+		elseif IsValid(GetViewEntity()) and self.Owner ~= GetViewEntity() and self.Weapon and self.Weapon:LookupAttachment("muzzle") and self.Weapon:GetAttachment(self.Weapon:LookupAttachment("muzzle")) then
 			self.StartPos = self.Weapon:GetAttachment(self.Weapon:LookupAttachment("muzzle")).Pos
 		elseif IsValid(vm) then
 			self.StartPos = vm:GetAttachment(vm:LookupAttachment("muzzle")).Pos+self.Owner:GetAimVector():Angle():Right()*36-self.Owner:GetAimVector():Angle():Up()*36

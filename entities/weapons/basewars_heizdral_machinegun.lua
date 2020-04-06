@@ -9,6 +9,9 @@ AddCSLuaFile()
 --The weapon can only be reloaded in normal mode but slowly recovers ammo in SIEGE MODE.
 --It's also generally loud as fuck in everything it does
 
+--need to unfuck the dryfire noise
+--FireBullets adds headshot damage, gay
+
 SWEP.Base         = "basewars_ck_base"
 DEFINE_BASECLASS    "basewars_ck_base"
 SWEP.PrintName    = "'HEIZDRAL' MACHINEGUN"
@@ -138,7 +141,7 @@ sound.Add({
 sound.Add({
 	channel = CHAN_AUTO,
 	name    = "bw.heizdral.impact",
-	level   = 40,
+	level   = 30,
 	sound   = ")weapons/mortar/mortar_fire1.wav",
 	volume  = 0.6,
 	pitch   = {60,80}
@@ -169,6 +172,7 @@ SWEP.reloadAfterFireDelay = 0.4
 
 SWEP.ViewModelBoneMods = {
 	["ValveBiped.Bip01"] = { scale = Vector(1, 1, 1), pos = Vector(-2.5, -0.5, -2), angle = Angle(0, 0, 0) },
+--	["ValveBiped.Bip01_L_Arm"] = { scale = Vector(1, 1, 1), pos = Vector(5,0,0), angle = Angle(0, 0, 0) },
 }
 
 SWEP.VElements = {
@@ -397,7 +401,7 @@ function SWEP:fireBullet()
 	bullet.HullSize = 1
 	bullet.Callback = function(attacker, tr, dmginfo)
 		dmginfo:SetInflictor(self)
-		dmginfo:SetDamageType(bit.bor(DMG_BULLET, DMG_ENERGYBEAM))
+		dmginfo:SetDamageType(bit.bor(DMG_ENERGYBEAM, DMG_SHOCK))
 		self:doEffect("basewars_heizdral_shot", self.Owner:EyePos(), tr.HitPos)
 
 		local explosionTargets = ents.FindInSphere( tr.HitPos, self.Primary.ExplosionRadius )
@@ -422,6 +426,15 @@ function SWEP:doEffect(effect, startpos, endpos)
 	util.Effect(effect, eff)			
 end
 
+local function push(ent, arg)
+	if ent:IsPlayer() then
+		ent:SetVelocity(arg)
+	else
+		local phys = ent:GetPhysicsObject()
+		if phys:IsValid() then phys:ApplyForceCenter(phys:GetMass() * arg) end
+	end
+end
+
 function SWEP:dealPrimaryExplosionDamage(tr, ent)
 	if not ent:IsValid() then return end
 	if not ent.TakeDamageInfo then return end
@@ -429,14 +442,16 @@ function SWEP:dealPrimaryExplosionDamage(tr, ent)
 	local dmg = DamageInfo()
 	local distanceFactor = math.Clamp((self.Primary.ExplosionRadius - tr.HitPos:Distance(ent:GetPos())) / self.Primary.ExplosionRadius, 0,1)
 	dmg:SetDamage(self.Primary.DamageExplosion * distanceFactor)
-	dmg:SetDamageType(DMG_BLAST)
+	dmg:SetDamageType(DMG_SHOCK)
 	dmg:SetDamageForce(tr.HitNormal * 50 * dmg:GetDamage())
 	dmg:SetAttacker(self:GetOwner())
 	dmg:SetInflictor(self)
 	ent:TakeDamageInfo(dmg)
 
+	local up = Vector(0, 0, 62)
 	local force = tr.HitPos - ent:GetPos()
-	ent:SetVelocity(ent:GetVelocity() + force:GetNormalized() * -0.5 * dmg:GetDamage())
+	push(ent, ((ent:GetPos() + up) - self:GetPos()):GetNormal() * force)
+	--ent:SetVelocity(ent:GetVelocity() + force:GetNormalized() * -0.5 * dmg:GetDamage())
 end
 
 if CLIENT then
@@ -750,9 +765,9 @@ if CLIENT then
 
 		local vm = self.Owner:GetViewModel()
 
-		if IsValid(GetViewEntity()) && (self.Owner == GetViewEntity()) && IsValid(vm) then
+		if IsValid(GetViewEntity()) and (self.Owner == GetViewEntity()) and IsValid(vm) then
 			self.EndPos = vm:GetAttachment(vm:LookupAttachment("muzzle")).Pos
-		elseif IsValid(GetViewEntity()) && self.Owner != GetViewEntity() && self.Weapon && self.Weapon:LookupAttachment("muzzle") && self.Weapon:GetAttachment(self.Weapon:LookupAttachment("muzzle")) then
+		elseif IsValid(GetViewEntity()) and self.Owner ~= GetViewEntity() and self.Weapon and self.Weapon:LookupAttachment("muzzle") and self.Weapon:GetAttachment(self.Weapon:LookupAttachment("muzzle")) then
 			self.EndPos = self.Weapon:GetAttachment(self.Weapon:LookupAttachment("muzzle")).Pos
 		elseif IsValid(vm) then
 			self.EndPos = vm:GetAttachment(vm:LookupAttachment("muzzle")).Pos+self.Owner:GetAimVector():Angle():Right()*36-self.Owner:GetAimVector():Angle():Up()*36

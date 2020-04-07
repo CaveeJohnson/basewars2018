@@ -179,6 +179,13 @@ function hdl.DownloadFile(url, name, func, fail, ovwrite, onqueue)
 
 end
 
+function hdl.FindCached(name)
+	local q = "SELECT * FROM hdl_Data WHERE name LIKE %s"
+	q = q:format(SQLStr("%" .. name .. "%"))
+
+	local res, err = sql.Query(q)
+	return res
+end
 httpReady = httpReady or (not GachiRP) or false
 
 hook.Add("Think", "HDL", function()

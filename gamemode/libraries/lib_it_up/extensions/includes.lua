@@ -108,9 +108,7 @@ function FInc.FromHere(name, realm, nofold, cb)
 
 	local search = "gamemodes/(%s/gamemode/.+)" --we'll need to capture [gamemodename/gamemode/*]
 	search = search:format(gm)
-
-	print("fromhere: #1", where)
-
+	
 	local gm_where = where:match(search)
 
 	if not gm_where then
@@ -119,8 +117,6 @@ function FInc.FromHere(name, realm, nofold, cb)
 		where = gm_where
 	end
 	
-	print("fromhere: #2", where)
-
 	if not where or where:sub(-4) ~= ".lua" then
 		local err = "FInc.FromHere called from invalid path! %s\n"
 		err = err:format(where)

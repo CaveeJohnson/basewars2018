@@ -1,5 +1,6 @@
 local ext = basewars.createExtension"core.matter-manipulator.buy"
 local mode = {}
+
 ext.mode = mode
 mode.color = Color(200, 200, 200, 255)
 mode.name = "Constructor"
@@ -13,14 +14,20 @@ function ext:BW_MatterManipulatorLoadModes(modes)
 	table.insert(modes, mode)
 end
 
-function ext:getAngles(ply)
+function ext:getAngles(ply, tr, sticksurf)
 	local yaw = tonumber(ply:GetInfoNum("bw_mm_creation_yaw", 0)) or 0
 	local snap = tonumber(ply:GetInfoNum("gm_snapangles", 0)) or 0
 	if ply:KeyDown(IN_SPEED) then yaw = math.Round(yaw / snap) * snap end
 
-	local ang = Angle() --res.HitNormal:Angle()
-		ang.y = ang.y + yaw
-	ang:Normalize()
+	local ang
+
+	if sticksurf then 
+		ang = tr.HitNormal:Angle()
+	else 
+		ang = Angle() --res.HitNormal:Angle()
+			ang.y = ang.y + yaw
+		ang:Normalize()
+	end
 
 	return ang
 end
@@ -29,7 +36,10 @@ function ext:buyItem(ply, res)
 	local id = ply:GetInfo("bw_mm_creation_item", "error") or "error"
 	if id == "error" then return false end
 
-	return basewars.items.spawn(id, ply, res.HitPos, self:getAngles(ply), res.HitNormal)
+	local item = basewars.items.get(id)
+	if not item then return false end 
+
+	return basewars.items.spawn(id, ply, res.HitPos, self:getAngles(ply, res, item.stickToSurface), res.HitNormal)
 end
 
 if CLIENT then
@@ -97,27 +107,42 @@ if CLIENT then
 		end
 	end
 
-	local function DropToFloor(ent)
-		local obb_mins   = ent:OBBMins()
-		local obb_maxs   = ent:OBBMaxs()
+
+	local function DropToFloor(ent, pos, min, max)
+
+		local trmin, trmax = Vector(), Vector()
+		trmin:Set(min)
+		trmax:Set(max)
+
+		trmin:Mul(0.5)
+		trmax:Mul(0.5)
+		trmin.z = 0
+		trmax.z = 0	--flatten out the OBB so it doesn't leak through world upwards/downwards
 
 		local res = util.TraceHull{
-			start  = ent:GetPos(),
-			endpos = ent:GetPos() - Vector(0, 0, 256),
+			start  = pos,
+			endpos = pos - Vector(0, 0, 128),
 			filter = ent,
-			mins   = obb_mins,
-			maxs   = obb_maxs,
+			mins   = trmin,
+			maxs   = trmax,
 		}
 
-		if res.Hit and res.HitTexture ~= "**empty**" then -- .hit is always true :v
-			ent:SetPos(res.HitPos)
+		if res.StartSolid then
+			return pos 
+		else 
+			local hp = Vector()
+			hp:Set(res.HitPos)
+			hp.z = hp.z - min.z
 
-			return res.HitPos
+			local mid = hp
+
+			return mid
 		end
+
 	end
 
 	local white = Color(255, 255, 255)
-	local red   = Color(255, 0  , 0  )
+	local red   = Color(255, 0  , 0)
 
 	function mode:updateGhostEntity(res)
 		local item = ext.creationItem
@@ -126,18 +151,26 @@ if CLIENT then
 		self.csEnt:SetNoDraw(false)
 		self.csEnt:SetModel(item.model or "models/error.mdl")
 
-		local dot_maxs = res.HitNormal:Dot(self.csEnt:OBBMaxs())
-		local dot_mins = res.HitNormal:Dot(self.csEnt:OBBMins())
+		local min, max = self.csEnt:GetRotatedAABB(self.csEnt:OBBMins(), self.csEnt:OBBMaxs())
+
+		local dot_maxs = res.HitNormal:Dot(min)
+		local dot_mins = res.HitNormal:Dot(max)
 		local off = math.max(dot_maxs, dot_mins) * res.HitNormal
 
 		local pos = res.HitPos + off
-		self.csEnt:SetPos(pos)
 
-		pos = DropToFloor(self.csEnt) or pos
+		if item.stickToSurface then 
+			pos = pos - (min + max) / 2
+		else
+			pos = DropToFloor(self.csEnt, pos, min, max)
+		end
+
+		self.csEnt:SetPos(pos)
 		self.ghostPos = pos
 
 		local owner = self:GetOwner()
-		local ang = ext:getAngles(owner)
+		local ang = ext:getAngles(owner, res, item.stickToSurface)
+
 		self.csEnt:SetAngles(ang)
 		self.ghostAngs = ang
 

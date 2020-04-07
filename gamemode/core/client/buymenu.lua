@@ -1,15 +1,70 @@
 local ext = basewars.createExtension"core.buy-menu"
 
-do
-	local grey  = Color(90 , 90 , 90 , 180)
-	local grey2 = Color(190, 190, 190, 180)
-	local green = Color(90 , 200, 0  , 180)
-	local red   = Color(200, 0  , 20 , 180)
-	local blue  = Color(0  , 90 , 200, 180)
-	local yello = Color(255, 234, 136, 180)
+--TODO: move somewhere more appropriate
+local catsIcons = {
 
-	local shade = Color(0  , 0  , 0  , 192)
-	local white = Color(255, 255, 255, 255)
+	Base = {
+		URL = "https://i.imgur.com/jXyM6ss.png",
+		Name = "base2.png",
+
+		IconW = 24,
+		IconH = 24,
+
+		UnselectedColor = nil, 	--available for override
+		SelectedColor = nil, 	--available for override
+
+		Subcats = {
+			Construction =  {
+				URL = "https://i.imgur.com/poRxTau.png", 
+				Name = "electricity.png",
+
+				IconW = 32,
+				IconH = 32
+			}
+		}
+	},
+
+	Money = {
+		URL = "https://i.imgur.com/04iGwnU.png",--"https://i.imgur.com/Pd6myv0.png",
+		Name = "coins_pound32.png",
+
+		IconW = 24,
+		IconH = 24,
+
+	},
+
+}
+
+local catsColor = Color(200, 200, 200) -- Categories color (panel on the left)
+local catsGradColor = Color(65, 65, 65)
+
+local catsTextColor = Color(75, 75, 75) -- Categories: unselected color for text + icon
+local catsTextSelected = Color(50, 150, 250)
+
+local catPush = 16 		--px to move to the right for selected categories
+local catSelTime = 0.3 			--seconds to lerp to selected color + move out
+local catUnselTime = catSelTime --seconds to lerp to unselected color + move in
+local catEase = 0.4
+
+local itemlistBGColor = Color(170, 170, 170, 200)
+local itemlistGradColor = Color(20, 20, 20)
+
+local itemSubcatBG = Color(0, 0, 0, 110)
+
+local itemBorder = Color(80, 80, 80) 
+local itemClickedBorder = Color(200, 200, 200)
+
+local grey  = Color(90 , 90 , 90 , 180)
+local grey2 = Color(190, 190, 190, 180)
+local green = Color(90 , 200, 0  , 180)
+local red   = Color(200, 0  , 20 , 180)
+local blue  = Color(50  , 95 , 180, 255)
+local yello = Color(255, 234, 136, 180)
+
+local shade = Color(0  , 0  , 0  , 192)
+local white = Color(255, 255, 255, 255)
+
+do
 
 	local largeFont  = ext:getTag() .. "_large"
 	local smallFont = ext:getTag() .. "_small"
@@ -26,8 +81,7 @@ do
 		weight = 1,
 	})
 
-	function ext:paintSpawnIcon(w, h, ply, item)
-		if hook.Run("BW_PaintBuymenuSpawnIcon", w, h, ply, item) then return end
+	function ext:getIconColor(ply, item)
 		local level = not item.level or ply:hasLevel(item.level)
 		local cost  = item.cost
 
@@ -49,10 +103,11 @@ do
 			end
 		end
 
-		draw.RoundedBox(4, 1, 1, w - 2, h - 2, col or grey2)
+		return col or grey2
+
 	end
 
-	function ext:paintOverSpawnIcon(w, h, ply, item, costText)
+	function ext:paintOverSpawnIcon(x, y, w, h, ply, item, costText)
 		if hook.Run("BW_PaintOverBuymenuSpawnIcon", w, h, ply, item, costText) then return end
 		local level = not item.level or ply:hasLevel(item.level)
 
@@ -64,7 +119,7 @@ do
 
 				surface.SetFont(smallFont)
 				local tw = surface.GetTextSize(item_name)
-				local total_w = 92 - 9
+				local total_w = w - x*2 - 6
 				local dots = 0
 				local dot = "."
 
@@ -78,63 +133,286 @@ do
 				item.displayName = item_name .. dot:rep(dots)
 			end
 
-			draw.SimpleText(item.displayName, smallFont, 5, 5, shade, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
-			draw.SimpleText(item.displayName, smallFont, 4, 4, white, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+			draw.SimpleText(item.displayName, smallFont, w/2, y + 3, shade, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
+			draw.SimpleText(item.displayName, smallFont, w/2, y + 2, white, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP)
 
-			draw.SimpleText(costText, largeFont, w - 3, h - 3, shade, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
-			draw.SimpleText(costText, largeFont, w - 4, h - 4, white, TEXT_ALIGN_RIGHT, TEXT_ALIGN_BOTTOM)
+			draw.SimpleText(costText, largeFont, w/2, y + h - 6, shade, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
+			draw.SimpleText(costText, largeFont, w/2, y + h - 7, white, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM)
 		end
 	end
 end
 
-function ext:buildCategory(layout, data)
-	local items = data.items
+local noIconMat
+
+function ext:openCategory(catname, catpnl, catdata)
+	local subcatFrame = vgui.Create("InvisPanel", self.mainFrame)
+	self.subcategoryPanel = subcatFrame
+
+	subcatFrame:SetPos(catpnl.X + catpnl:GetWide() - 8, catpnl.Y)	--can't use docking because i want to animate this popping up to the right
+
+	local width = self.mainFrame:GetWide() - catpnl:GetWide() - catpnl.X - 16
+
+	subcatFrame:SetSize(width, self.mainFrame:GetTall() - catpnl.Y - 4) -- 4px on the bottom
+
+	subcatFrame:MoveBy(16, 0, 0.3, 0.05, 0.4)
+	subcatFrame:PopIn(nil, 0.05)
+
+
+	local subcats = vgui.Create("InvisPanel", subcatFrame)
+	subcats:Dock(LEFT)
+	subcats:SetWide(80)		--ideally 64px for the icons and 8px padding
+
+	function subcats:Paint(w, h)
+		draw.RoundedBox(8, 0, 0, w, h, catsColor)
+
+		surface.SetDrawColor(catsGradColor)
+		self:DrawGradientBorder(w, h, 3, 3)
+
+		draw.DrawText("subcat\nicons\nwill go\nhere l8r", "OS24", w/2, 12, Colors.Gray, 1)
+	end
+
+	local items = vgui.Create("FScrollPanel", subcatFrame)
+	items:Dock(FILL)
+	items:DockMargin(4, 0, 0, 0)
+	items.BackgroundColor = itemlistBGColor:Copy()
+	items.GradBorder = true 
+	items.BorderColor = itemlistGradColor:Copy()
+
+	items:GetCanvas():DockPadding(8, 8, 8, 0)
+
+	subcatFrame:InvalidateLayout(true)
+
+	self:buildSubcategory(items, catdata, catname)
+end
+
+function ext:closeCategory(catname, catpnl, catdata)
+	if IsValid(self.subcategoryPanel) then
+		self.subcategoryPanel:PopOut(0.15)
+		self.subcategoryPanel:MoveBy(0, 24, 0.15, 0, 1.4)
+	end
+
+end
+
+function ext:buildSubcategory(scr, catdata, catname)
+	local items = catdata.items
 
 	local ply = LocalPlayer()
-	for _, tbl in SortedPairsByMemberValue(items, "cost") do
-		local cost = tbl.cost
 
-		local cost_text
-		if cost > 0 then
-			cost_text = basewars.currency(cost)
-		else
-			cost_text = "FREE"
+	for sc_name, sc_data in SortedPairs(catdata.subcats) do 
+
+		local subframe = vgui.Create("InvisPanel", scr)
+		subframe:Dock(TOP)
+		subframe:DockMargin(0, 8, 0, 4)
+		subframe:DockPadding(8, 24, 8, 4)
+		subframe:SetWide(scr:GetWide())
+
+		local subcat_icon = (catsIcons[catname] and catsIcons[catname].Subcats and catsIcons[catname].Subcats[sc_name])
+
+		function subframe:Paint(w, h)
+			draw.RoundedBox(8, 0, 0, w, h, itemSubcatBG)
+
+			surface.SetDrawColor(color_white)
+
+			if subcat_icon then
+				local w, h = subcat_icon.IconW or 32, subcat_icon.IconH or 32 
+
+				surface.DrawMaterial(subcat_icon.URL, subcat_icon.Name, 8, 36/2 - h/2, w, h)
+			else
+				surface.SetMaterial(noIconMat)
+				surface.DrawTexturedRect(8, 4, 32, 32)
+			end
+
+			draw.SimpleText(sc_name, "OSB32", 32 + 8 + 4, 36/2, color_white, 0, 1)
 		end
 
-		local icon = layout:Add("SpawnIcon")
-			icon:SetModel(tbl.model)
-			icon:SetTooltip(tbl.name .. (cost > 0 and " (" .. cost_text .. ")" or ""))
-			icon:SetSize(92, 92)
+		local itemlist = vgui.Create("DIconLayout", subframe)
+		itemlist:Dock(BOTTOM)
+		itemlist:SetWide(subframe:GetWide())
+		itemlist:SetSpaceX(4)
+
+
+		for id, item in ipairs(sc_data.items) do 
+
+			local cost = item.cost
+			local cost_text
+
+			if cost > 0 then
+				cost_text = basewars.currency(cost)
+			else
+				cost_text = "FREE"
+			end
+
+			local btn = itemlist:Add("FButton")
+
+			btn.Label = ""
+			btn.Border = {}
+			btn.borderColor = itemBorder:Copy()
+			btn:SetSize(88, 88)
+			btn.DrawShadow = false 
+			btn.HovMult = 1.2 
+
+			local icon = vgui.Create("SpawnIcon", btn)
+			icon:SetMouseInputEnabled(false)
+			icon:SetModel(item.model)
+			icon:SetTooltip(item.name .. (cost > 0 and " (" .. cost_text .. ")" or ""))
+
+			icon:SetSize(76, 76)
+			icon:SetPos(6, 6)
 
 			local SpawnIcon = vgui.GetControlTable"SpawnIcon"
+			local clicc = 0
 
-			function icon:DoClick()
+			function btn:DoClick()
 				surface.PlaySound("buttons/button9.wav")
 
-				hook.Run("BW_SelectedEntityForPurchase", tbl.item_id)
+				hook.Run("BW_SelectedEntityForPurchase", item.item_id)
+				self.borderColor:Set(itemClickedBorder)
+				clicc = CurTime() + 0.05
 			end
 
-			function icon.Paint(panel, w, h)
-				self:paintSpawnIcon(w, h, ply, tbl)
+			function btn:PrePaint(w, h)
+				if hook.Run("BW_PaintBuymenuSpawnIcon", self, w, h, ply, item) then return end
 
-				SpawnIcon.Paint(panel, w, h)
+				local frac = math.min(CurTime() - clicc, 0.5) * 2
+				LerpColor(frac, self.borderColor, itemBorder)
+
+				self.Color = ext:getIconColor(ply, item) 
 			end
 
-			function icon.PaintOver(panel, w, h)
-				self:paintOverSpawnIcon(w, h, ply, tbl, cost_text)
+			function btn:PaintOver(w, h)
+				ext:paintOverSpawnIcon(4, 4, w, h, ply, item, cost_text)
 
-				SpawnIcon.PaintOver(panel, w, h)
+				--SpawnIcon.PaintOver(panel, w, h)
 			end
+
+		end
+
+		itemlist:InvalidateLayout(true)
+		subframe:SetTall(itemlist:GetTall() + 8 + 32)
+
+	end
+	--[[
+	for _, tbl in SortedPairsByMemberValue(items, "cost") do
+		
+
+		
+	end]]
+
+end
+
+local ft
+
+local function catBtnPaint(self, w, h)
+	local ic = self.Icon
+
+	local unselCol = (ic and ic.UnselectedColor) or catsTextColor
+	local selCol = (ic and ic.SelectedColor)	 or catsTextSelected
+
+	self.currentColor = self.currentColor or unselCol:Copy()
+
+	local fr = self.selFrac
+
+	if ext.selectedCategory == self.catName then
+		self:To("selFrac", 1, catSelTime, 0, catEase)
+		LerpColor(fr, self.currentColor, selCol)
+	else
+		self:To("selFrac", 0, catSelTime, 0, catEase)
+		LerpColor(1 - fr, self.currentColor, unselCol)
+	end
+
+	self.iconX = math.ceil( 4 + fr * catPush )
+	self.TextX = math.ceil( self.iconX + ((ic and (ic.IconW or 24) + 4) or 0) )
+
+	if ic then
+		surface.SetDrawColor(self.currentColor)
+		surface.DrawMaterial(ic.URL, ic.Name, self.iconX, h/2 - ic.IconH/2, ic.IconW, ic.IconH)
+	end
+
+	self.LabelColor = self.currentColor
+end
+
+function ext:buildCategories(pnl)
+	
+
+	ext.mainFrame = pnl
+
+	local catpnl = pnl:Add("InvisPanel")
+	catpnl:Dock(LEFT)
+	catpnl:DockMargin(0, 32, 0, 4)
+	catpnl:DockPadding(0, 8, 0, 0)
+
+	catpnl:SetWide(175)
+
+	function catpnl:Paint(w, h)
+		if not noIconMat then 
+			noIconMat = draw.RenderOntoMaterial("spawnmenu-noicon", 32, 32, function()
+				draw.SimpleText("*", "R64", 16, 14, color_white, 1, 1)
+			end)
+		end
+
+		ft = FrameTime()
+
+		draw.RoundedBox(8, 0, 0, w, h, catsColor)
+
+		surface.SetDrawColor(catsGradColor)
+		self:DrawGradientBorder(w, h, 3, 3)
+	end
+
+	local cats = basewars.items.getCategorized()
+
+	for catname, catdata in pairs(cats) do
+
+		local cat = vgui.Create("FButton", catpnl)
+		cat:Dock(TOP)
+		cat:DockMargin(4, 4, 4, 4)
+		cat.Label = catname
+		cat:SetTall(28)
+		cat.NoDraw = true
+
+		cat.LabelColor = catsTextColor:Copy()
+		cat.Font = "OSB28"
+
+		cat.TextX = 2
+		cat.TextAX = 0
+
+		cat.catName = catname
+		cat.selFrac = 0
+
+		local icon = catsIcons[catname]
+
+		if icon then 
+			cat.Icon = icon
+
+			cat.TextX = 2 + icon.IconW + 4
+		end
+
+		cat.PostPaint = catBtnPaint
+
+		function cat:DoClick()
+
+			ext:closeCategory(catname, catpnl, catdata)
+			ext.selectedCategory = catname
+			ext:openCategory(catname, catpnl, catdata)
+
+		end
+
 	end
 end
 
+
+--using --[[]] gets you lua'd
+
+/*
 function ext:buildItems(pnl)
+	
 	local cats = pnl:Add("DCategoryList")
 		cats:Dock(FILL)
 		function cats:Paint() end
 
 	local items = basewars.items.getCategorized()
+
 	for catName, data in SortedPairs(items) do
+
 		local layout = vgui.Create("DIconLayout")
 			layout:Dock(FILL)
 
@@ -148,15 +426,21 @@ function ext:buildItems(pnl)
 			cat:SetExpanded(true)
 	end
 end
+*/
 
 function ext.makeBuyMenuPanel()
-	local pnl = vgui.Create("DPanel")
-		function pnl:Paint(w, h) end
+	local pnl = vgui.Create("InvisPanel")
 
-	ext:buildItems(pnl)
+	local ok, err = pcall(ext.buildCategories, ext, pnl)
+
+	if not ok then --remove me when done editing
+		pnl:Remove()
+		errorf("Spawnmenu error!\n %s", err)
+	end
 
 	return pnl
 end
+
 spawnmenu.AddCreationTab("Basewars", ext.makeBuyMenuPanel, "icon16/building.png", 2)
 
 do
@@ -195,6 +479,7 @@ do
 	spawnmenu.Reload = spawnmenu.Reload or concommand.GetTable().spawnmenu_reload
 	concommand.Add("spawnmenu_reload", ext.reloadSpawnmenu)
 
+	--[[
 	cvars.AddChangeCallback("developer", function(_, old, new)
 		local val = tonumber(new) or 1
 
@@ -208,5 +493,5 @@ do
 
 	if g_SpawnMenu then
 		ext.reloadSpawnmenu()
-	end
+	end]]
 end

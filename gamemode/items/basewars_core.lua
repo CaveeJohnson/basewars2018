@@ -1,4 +1,5 @@
-ITEM.category = "Base - Cores"
+ITEM.category = "Base"
+ITEM.subcategory = "Cores"
 
 ITEM.limit = 1
 

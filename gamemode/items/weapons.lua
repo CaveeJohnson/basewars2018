@@ -1,8 +1,11 @@
-local category = "[Weapons - Ranged]"
+local category = "Weapons"
+local subcategory = "Ranged"
 local limit = 5
 
 basewars.items.create "sfw_saphyre" {
 	category     = category,
+	subcat 		 = subcategory,
+
 	limit        = limit,
 	buyInRaids   = true,
 
@@ -11,6 +14,8 @@ basewars.items.create "sfw_saphyre" {
 
 basewars.items.create "sfw_behemoth" {
 	category     = category,
+	subcat 		 = subcategory,
+
 	limit        = limit,
 	buyInRaids   = true,
 
@@ -19,6 +24,8 @@ basewars.items.create "sfw_behemoth" {
 
 basewars.items.create "sfw_aquamarine" {
 	category     = category,
+	subcat 		 = subcategory,
+
 	limit        = limit,
 	buyInRaids   = true,
 
@@ -27,6 +34,8 @@ basewars.items.create "sfw_aquamarine" {
 
 basewars.items.create "sfw_thunderbolt" {
 	category     = category,
+	subcat 		 = subcategory,
+
 	limit        = limit,
 	buyInRaids   = true,
 
@@ -35,6 +44,8 @@ basewars.items.create "sfw_thunderbolt" {
 
 basewars.items.create "sfw_phoenix" {
 	category     = category,
+	subcat 		 = subcategory,
+
 	limit        = limit,
 	buyInRaids   = true,
 
@@ -43,6 +54,8 @@ basewars.items.create "sfw_phoenix" {
 
 basewars.items.create "sfw_pulsar" {
 	category     = category,
+	subcat 		 = subcategory,
+
 	limit        = limit,
 	buyInRaids   = true,
 
@@ -51,6 +64,8 @@ basewars.items.create "sfw_pulsar" {
 
 basewars.items.create "sfw_neutrino" {
 	category     = category,
+	subcat 		 = subcategory,
+
 	limit        = limit,
 	buyInRaids   = true,
 
@@ -59,6 +74,8 @@ basewars.items.create "sfw_neutrino" {
 
 basewars.items.create "sfw_fallingstar" {
 	category     = category,
+	subcat 		 = subcategory,
+
 	limit        = limit,
 	buyInRaids   = true,
 
@@ -67,26 +84,39 @@ basewars.items.create "sfw_fallingstar" {
 
 basewars.items.create "sfw_vapor" {
 	category     = category,
+	subcat 		 = subcategory,
+
 	limit        = limit,
 	buyInRaids   = true,
 
 	cost         = 9e7,
 }
 
-category = "[Weapons - Melee]"
+
+------------------------------------
+
+
+subcategory = "Melee"
 
 basewars.items.create "sfw_eblade" {
 	category     = category,
+	subcat 		 = subcategory,
+
 	limit        = limit,
 	buyInRaids   = true,
 
 	cost         = 6e3,
 }
 
-category = "[Weapons - Anti-Base]"
+
+-----------------------------------
+
+
+subcategory = "Anti-Base"
 
 basewars.items.create "basewars_photon_cannon" {
 	category     = category,
+	subcat 		 = subcategory,
 	limit        = limit,
 	buyInRaids   = true,
 

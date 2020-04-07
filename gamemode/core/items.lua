@@ -57,13 +57,49 @@ function basewars.items.createItemEx(id, tbl)
 	items_list[item_index] = tbl
 
 	local cat = tbl.category or "Other"
-	items_categories[cat] = items_categories[cat] or {
-		items = {},
-		count = 0
+	local subcat_name = tbl.subcategory or tbl.subcat or "Other"
+
+	local icat = items_categories[cat] or {
+		subcats = {},
+		--items = {},
+		count = 0,		--subcategory count
+		itemcount = 0	--items in category count
 	}
 
-	items_categories[cat].count = items_categories[cat].count + 1
-	table.insert(items_categories[cat].items, tbl)
+	items_categories[cat] = icat
+
+
+	local subcats = icat.subcats
+	local subcat = subcats[subcat_name]
+
+	if not subcat then
+		icat.count = icat.count + 1 --increment subcategories count
+
+		subcats[subcat_name] = {
+			items = {},
+			itemclasses = {}, 	--for preventing the same item appearing twice
+			count = 0			--items in subcategory count
+		}
+
+		subcat = subcats[subcat_name]
+
+	end
+
+	if subcat.itemclasses[id] then 		--this item is already in the spawnmenu; update the existing one
+
+		local key = subcat.itemclasses[id]
+		subcat.items[key] = tbl
+
+	else 									--add new item; increment item counts
+
+		icat.itemcount = icat.itemcount + 1
+		subcat.count = subcat.count + 1
+
+		local key = table.insert(subcat.items, tbl)
+		subcat.itemclasses[id] = key
+
+	end
+
 end
 
 function basewars.items.create(id)

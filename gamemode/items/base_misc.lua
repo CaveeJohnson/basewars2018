@@ -1,10 +1,12 @@
-local category = "[Base - Misc]"
+local category = "Base"
+local subcat = "Miscellaneous"
 
 basewars.items.create "mediaplayer_tv_big" {
 	class        = "mediaplayer_tv",
 	name         = "Big Screen TV",
 
 	category     = category,
+	subcat 		 = subcat,
 	limit        = 1,
 
 	cost         = 6e5,
@@ -19,6 +21,8 @@ basewars.items.create "mediaplayer_tv_small" {
 	model        = "models/props_phx/rt_screen.mdl",
 
 	category     = category,
+	subcat 		 = subcat,
+
 	limit        = 1,
 
 	setModel     = true,

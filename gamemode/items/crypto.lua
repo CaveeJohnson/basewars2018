@@ -1,8 +1,11 @@
-local category = "[Crypto Miners]"
+local category = "Money"
+local subcategory = "[Crypto Miners]"
 local limit = 3
 
 basewars.items.create "basewars_crypto_copper" {
 	category     = category,
+	subcat 		 = subcat,
+
 	limit        = limit,
 	requiresCore = true,
 
@@ -11,6 +14,8 @@ basewars.items.create "basewars_crypto_copper" {
 
 basewars.items.create "basewars_crypto_silver" {
 	category     = category,
+	subcat 		 = subcat,
+
 	limit        = limit,
 	requiresCore = true,
 
@@ -19,6 +24,8 @@ basewars.items.create "basewars_crypto_silver" {
 
 basewars.items.create "basewars_crypto_gold" {
 	category     = category,
+	subcat 		 = subcat,
+	
 	limit        = limit,
 	requiresCore = true,
 

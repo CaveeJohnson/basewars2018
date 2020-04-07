@@ -137,14 +137,13 @@ function button:Draw(w, h)
 	self:HoverLogic()
 
 	local spr = shadow.Spread or 0
+	local label = self.Label or nil
 
 	if not self.NoDraw then
 		if (self.DrawShadow and spr>0.01) or self.AlwaysDrawShadow then 
 			BSHADOWS.BeginShadow()
 			x, y = self:LocalToScreen(0,0)
 		end
-
-		local label = self.Label or nil
 
 		local w2, h2 = w, h 
 		local x2, y2 = x, y
@@ -174,18 +173,19 @@ function button:Draw(w, h)
 			BSHADOWS.EndShadow(int, spr, blur or 2, self.Shadow.Alpha, self.Shadow.Dir, self.Shadow.Distance, nil, self.Shadow.Color)
 		end
 
-		
-		
+	end
 
-		if label then 
-			local label = tostring(label)
-			if label:find("\n") then
-				draw.DrawText(label, self.Font, self.TextX or w/2, self.TextY or h/2, self.LabelColor,  self.TextAX or 1)
-			else
-				draw.SimpleText(label,self.Font, self.TextX or w/2, self.TextY or h/2, self.LabelColor, self.TextAX or 1,  self.TextAY or 1)
-			end
+	if not self.NoDrawText and label then 
+
+		label = tostring(label)
+
+		if label:find("\n") then
+			draw.DrawText(label, self.Font, self.TextX or w/2, self.TextY or h/2, self.LabelColor,  self.TextAX or 1)
+		else
+			draw.SimpleText(label,self.Font, self.TextX or w/2, self.TextY or h/2, self.LabelColor, self.TextAX or 1,  self.TextAY or 1)
 		end
 	end
+	
 
 end
 

@@ -65,14 +65,22 @@ function META:Lerp(key, val, dur, del, ease)
 	local anim
 	local from = self[key] or 0
 
+	if self[key] == val then return end 
+
 	if anims[key] then
-		local anim = anims[key]
+		anim = anims[key]
 		if anim.ToVal == val then return end --don't re-create animation if we're already lerping to that anyways
 
+		anim.ToVal = val
 		anim:Swap(dur, del, ease)
 
 	else
+
 		anim = self:NewAnimation(dur, del, ease)
+		anim:SetSwappable(true)
+
+		anim.ToVal = val
+		anims[key] = anim
 	end
 
 	anim.Think = function(anim, self, fr)

@@ -52,13 +52,14 @@ local itemlistGradColor = Color(20, 20, 20)
 local itemSubcatBG = Color(0, 0, 0, 110)
 
 local itemBorder = Color(80, 80, 80) 
-local itemClickedBorder = Color(200, 200, 200)
+local itemClickedBorder = Color(220, 220, 220)
+local itemBorderHeld = Color(10, 10, 10)
 
 local grey  = Color(90 , 90 , 90 , 180)
 local grey2 = Color(190, 190, 190, 180)
 local green = Color(90 , 200, 0  , 180)
 local red   = Color(200, 0  , 20 , 180)
-local blue  = Color(50  , 95 , 180, 255)
+local blue  = Color(60  , 115 , 200, 180)
 local yello = Color(255, 234, 136, 180)
 
 local shade = Color(0  , 0  , 0  , 192)
@@ -244,12 +245,15 @@ function ext:buildSubcategory(scr, catdata, catname)
 
 			local btn = itemlist:Add("FButton")
 
+			btn:SetDoubleClickingEnabled(false) --fast clixx
+			btn:SetSize(88, 88)
+
 			btn.Label = ""
 			btn.Border = {}
 			btn.borderColor = itemBorder:Copy()
-			btn:SetSize(88, 88)
 			btn.DrawShadow = false 
 			btn.HovMult = 1.2 
+			
 
 			local icon = vgui.Create("SpawnIcon", btn)
 			icon:SetMouseInputEnabled(false)
@@ -260,7 +264,11 @@ function ext:buildSubcategory(scr, catdata, catname)
 			icon:SetPos(6, 6)
 
 			local SpawnIcon = vgui.GetControlTable"SpawnIcon"
+
 			local clicc = 0
+
+			local down = 0
+			local held = false 
 
 			function btn:DoClick()
 				surface.PlaySound("buttons/button9.wav")
@@ -272,11 +280,36 @@ function ext:buildSubcategory(scr, catdata, catname)
 
 			function btn:PrePaint(w, h)
 				if hook.Run("BW_PaintBuymenuSpawnIcon", self, w, h, ply, item) then return end
+				local col = itemBorder 
 
-				local frac = math.min(CurTime() - clicc, 0.5) * 2
-				LerpColor(frac, self.borderColor, itemBorder)
+				local frac
 
-				self.Color = ext:getIconColor(ply, item) 
+				local time = 0.5 --0.5s to lerp back
+
+				if CurTime() - clicc > 0.5 then --if we didn't click, animations go quicker
+					time = 0.2					--(aka hold/unhold animation)
+				end
+
+				if self:IsDown() then 
+					col = itemBorderHeld
+
+					if not held then 
+						down = CurTime()
+					end
+
+					held = true
+				elseif held then 	--button got unpushed this frame 
+					down = CurTime()
+					held = false
+				end
+
+				
+
+				frac = math.min(CurTime() - clicc, CurTime() - down, time) * (1/time)
+				 
+				LerpColor(frac, self.borderColor, col)
+
+				self.Color = ext:getIconColor(ply, item)
 			end
 
 			function btn:PaintOver(w, h)

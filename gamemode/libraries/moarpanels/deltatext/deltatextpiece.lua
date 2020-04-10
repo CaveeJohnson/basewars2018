@@ -9,9 +9,9 @@ DeltaTextPiece = DeltaTextPiece or Object:extend()
 
 local function NewFragment(text, col)
 	return {
-		Text = text, 
-		OffsetY = 0, 
-		OffsetX = 0, 
+		Text = text,
+		OffsetY = 0,
+		OffsetX = 0,
 
 		AlignX = 0,
 		AlignY = 0,
@@ -21,10 +21,10 @@ local function NewFragment(text, col)
 	}
 end
 
-local pmeta = DeltaTextPiece.Meta 
+local pmeta = DeltaTextPiece.Meta
 
 function pmeta:Initialize(par, tx, font, key, rep)
-	self.Text = tx 
+	self.Text = tx
 	self.Font = font
 	self.Key = key
 
@@ -190,6 +190,13 @@ function pmeta:SetAnimationFunction(func)
 	self.AnimationFunction = func
 end
 
+
+function pmeta:DrawText(x, y, col, tx, frag) --Available for override
+	surface.SetTextPos(x, y)
+	surface.SetTextColor(col.r, col.g, col.b, col.a)
+	surface.DrawText(tx)
+end
+
 function pmeta:Paint(x, y)
 	self.Color.a = self.Alpha
 
@@ -206,6 +213,9 @@ function pmeta:Paint(x, y)
 		local lastw = 0
 		local lasttx = ""
 
+		local lerpnext = 1
+		local lerpfrom = 0
+
 		for k,v in pairs(self.Fragments) do
 			local alignX = v.AlignX or 0
 			alignX = alignX / 2
@@ -216,36 +226,40 @@ function pmeta:Paint(x, y)
 
 			local tw, th = surface.GetTextSize(v.Text)
 
-			if not v.RewindTextPos then 
 
-				if v.LerpFromLast then 
-					x = x -  Lerp(Ease(v.LerpFromLast, v.Ease or 0.6), lastw or tw*alignX, tw*alignX)
-				else 
-					x = x - tw * alignX 
-				end 
-
+			if v.LerpNext then --if lerpnext is active then this fragment's width will be calculated by the next fragment
+				lerpnext = Ease(v.LerpNext, v.Ease or 0.6)
+				lerpfrom = tw*alignX
+			else
+				x = x - Lerp(lerpnext, lerpfrom, tw * alignX)
+				lerpnext = 1
+				lerpfrom = 0
 			end
-			
+
+			lastw = v.Fading and tw
+	
 		end
 
-		for k,v in pairs(self.Fragments) do 
-			if v.Text == "" then continue end 
+		lastw = 0
+
+		for k,v in pairs(self.Fragments) do
+			if v.Text == "" then continue end
 
 			--if fragment doesn't have a custom font, and current font is not default font (for example, from last frag)
 			--or fragment has a custom font and it's not the same one as the current,
 			--change it
 
-			if (not v.Font and curfont ~= self.Font) or (v.Font and v.Font ~= curfont) then 
+			if (not v.Font and curfont ~= self.Font) or (v.Font and v.Font ~= curfont) then
 				surface.SetFont(v.Font or self.Font)
 				curfont = v.Font
 			end
 
-			v.Color.a = math.min(v.Alpha or 255, self.Alpha)
+			v.Color.a = math.min(v.Alpha or 255, self.Alpha, v.Color.a)
 
 			local tw, th = surface.GetTextSize(v.Text)
 
 			local alignX, alignY = v.AlignX or 0, v.AlignY or 0
-			alignX, alignY = alignX/2, alignY/2
+			alignX, alignY = alignX / 2, alignY / 2
 
 			--0 = left/top
 			--1 = middle
@@ -256,22 +270,15 @@ function pmeta:Paint(x, y)
 			local tX = x + v.OffsetX + self.Offsets.X -- alignX * tw
 			local tY = y + v.OffsetY + self.Offsets.Y + alignY * th
 
-			surface.SetTextPos(tX, tY)
+			self:DrawText(tX, tY, v.Color, v.Text, v)
 
-			surface.SetTextColor(v.Color)
+			if not v.RewindTextPos then
 
-			surface.DrawText(v.Text)
-
-			
-				
-
-			if not v.RewindTextPos then 
-
-				if v.LerpFromLast then 
+				if v.LerpFromLast then
 					x = x + Lerp(Ease(v.LerpFromLast, v.Ease or 0.6), lastw or tw, tw)
-				else 
+				else
 					x = x + tw
-				end 
+				end
 
 			end
 
@@ -279,25 +286,26 @@ function pmeta:Paint(x, y)
 			lasttx = v.Text
 		end
 
-		return 
+		return
 	end
-	surface.SetTextPos(x + self.Offsets.X, y + self.Offsets.Y)
-	surface.SetTextColor(self.Color)
 
-	surface.DrawText(self.Text)
+	self:DrawText(x + self.Offsets.X, y + self.Offsets.Y, self.Color, self.Text)
 
 end
 
 function pmeta:GetText(ignore_fading)
-	if not self.Fragments then 
+	if not self.Fragmented then
 		return self.Text
-	else 
+	else
+
 		local s = ""
-		for k,v in pairs(self.Fragments) do 
+
+		for k,v in pairs(self.Fragments) do
 			if ignore_fading and v.RewindTextPos then continue end
-			s = s .. v.Text 
-		end 
-		return s 
+			s = s .. v.Text
+		end
+
+		return s
 	end
 end
 function pmeta:OnAppear()	--for override
@@ -490,39 +498,44 @@ function pmeta:ReplaceText(num, rep, onend)
 
 	local newfrag = NewFragment(rep, self.Color)
 
-	newfrag.Alpha = 0 
+	newfrag.Alpha = 0
 	newfrag.ID = num
-	newfrag.LerpFromLast = 0
-	newfrag.RewindTextPos = true
+	--newfrag.LerpFromLast = 0
+	--newfrag.RewindTextPos = true
 
-	local frag 
+	local frag
 
 	for k,v in pairs(self.Fragments) do --find the frag we'll be replacing
 		if not v.Fading and v.ID == num then 
-			frag = v 
-			break 
+			frag = v
+			break
 		end
 	end
 
 	if not frag then return false end 
 
 	if frag.Text == rep then return false end --its the same text
-	--frag.RewindTextPos = true
+	frag.RewindTextPos = true
 	frag.Fading = true
+	frag.LerpNext = 0
 
-	newfrag.AlignX = frag.AlignX 
-	newfrag.AlignY = frag.AlignY 
-	newfrag.Color = frag.Color 
+	newfrag.AlignX = frag.AlignX
+	newfrag.AlignY = frag.AlignY
+	newfrag.Color = frag.Color
 
 	self:StopAnimation(frag.ID .. "AddText" .. frag.Text)	--in case it existed
 
 	local dropstr = self:GetDropStrength()
 
+	local a = frag.Alpha 
+
 	self:CreateAnimation(num .. "SubText" .. frag.Text, function(fr)
 		frag.OffsetY = fr * dropstr
-		frag.Alpha = 255 - fr*255
+		frag.Alpha = a - fr*a
+		frag.LerpNext = fr
 
 		newfrag.LerpFromLast = fr 	--doing it in the fading _out_ looks better, for some reason, than doing it on fading _in_
+
 	end, function()
 
 		local found = false
@@ -535,6 +548,7 @@ function pmeta:ReplaceText(num, rep, onend)
 		end
 
 		newfrag.Finished = true
+		--newfrag.LerpFromLast = 0
 	end)
 
 	local appstr = self:GetLiftStrength()
@@ -542,23 +556,24 @@ function pmeta:ReplaceText(num, rep, onend)
 	self:CreateAnimation(num .. "AddText" .. newfrag.Text, function(fr)
 		frag.RewindTextPos = true	--to prevent the new fragment's X pos being impacted by the one we're removing.
 		newfrag.RewindTextPos = false
-
 		
+
 		newfrag.OffsetY = appstr - (fr * appstr)
 		newfrag.Alpha = fr*255
 
-	end, 
-	function() 
+	end,
+
+	function()
 		if onend then onend() end
-	end, 
-	nil, 
+	end,
+	nil,
 	0.1)	--delay		
 
 	local inswhere = num+1
 
 	for k,v in pairs(self.Fragments) do 	--find latest fragment with this ID which is fading, to put the new frag after it 
 		if v.Fading and v.ID == num then 	--this is done for text X rewinding to work properly(ORDERRR!)
-			inswhere = k+1 
+			inswhere = k+1
 		end
 	end
 

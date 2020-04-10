@@ -45,7 +45,7 @@ function dmeta:AddText(tx, rep, timing)
 		self.Elements[key] = t
 		self.LastAddedText = key
 
-	else 
+	else
 		local txel = self.Elements[self.LastAddedText] --grab last text
 		if not txel then PrintTable(self.Elements) print(self.LastAddedText) error("can't add a text replacer if there's no textpieces!") return end 
 
@@ -59,20 +59,20 @@ function dmeta:AddText(tx, rep, timing)
 		self.Elements[key] = t
 	end
 
-	if timing then 
+	if timing then
 
 		self.Timings[key] = {
-			time = timing, 
-			elem = t, 
-			key = key, 
+			time = timing,
+			elem = t,
+			key = key,
 
 			OnActive = function(self, dt)
 				dt:ActivateElement(key)
 			end
-		} 
+		}
 	end
 
-	return t 
+	return t
 end
 
 function dmeta:SetAlignment(a)
@@ -87,20 +87,20 @@ function dmeta:AddEvent(timing)
 
 	self.Elements[key] = t 	--it's not really a text
 
-	if timing then 
+	if timing then
 
 		self.Timings[key] = {
-			time = timing, 
-			elem = t, 
-			key = key, 
+			time = timing,
+			elem = t,
+			key = key,
 
 			OnActive = function(self, dt)
 				dt:ActivateElement(key)
 			end
-		} 
+		}
 	end
 
-	return t 
+	return t
 end
 
 function dmeta:CycleReset()
@@ -138,20 +138,20 @@ function dmeta:GetCurrentElement()
 end
 
 function dmeta:CycleNext()
-	
+
 	local key = self.LastActive or #self.Active
 	local tx = self.Elements[key + 1] --new object to activate
 
 	local lasttx = self.LastActiveText
 
-	if tx then 
+	if tx then
 
-		if tx.IsEvent then 
+		if tx.IsEvent then
 			self.Active[key + 1] = tx
 			self.LastActive = key + 1
 			self.ActiveWhen = CurTime()
 
-			tx:OnActive()		
+			tx:OnActive()
 			return tx
 		end
 
@@ -170,10 +170,10 @@ function dmeta:CycleNext()
 		if ac and not ac.IsEvent then key = ac.Key ac:Disappear() end
 
 		return self.Active[key + 1]
-	else 
-		return false 
+	else
+		return false
 	end
-	
+
 end
 
 function dmeta:GetSize()
@@ -189,14 +189,14 @@ function dmeta:ActivateElement(num) 	--this skips certain elements from the cycl
 
 	local tx = self.Elements[num] --new object to activate
 
-	if tx then 
+	if tx then
 
-		if tx.IsEvent then 
+		if tx.IsEvent then
 			self.Active[num] = tx
 			self.LastActive = num
 			self.ActiveWhen = CurTime()
 
-			tx:OnActive()		
+			tx:OnActive()
 			return tx
 		end
 
@@ -225,9 +225,9 @@ function dmeta:Paint(x, y)
 	local tw = 0
 
 	surface.SetFont(self.Font)
-	self.LastFont = self.Font 
+	self.LastFont = self.Font
 
-	for k, tp in pairs(self.Active) do 
+	for k, tp in pairs(self.Active) do
 		if not tp.Paint then continue end
 
 		if tp.Font ~= self.LastFont then self.LastFont = tp.Font surface.SetFont(self.Font) end

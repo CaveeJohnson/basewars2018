@@ -61,7 +61,7 @@ local function DropToFloor(ent, pos, min, max)
 
 	if res.StartSolid then
 		return pos
-	else 
+	else
 		local hp = Vector()
 		hp:Set(res.HitPos)
 		hp.z = hp.z - min.z
@@ -91,18 +91,18 @@ function ext:spawnGenericItem(item, ply, pos, ang, norm)
 		local dot_mins = norm:Dot(min)
 		local off = math.max(dot_maxs, dot_mins) * norm
 
-		if item.stickToSurface then 
-			off = pos - (min + max) / 2
+		if item.stickToSurface then
+			pos = pos + off - (min + max) / 2
 		else
-			off = DropToFloor(ent, pos + off, min, max)
+			pos = DropToFloor(ent, pos + off, min, max)
 		end
 
-		ent:SetPos(off)
+		ent:SetPos(pos)
 	else
 		ent:SetPos(pos)
 	end
 
-	
+
 
 	return ent
 end

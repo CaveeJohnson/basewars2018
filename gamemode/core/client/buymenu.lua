@@ -43,7 +43,7 @@ local catsTextSelected = Color(50, 150, 250)
 
 local catPush = 16 		--px to move to the right for selected categories
 local catSelTime = 0.3 			--seconds to lerp to selected color + move out
-local catUnselTime = catSelTime --seconds to lerp to unselected color + move in
+local catUnselTime = catSelTime + 0.2 --seconds to lerp to unselected color + move in
 local catEase = 0.4
 
 local itemlistBGColor = Color(170, 170, 170, 200)
@@ -51,7 +51,7 @@ local itemlistGradColor = Color(20, 20, 20)
 
 local itemSubcatBG = Color(0, 0, 0, 110)
 
-local itemBorder = Color(80, 80, 80) 
+local itemBorder = Color(80, 80, 80)
 local itemClickedBorder = Color(220, 220, 220)
 local itemBorderHeld = Color(10, 10, 10)
 
@@ -349,7 +349,7 @@ local function catBtnPaint(self, w, h)
 		self:To("selFrac", 1, catSelTime, 0, catEase)
 		LerpColor(fr, self.currentColor, selCol)
 	else
-		self:To("selFrac", 0, catSelTime, 0, catEase)
+		self:To("selFrac", 0, catUnselTime, 0, catEase)
 		LerpColor(1 - fr, self.currentColor, unselCol)
 	end
 

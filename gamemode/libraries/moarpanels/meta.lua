@@ -258,6 +258,7 @@ local latest = 0
 anims = {}
 
 
+local SysTime = CurTime --switch up to CurTime for host timescale to have an effect on animations
 
 animmeta = {}
 

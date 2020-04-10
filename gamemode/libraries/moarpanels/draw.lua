@@ -727,15 +727,24 @@ function draw.RenderOntoMaterial(name, w, h, func, rtfunc, matfunc, pre_rt, pre_
 
 			if not has2d then cam.Start2D() end
 				local ok, err = pcall(func, w, h, rt)
+			
+
+
+			if rtfunc and ok then
+				local ok, keep = pcall(rtfunc, rt)
+				if ok and keep == false then 
+
+					render.PopRenderTarget() 
+					render.OverrideAlphaWriteEnable(false)
+					if not has2d then cam.End2D() end
+
+					return 
+				end
+			end
+
 			if not has2d then cam.End2D() end
 
 		render.OverrideAlphaWriteEnable(false)
-
-
-	if rtfunc and ok then
-		local keep = rtfunc(rt)
-		if keep == false then render.PopRenderTarget() return end
-	end
 
 	render.PopRenderTarget()
 

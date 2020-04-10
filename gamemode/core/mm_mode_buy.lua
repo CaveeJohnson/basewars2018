@@ -128,8 +128,8 @@ if CLIENT then
 		}
 
 		if res.StartSolid then
-			return pos 
-		else 
+			return pos
+		else
 			local hp = Vector()
 			hp:Set(res.HitPos)
 			hp.z = hp.z - min.z
@@ -159,7 +159,7 @@ if CLIENT then
 
 		local pos = res.HitPos + off
 
-		if item.stickToSurface then 
+		if item.stickToSurface then
 			pos = pos - (min + max) / 2
 		else
 			pos = DropToFloor(self.csEnt, pos, min, max)

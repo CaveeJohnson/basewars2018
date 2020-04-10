@@ -50,7 +50,20 @@ do
 		return h
 	end
 
-	local function textInternal(text, font, x, y, color, xalign, yalign, w, h)
+	local function textInternal(text, x, y)
+		
+		setTextPos(x, y)
+
+		drawText(text)
+	end
+
+	function draw.textOutlined(text, font, x, y, color, xalign, yalign, outlinecolor)
+		color = color or color_white
+		outlinecolor = outlinecolor or color_black
+
+		setFont(font)
+		local w, h = getTextSize(text)
+
 		if xalign == TEXT_ALIGN_CENTER then
 			x = x - w / 2
 		elseif xalign == TEXT_ALIGN_RIGHT then
@@ -63,48 +76,46 @@ do
 			y = y - h
 		end
 
-		setTextPos(ceil(x), ceil(y))
-		drawColor(color.r, color.g, color.b, color.a)
+		x, y = ceil(x), ceil(y)
 
-		drawText(text)
-	end
+		drawColor(outlinecolor.r, outlinecolor.g, outlinecolor.b, outlinecolor.a)
 
-	function draw.textOutlined(text, font, x, y, color, xalign, yalign, outlinecolor)
-		color = color or Color(255, 255, 255, 255)
+		for _x = -1, 1, 2 do
 
-		setFont(font)
-		local w, h = getTextSize(text)
-
-		for _x = -1, 1 do
-			for _y = -1, 1 do
-				textInternal(text, font, x + _x, y + _y, outlinecolor, xalign, yalign, w, h)
+			for _y = -1, 1, 2 do
+				textInternal(text, x + _x, y + _y)
 			end
 		end
 
-		textInternal(text, font, x, y, color, xalign, yalign, w, h)
+		drawColor(color.r, color.g, color.b, color.a)
+
+		textInternal(text, x, y)
 		return h
 	end
 
-	local function textInternalLT(text, font, x, y, color, xalign, yalign)
-		setTextPos(ceil(x), ceil(y))
-		drawColor(color.r, color.g, color.b, color.a)
-
+	local function textInternalLT(text, x, y)
+		setTextPos(x, y)
+		
 		drawText(text)
 	end
 
 	function draw.textOutlinedLT(text, font, x, y, color, outlinecolor)
-		color = color or Color(255, 255, 255, 255)
+		color = color or color_white
+		outlinecolor = outlinecolor or color_black
 
 		setFont(font)
 		local _, h = getTextSize(text)
 
-		for _x = -1, 1 do
-			for _y = -1, 1 do
-				textInternalLT(text, font, x + _x, y + _y, outlinecolor)
+		drawColor(outlinecolor.r, outlinecolor.g, outlinecolor.b, outlinecolor.a)
+		x, y = ceil(x), ceil(y)
+		for _x = -1, 1, 2 do
+			for _y = -1, 1, 2 do
+				textInternalLT(text, x + _x, y + _y)
 			end
 		end
 
-		textInternalLT(text, font, x, y, color)
+		drawColor(color.r, color.g, color.b, color.a)
+		textInternalLT(text, x, y)
 		return h
 	end
 end

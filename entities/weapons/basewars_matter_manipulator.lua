@@ -61,8 +61,17 @@ do
 		["SHIFT+E"] = speed .. " + " .. use,
 	}
 
-	function ext:BW_BuildModeHUD(x, y, mm, fonts)
+	local fonts --ty for not exposing font table
+
+	local outlined_text = function(piece, x, y, col, tx, frag)
+		draw.textOutlined(tx, fonts.font_main, x, y, frag.Color, 0, TEXT_ALIGN_CENTER, frag.Shade)
+	end
+
+	function ext:BW_BuildModeHUD(x, y, mm, fonttbl)
 		if not mm then return end
+
+		fonts = fonttbl
+
 		y = y - 10
 
 		self.mode      = self.mode or 1
@@ -79,7 +88,55 @@ do
 			y = y - draw.textOutlined(string.format("[%s] %s", reverse[key] or key, info), fonts.font_smaller, x, y, off_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, shade)
 		end
 
-		y = y - draw.textOutlined(string.format("MODE %02d: %s", self.mode, mode.name), fonts.font_main, x, y, off_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, shade)
+		if mm.ModeDText then
+			local piece = mm.ModeDPiece
+
+			local num_tx = (" %02d: "):format(self.mode)
+
+			if not piece.ModeNumber then
+		
+				local num, frag = mm.ModeDPiece:AddFragment(num_tx)
+				frag.AlignX = 1
+
+				frag.Color = off_white:Copy()
+				frag.Shade = shade:Copy()
+
+				piece.ModeNumber = num
+				piece.ModeFrag = frag
+
+				mm.ModeDPiece:AddFragment(mode.name)
+				frag.AlignX = 1
+
+				frag.Color = off_white:Copy()
+				frag.Shade = shade:Copy()
+
+				piece.ModeName = num
+				piece.ModeNameFrag = frag
+
+				piece:SetDropStrength(12)
+				piece:SetLiftStrength(-12)
+
+			else
+				piece:ReplaceText(piece.ModeNumber, num_tx)
+				piece:ReplaceText(piece.ModeName, mode.name)
+
+				for k, frag in ipairs(piece.Fragments) do 
+					if not frag.Shade then 
+						frag.Shade = shade:Copy()
+						frag.Color = off_white:Copy()
+					end
+
+					frag.Shade.a = math.min(frag.Alpha or 255, shade.a)
+					frag.Color.a = math.min(frag.Alpha or 255, off_white.a)
+				end
+
+			end
+
+			mm.ModeDText:SetFont(fonts.font_main)
+			piece.DrawText = outlined_text
+
+			mm.ModeDText:Paint(x, y - 12)
+		end
 	end
 end
 
@@ -261,7 +318,18 @@ end
 
 function SWEP:Initialize()
 	BaseClass.Initialize(self)
-	if CLIENT then return end
+	if CLIENT then
+
+		self.ModeDText = DeltaText():SetFont("DV28") --:SetAlignment(1)
+
+		self.ModeDPiece = self.ModeDText:AddText("")
+		local num, frag = self.ModeDPiece:AddFragment("MODE")
+		frag.AlignX = 1
+
+		self.ModeDText:CycleNext()
+
+		return
+	end
 
 	self:SetFireMode(1)
 end

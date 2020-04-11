@@ -1,12 +1,21 @@
 local ext = basewars.createExtension"main-hud"
-
+setfenv(1, _G)
 local main_font = ext:getTag()
+local core_font = ext:getTag() .. "_core"
 local version_font = ext:getTag() .. "_version"
 
 surface.CreateFont(main_font, {
-	font = "Roboto",
-	size = 16,
-	weight = 800,
+	font = "Open Sans",
+	size = 20,
+	weight = 400,
+	shadow = true,
+})
+
+surface.CreateFont(core_font, {
+	font = "Open Sans",
+	size = 18,
+	weight = 400,
+	shadow = true,
 })
 
 surface.CreateFont(version_font, {
@@ -44,8 +53,10 @@ do
 			ang_c:RotateAroundAxis(ang_c:Right(), yaw)
 
 		local ratio = ScrW() * 0.000088
+
 		cam.Start3D(EyePos(), eye_ang, 90)
 		cam.Start3D2D(pos - (ang_c:Up() * yaw * ratio), ang_c, 0.01)
+
 	end
 
 	function ext:ex()
@@ -62,7 +73,7 @@ local off_white = Color(240, 240, 240, 255)
 local off_white_t = Color(240, 240, 240, 180)
 local off_white_t2 = Color(240, 240, 240, 120)
 local over_load = Color(182, 17, 244, 255)
-local over_load_t = Color(182, 17, 244, 90)
+local over_load_t = Color(182, 17, 244, 255)
 
 local drawString, drawBar
 do
@@ -78,7 +89,7 @@ do
 	local textOutlinedLT = draw.textOutlinedLT
 	function drawStringLT(str, x, y, col, font)
 		shade.a = max(1, col.a - 55)
-		return textOutlinedLT(str, font or main_font, x, y, col, shade)
+		return textOutlinedLT(str, font or core_font, x, y, col, shade)
 	end
 
 	local setColor = surface.SetDrawColor
@@ -110,12 +121,14 @@ do
 	end
 end
 
-local color_armor1 = Color(19, 209, 245,90)
-local color_armor2 = Color(10,90,150,30)
-local color_health2 = Color(159,1,1,30)
-local color_health1 = Color(204,50,48,90)
-local color_ammo1 = Color(200,120,10)
-local color_ammo2 = Color(120,90,10)
+local color_armor1 = Color(19, 209, 245, 90)
+local color_armor2 = Color(10, 90, 150, 80)
+
+local color_health2 = Color(159, 1, 1, 30)
+local color_health1 = Color(204, 50, 48, 120)
+
+local color_ammo1 = Color(200, 120, 10)
+local color_ammo2 = Color(120, 90, 10)
 
 local pure_red = Color(255, 0, 0, 255)
 local dull_green_t = Color(100, 255, 130, 180)
@@ -213,40 +226,137 @@ function ext:BW_OnMoneyNotification(amt, res)
 	end
 end
 
+local gray = Colors.Gray:Copy()
+gray.a = 140
+
 function ext:HUDPaint()
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return end
+
 	self:updateParams()
 
 	local scrW = ScrW()
 	local scrH = ScrH()
 
 	local rot_y = 12
-	local xindent = 5
-	local yindent = xindent
+	local xindent = 12
+	local yindent = xindent + 10
 	if is3d then yindent = yindent + rot_y end
 
 	local curx, cury = xindent, scrH - yindent
-	local bar_width, bar_height = 256, 6
+
+	local bar_width, bar_height = ScrW() * 0.15, ScrH() * 0.015
+	local bar_pad = 8
+
+	local tx_bar_pad = 8  	--Space between the bars and the finances text
+	local tx_pad = 4		--Space between the finances lines
 
 	self:en(-rot_y)
 		if ply:Alive() then
+
 			local armor = ply:Armor()
 			local max_armor = 100
-			drawString(basewars.nformat(armor), curx + bar_width + 4, cury - bar_height / 2 - 1, armor > max_armor and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-			cury = cury - bar_height
-			cury = cury - drawBar(curx, cury, bar_width, bar_height, color_armor2, color_armor1, armor / max_armor)
+			local ar_frac = math.min(armor / max_armor, 1)
+
+			local armor_tx = basewars.nformat(armor)
+
+			local ar_bcol = color_armor1
+			local ar_b2col = color_armor2
+			local ar_tcol = off_white
+
+			if armor > max_armor then 
+				ar_bcol = over_load
+				ar_tcol = over_load_t
+			end
+
 
 			local hp = math.max(ply:Health(), 0)
 			local max_hp = ply:GetMaxHealth()
-			drawString(basewars.nformat(hp), curx + bar_width + 4, cury - bar_height / 2 - 1, hp > max_hp and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
-			cury = cury - bar_height
-			cury = cury - drawBar(curx, cury, bar_width, bar_height, color_health2, color_health1, hp / max_hp)
+			local hp_frac = math.min(hp / max_hp, 1)
+
+			local hp_tx = basewars.nformat(hp)
+
+			local hp_bcol = color_health1
+			local hp_b2col = color_health2
+			local hp_tcol = off_white
+
+			if hp > max_hp then 
+				hp_bcol = over_load
+				hp_tcol = over_load_t
+			end
+			draw.RoundedBox(16, 0, scrH - bar_height * 5, bar_width + 70, bar_height * 5, gray)
+			surface.SetFont(main_font)
+			surface.SetTextColor(ar_tcol)
+
+			--[[
+				Drawing armor text & bar
+			]]
+
+			local tW, tH = surface.GetTextSize(armor_tx)
+			local tX, tY = curx + bar_width + 4, cury + bar_height / 2 - tH / 2
+
+
+			surface.SetTextPos(tX, tY)
+			surface.DrawText(armor_tx)
+
+			surface.SetDrawColor(ar_b2col)
+			surface.DrawRect(curx, cury, bar_width, bar_height)
+
+			surface.SetDrawColor(ar_bcol)
+			surface.DrawRect(curx, cury, bar_width * ar_frac, bar_height)
+
+			cury = cury - bar_height - bar_pad
+
+			
+
+			--[[
+				Drawing health text & bar
+			]]
+
+			tW, tH = surface.GetTextSize(hp_tx)
+			tY = cury + bar_height/2 - tH/2
+
+			surface.SetTextColor(hp_tcol)
+			surface.SetTextPos(tX, tY)
+			surface.DrawText(hp_tx)
+
+			surface.SetDrawColor(hp_b2col)
+			surface.DrawRect(curx, cury, bar_width, bar_height)
+
+			surface.SetDrawColor(hp_bcol)
+			surface.DrawRect(curx, cury, bar_width * hp_frac, bar_height)
+
+
+
+			--drawBar(curx, cury, bar_width, bar_height, color_armor2, color_armor1, armor / max_armor)
+			--drawString(, curx + bar_width + 4, cury - bar_height / 2 - 1, armor > max_armor and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+
+			
+			--drawString(basewars.nformat(hp), curx + bar_width + 4, cury - bar_height / 2 - 1, hp > max_hp and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
+			--cury = cury - bar_height
+			--cury = cury - drawBar(curx, cury, bar_width, bar_height, color_health2, color_health1, hp / max_hp)
+			
+			--[[
+					Drawing:
+
+				[3]	VERSION
+				[2]	Level: []   XP: []/[]
+				[1]	Bank: []   Deployed: []
+			]]
 
 			local money_string = string.format("Bank:  %s    Deployed:  %s", basewars.currency(ply:getMoney()), basewars.currency(0))
-			cury = cury - drawString(money_string, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
-			cury = cury - drawString(level_text_final, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
-			cury = cury - drawString(basewars.versionString .. " | not representative of release version", curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM, version_font)
+
+			local tW, tH = surface.GetTextSize(money_string)
+			local tX, tY = curx, cury - tH - tx_bar_pad
+			surface.SetTextColor(off_white_t)
+			surface.SetTextPos(tX, tY)
+			surface.DrawText(money_string)
+
+			cury = scrH - bar_height * 5 - tx_bar_pad
+
+			--cury = cury - drawString(money_string, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+			--cury = cury - drawString(level_text_final, curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM)
+			--cury = cury - drawString(basewars.versionString .. " | not representative of release version", curx, cury, off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM, version_font)
 
 			local count = money_notif_list_count
 			if count ~= 0 then
@@ -366,6 +476,7 @@ function ext:HUDPaint()
 			end
 		end
 	self:ex()
+
 end
 
 ext.hudNoDraw = {

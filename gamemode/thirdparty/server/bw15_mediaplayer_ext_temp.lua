@@ -1,4 +1,5 @@
 mediaplayer_ext = {}
+if true then return end --eat shit
 
 do
 	local youtube_api3_key = assert(file.Read("youtube_api3_key.txt", "DATA"), "api key missing!")

@@ -1,13 +1,3 @@
-// Please use glualinter with the default settings
-// and the following settings on sublime lint
-
-// For the todo, please see the trello board
-// https://trello.com/b/cfCpGf1Y/basewars2018
-// (ask Q2F2 for an invite)
-
-// "lint_mode": "background",
-// "show_errors_on_save": true,
-
 {
 	"folders":
 	[
@@ -21,43 +11,46 @@
 		},
 		{
 			"name": "GM Core",
-			"path": "gamemode/core"
+			"path": "gamemode\\core"
 		},
 		{
 			"name": "GM Extensions",
-			"path": "gamemode/extensions"
+			"path": "gamemode\\extensions"
 		},
 		{
 			"name": "GM Thirdparty",
-			"path": "gamemode/thirdparty"
+			"path": "gamemode\\thirdparty"
+		},
+		{
+			"path": "gamemode\\libraries"
 		},
 		{
 			"name": "Items",
-			"path": "gamemode/items"
+			"path": "gamemode\\items"
 		},
 		{
 			"name": "Resources",
-			"path": "gamemode/resources"
+			"path": "gamemode\\resources"
 		},
 		{
 			"name": "Blueprints",
-			"path": "gamemode/blueprints"
+			"path": "gamemode\\blueprints"
 		},
 		{
 			"name": "Entities",
-			"path": "entities/entities"
+			"path": "entities\\entities"
 		},
 		{
 			"name": "Weapons",
-			"path": "entities/weapons"
+			"path": "entities\\weapons"
 		},
 		{
 			"name": "Effects",
-			"path": "entities/effects"
+			"path": "entities\\effects"
 		},
 		{
 			"name": "Config",
-			"path": "gamemode/config"
+			"path": "gamemode\\config"
 		},
 		{
 			"name": "Content",
@@ -70,18 +63,17 @@
 			],
 			"name": "Project",
 			"path": "."
+		},
+		{
+			"path": "C:\\bw_18\\_gm_dedicated\\garrysmod\\lua\\xp3"
 		}
 	],
-
 	"settings":
 	{
-		// Intendation and style
 		"tab_size": 4,
-		"translate_tabs_to_spaces": false,
-
-		// Remove whitespace
-		"trailing_spaces_enabled" : true,
-		"trailing_spaces_include_empty_lines" : true,
+		"trailing_spaces_enabled": true,
+		"trailing_spaces_include_empty_lines": true,
 		"trailing_spaces_trim_on_save": true,
+		"translate_tabs_to_spaces": false
 	}
 }

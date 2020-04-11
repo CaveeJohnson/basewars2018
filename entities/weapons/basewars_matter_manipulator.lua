@@ -94,7 +94,7 @@ do
 			local num_tx = (" %02d: "):format(self.mode)
 
 			if not piece.ModeNumber then
-		
+	
 				local num, frag = mm.ModeDPiece:AddFragment(num_tx)
 				frag.AlignX = 1
 
@@ -104,7 +104,7 @@ do
 				piece.ModeNumber = num
 				piece.ModeFrag = frag
 
-				mm.ModeDPiece:AddFragment(mode.name)
+				local num, frag = mm.ModeDPiece:AddFragment(mode.name)
 				frag.AlignX = 1
 
 				frag.Color = off_white:Copy()

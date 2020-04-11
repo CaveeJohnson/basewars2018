@@ -46,8 +46,6 @@ local function DropToFloor(ent, pos, min, max)
 	trmin:Set(min)
 	trmax:Set(max)
 
-	trmin:Mul(0.5)
-	trmax:Mul(0.5)
 	trmin.z = 0
 	trmax.z = 0	--flatten out the OBB so it doesn't leak through world upwards/downwards
 

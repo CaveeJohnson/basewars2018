@@ -17,6 +17,9 @@ ENT.fontColor = Color(255, 255, 255)
 
 local ext = basewars.createExtension"weapon-station"
 
+local lerpTime = 0.6
+local lerpEasing = 0.3
+
 ext.nonHostileWeps = {
 	["weapon_physgun"   ] = true,
 	["weapon_physcannon"] = true,
@@ -35,10 +38,57 @@ function ext:weaponValid(wep)
 	return true
 end
 
+local rotateWeapon 
+
+
+if SERVER then 
+
+	function rotateWeapon(self, ent)
+		ent:SetPos(self:GetPos() + Vector(0, 0, 12))
+
+		local ang = self:GetAngles()
+			ang:RotateAroundAxis(ang:Right(), 90)
+			ang:RotateAroundAxis(ang:Forward(), CurTime() * 5)
+		ent:SetAngles(ang)
+	end
+
+else 
+
+	function rotateWeapon(self, ent)
+		local t = self:getTakenTime()
+
+		local pos = self:getTakenFrom()
+		local ang = self:getTakenAngle()
+
+		local wantpos = self:GetPos() + Vector(0, 0, 12)
+
+		local wantang = self:GetAngles()
+			wantang:RotateAroundAxis(wantang:Right(), 90)
+			wantang:RotateAroundAxis(wantang:Forward(), (CurTime() - t) * 5)
+
+		wantang:Normalize()
+
+		local frac = math.min(CurTime() - t, lerpTime) / lerpTime
+		frac = Ease(frac, lerpEasing)
+
+		local newpos = LerpVector(frac, pos, wantpos)
+		local newang = LerpAngle(frac, ang, wantang)
+		newang:Normalize()
+
+		ent:SetPos(newpos)
+		ent:SetAngles(newang)
+	end
+
+end
+
 function ENT:SetupDataTables()
 	BaseClass.SetupDataTables(self)
 
 	self:netVar("String", "WeaponClass")
+
+	self:netVar("Float", "TakenTime")	--you can't guess these clientside, 
+	self:netVar("Vector", "TakenFrom")	--you have to network them
+	self:netVar("Angle", "TakenAngle")	--if you want the animation
 
 	self:netVar("Int", "MaxClip1")
 	self:netVar("Int", "Clip1", nil, "getMaxClip1")
@@ -48,6 +98,31 @@ function ENT:SetupDataTables()
 
 	self:netVar("Int", "MaxReserve")
 	self:netVar("Int", "Reserve", nil, "getMaxReserve")
+
+	if CLIENT then 
+		self:NetworkVarNotify("WeaponClass", function(ent, name, old, new)
+			if new == "" then 
+				if IsValid(ent.fakeWeapon) then 
+					ent.fakeWeapon:Remove()
+				end
+			else 
+				local wep = weapons.Get(new)
+
+				if IsValid(ent.fakeWeapon) then 
+					ent.fakeWeapon:Remove()
+				end
+
+				ent.fakeWeapon = ents.CreateClientProp(wep.WorldModel)
+				ent.fakeWeapon:SetParent(self)
+			end
+		end)
+	end
+end
+
+function ENT:OnRemove()
+	if IsValid(self.fakeWeapon) then 
+		SafeRemoveEntity(self.fakeWeapon)
+	end
 end
 
 function ENT:getRate()
@@ -59,13 +134,8 @@ function ENT:Think()
 
 	if CLIENT or not IsValid(self.fakeWeapon) then return end
 
-	self.fakeWeapon:SetPos(self:GetPos() + Vector(0, 0, 12))
-
-	local ang = self:GetAngles()
-		ang:RotateAroundAxis(ang:Right(), 90)
-		ang:RotateAroundAxis(ang:Forward(), CurTime() * 5)
-	self.fakeWeapon:SetAngles(ang)
-
+	--rotateWeapon(self, self.fakeWeapon)
+	
 	if not self:isPowered() then return end
 	if self.lastRefill and CurTime() - self.lastRefill <= 1 then return end
 	self.lastRefill = CurTime()
@@ -85,6 +155,11 @@ function ENT:ejectWeapon(ply)
 	if not IsValid(ent) then return false end
 
 	self:setWeaponClass("")
+
+	self:setTakenTime(CurTime())
+	self:setTakenFrom(vector_origin) --0, 0, 0
+	self:setTakenAngle(angle_zero)
+
 	SafeRemoveEntity(self.fakeWeapon)
 
 	ent:SetClip1(self:getClip1())
@@ -106,13 +181,32 @@ function ENT:collectWeapon(ply)
 
 	self:setWeaponClass(wep:GetClass())
 
+	self:setTakenTime(CurTime())
+	
+
+	local ang = ply:EyeAngles()
+
+	local dir = Angle() --we still need the angle for TakenAngle
+	dir:Set(ang)
+	dir.p = 0
+
+	self:setTakenFrom(wep:GetPos() + Vector(0, 0, 32) + dir:Forward() * 24)
+	
+	ang:RotateAroundAxis(ang:Up(), 180)
+
+	self:setTakenAngle(ang)
+
 	self.fakeWeapon = ents.Create("basewars_weapon_container")
 		self.fakeWeapon:SetWeaponClass(wep:GetClass())
+		self.fakeWeapon:SetNoDraw(true)
+
+		rotateWeapon(self, self.fakeWeapon)
 	self.fakeWeapon:Spawn()
 
 	self.fakeWeapon:SetParent(self)
 	self.fakeWeapon:SetMoveType(MOVETYPE_NONE)
 	self.fakeWeapon:SetCollisionGroup(COLLISION_GROUP_WEAPON)
+	
 
 	self.fakeWeapon.Use = nil -- TODO: maybe?
 
@@ -194,5 +288,10 @@ if CLIENT then
 		cam.Start3D2D(pos, ang, scale)
 			pcall(self.drawDisplay, self, pos, ang, scale)
 		cam.End3D2D()
+
+		if IsValid(self.fakeWeapon) then 
+			rotateWeapon(self, self.fakeWeapon)
+			self.fakeWeapon:DrawModel()
+		end
 	end
 end

@@ -38,10 +38,10 @@ function ext:weaponValid(wep)
 	return true
 end
 
-local rotateWeapon 
+local rotateWeapon
 
 
-if SERVER then 
+if SERVER then
 
 	function rotateWeapon(self, ent)
 		ent:SetPos(self:GetPos() + Vector(0, 0, 12))
@@ -52,7 +52,7 @@ if SERVER then
 		ent:SetAngles(ang)
 	end
 
-else 
+else
 
 	function rotateWeapon(self, ent)
 		local t = self:getTakenTime()
@@ -86,7 +86,7 @@ function ENT:SetupDataTables()
 
 	self:netVar("String", "WeaponClass")
 
-	self:netVar("Float", "TakenTime")	--you can't guess these clientside, 
+	self:netVar("Float", "TakenTime")	--you can't guess these clientside,
 	self:netVar("Vector", "TakenFrom")	--you have to network them
 	self:netVar("Angle", "TakenAngle")	--if you want the animation
 
@@ -99,16 +99,16 @@ function ENT:SetupDataTables()
 	self:netVar("Int", "MaxReserve")
 	self:netVar("Int", "Reserve", nil, "getMaxReserve")
 
-	if CLIENT then 
+	if CLIENT then
 		self:NetworkVarNotify("WeaponClass", function(ent, name, old, new)
-			if new == "" then 
-				if IsValid(ent.fakeWeapon) then 
+			if new == "" then
+				if IsValid(ent.fakeWeapon) then
 					ent.fakeWeapon:Remove()
 				end
-			else 
+			else
 				local wep = weapons.Get(new)
 
-				if IsValid(ent.fakeWeapon) then 
+				if IsValid(ent.fakeWeapon) then
 					ent.fakeWeapon:Remove()
 				end
 
@@ -120,7 +120,7 @@ function ENT:SetupDataTables()
 end
 
 function ENT:OnRemove()
-	if IsValid(self.fakeWeapon) then 
+	if IsValid(self.fakeWeapon) then
 		SafeRemoveEntity(self.fakeWeapon)
 	end
 end
@@ -135,7 +135,7 @@ function ENT:Think()
 	if CLIENT or not IsValid(self.fakeWeapon) then return end
 
 	--rotateWeapon(self, self.fakeWeapon)
-	
+
 	if not self:isPowered() then return end
 	if self.lastRefill and CurTime() - self.lastRefill <= 1 then return end
 	self.lastRefill = CurTime()
@@ -182,7 +182,7 @@ function ENT:collectWeapon(ply)
 	self:setWeaponClass(wep:GetClass())
 
 	self:setTakenTime(CurTime())
-	
+
 
 	local ang = ply:EyeAngles()
 
@@ -191,7 +191,7 @@ function ENT:collectWeapon(ply)
 	dir.p = 0
 
 	self:setTakenFrom(wep:GetPos() + Vector(0, 0, 32) + dir:Forward() * 24)
-	
+
 	ang:RotateAroundAxis(ang:Up(), 180)
 
 	self:setTakenAngle(ang)
@@ -206,7 +206,7 @@ function ENT:collectWeapon(ply)
 	self.fakeWeapon:SetParent(self)
 	self.fakeWeapon:SetMoveType(MOVETYPE_NONE)
 	self.fakeWeapon:SetCollisionGroup(COLLISION_GROUP_WEAPON)
-	
+
 
 	self.fakeWeapon.Use = nil -- TODO: maybe?
 
@@ -289,7 +289,7 @@ if CLIENT then
 			pcall(self.drawDisplay, self, pos, ang, scale)
 		cam.End3D2D()
 
-		if IsValid(self.fakeWeapon) then 
+		if IsValid(self.fakeWeapon) then
 			rotateWeapon(self, self.fakeWeapon)
 			self.fakeWeapon:DrawModel()
 		end

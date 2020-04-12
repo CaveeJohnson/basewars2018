@@ -2,8 +2,6 @@
 	Idea shamelessly stolen from Luvit
 ]]
 
-if basewars then return end --already loaded Class from bw18
-
 Class = {}
 Class.Meta = {__index = Class}
 
@@ -17,8 +15,8 @@ Class.Meta = {__index = Class}
 				NewClass -> NewClassMeta -> OldClass -> OldClassMeta
 
 			There's not much difference between sticking methods in the class and the class' .Meta afaik so do whatever
-
 ]]
+
 function Class:extend()
 	local new = {}
 

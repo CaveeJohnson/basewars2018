@@ -512,7 +512,6 @@ do
 	spawnmenu.Reload = spawnmenu.Reload or concommand.GetTable().spawnmenu_reload
 	concommand.Add("spawnmenu_reload", ext.reloadSpawnmenu)
 
-	--[[
 	cvars.AddChangeCallback("developer", function(_, old, new)
 		local val = tonumber(new) or 1
 
@@ -526,5 +525,5 @@ do
 
 	if g_SpawnMenu then
 		ext.reloadSpawnmenu()
-	end]]
+	end
 end

@@ -88,6 +88,7 @@ function ext:spawnGenericItem(item, ply, pos, ang, norm)
 		local dot_maxs = norm:Dot(max)
 		local dot_mins = norm:Dot(min)
 		local off = math.max(dot_maxs, dot_mins) * norm
+		off:Add(norm)
 
 		if item.stickToSurface then
 			pos = pos + off - (min + max) / 2

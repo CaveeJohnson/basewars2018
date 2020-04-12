@@ -146,7 +146,6 @@ if CLIENT then
 		local item = ext.creationItem
 		if not (res and item) then return end
 
-		self.csEnt:SetNoDraw(false)
 		self.csEnt:SetModel(item.model or "models/error.mdl")
 
 		local min, max = self.csEnt:GetRotatedAABB(self.csEnt:OBBMins(), self.csEnt:OBBMaxs())
@@ -155,7 +154,7 @@ if CLIENT then
 		local dot_mins = res.HitNormal:Dot(max)
 		local off = math.max(dot_maxs, dot_mins) * res.HitNormal
 
-		local pos = res.HitPos + off
+		local pos = res.HitPos + off + res.HitNormal
 
 		if item.stickToSurface then
 			pos = pos - (min + max) / 2

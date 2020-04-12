@@ -4,9 +4,9 @@ QuickMenus = QuickMenus or {}
 QuickMenus.Registered = QuickMenus.Registered or {} --table that holds ents that registered for quickmenus for fast lookups
 QuickMenus.IRegistered = QuickMenus.IRegistered or {} --table that holds same shit but sequential for fast ipairs, yes its microoptimization stfu
 
-local qmregistered = QuickMenus.Registered	
+local qmregistered = QuickMenus.Registered
 
-local iqmr = QuickMenus.IRegistered			
+local iqmr = QuickMenus.IRegistered
 
 openedQM = nil
 

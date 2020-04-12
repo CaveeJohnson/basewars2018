@@ -21,9 +21,9 @@ function ext:getAngles(ply, tr, sticksurf)
 
 	local ang
 
-	if sticksurf then 
+	if sticksurf then
 		ang = tr.HitNormal:Angle()
-	else 
+	else
 		ang = Angle() --res.HitNormal:Angle()
 			ang.y = ang.y + yaw
 		ang:Normalize()
@@ -37,7 +37,7 @@ function ext:buyItem(ply, res)
 	if id == "error" then return false end
 
 	local item = basewars.items.get(id)
-	if not item then return false end 
+	if not item then return false end
 
 	return basewars.items.spawn(id, ply, res.HitPos, self:getAngles(ply, res, item.stickToSurface), res.HitNormal)
 end
@@ -113,6 +113,9 @@ if CLIENT then
 		local trmin, trmax = Vector(), Vector()
 		trmin:Set(min)
 		trmax:Set(max)
+
+		trmin:Mul(0.5)
+		trmax:Mul(0.5)
 
 		trmin.z = 0
 		trmax.z = 0	--flatten out the OBB so it doesn't leak through world upwards/downwards

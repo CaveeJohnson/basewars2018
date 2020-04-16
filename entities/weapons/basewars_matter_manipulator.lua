@@ -223,6 +223,9 @@ if CLIENT then
 			self.csEnt:SetRenderMode(RENDERMODE_TRANSALPHA)
 			self.csEnt:SetColor(Color(255, 255, 255, 150))
 		self.csEnt:Spawn()
+
+		self.csEnt:SetAngles(Angle(0, 1, 0)) -- GARRYYYYYYYYYYYYYYYY
+		self.csEnt:SetAngles(Angle(0, 0, 0)) -- https://github.com/Facepunch/garrysmod-issues/issues/4453
 	end
 
 	function SWEP:Holster()

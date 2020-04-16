@@ -159,7 +159,7 @@ map_locations["rp_eastcoast_v4b"] = {
 	can_base = true,
 	},
 	{
-	mins = Vector(-230.59954833984, -1575.8557128906, 27.453546524048),
+	mins = Vector(-230.59954833984, -1585.8557128906, 27.453546524048),
 	maxs = Vector(239.78312683105, -640.03125, 183.96875),
 	name = "Bank: Entrance & Offices",
 	can_base = true,

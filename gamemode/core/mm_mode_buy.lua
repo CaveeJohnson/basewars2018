@@ -10,6 +10,40 @@ mode.instructions = {
 	["SHIFT+E"] = "Rotate Item (Snapping)",
 }
 
+local function DropToFloor(ent, pos, min, max)
+
+	local trmin, trmax = Vector(), Vector()
+	trmin:Set(min)
+	trmax:Set(max)
+
+	trmin:Mul(0.5)
+	trmax:Mul(0.5)
+
+	trmin.z = 0
+	trmax.z = 0	--flatten out the OBB so it doesn't leak through world upwards/downwards
+
+	local res = util.TraceHull{
+		start  = pos,
+		endpos = pos - Vector(0, 0, 128),
+		filter = ent,
+		mins   = trmin,
+		maxs   = trmax,
+	}
+
+	if res.StartSolid then
+		return pos
+	else
+
+		local hp = Vector()
+		hp:Set(res.HitPos)
+		hp.z = hp.z - min.z
+
+		return hp
+
+	end
+
+end
+
 function ext:BW_MatterManipulatorLoadModes(modes)
 	table.insert(modes, mode)
 end
@@ -107,41 +141,6 @@ if CLIENT then
 		end
 	end
 
-
-	local function DropToFloor(ent, pos, min, max)
-
-		local trmin, trmax = Vector(), Vector()
-		trmin:Set(min)
-		trmax:Set(max)
-
-		trmin:Mul(0.5)
-		trmax:Mul(0.5)
-
-		trmin.z = 0
-		trmax.z = 0	--flatten out the OBB so it doesn't leak through world upwards/downwards
-
-		local res = util.TraceHull{
-			start  = pos,
-			endpos = pos - Vector(0, 0, 128),
-			filter = ent,
-			mins   = trmin,
-			maxs   = trmax,
-		}
-
-		if res.StartSolid then
-			return pos
-		else
-			local hp = Vector()
-			hp:Set(res.HitPos)
-			hp.z = hp.z - min.z
-
-			local mid = hp
-
-			return mid
-		end
-
-	end
-
 	local white = Color(255, 255, 255)
 	local red   = Color(255, 0  , 0)
 
@@ -151,6 +150,12 @@ if CLIENT then
 
 		self.csEnt:SetNoDraw(false)
 		self.csEnt:SetModel(item.model or "models/error.mdl")
+
+		local owner = self:GetOwner()
+		local ang = ext:getAngles(owner, res, item.stickToSurface)
+
+		self.csEnt:SetAngles(ang)
+		self.ghostAngs = ang
 
 		local min, max = self.csEnt:GetRotatedAABB(self.csEnt:OBBMins(), self.csEnt:OBBMaxs())
 
@@ -168,12 +173,6 @@ if CLIENT then
 
 		self.csEnt:SetPos(pos)
 		self.ghostPos = pos
-
-		local owner = self:GetOwner()
-		local ang = ext:getAngles(owner, res, item.stickToSurface)
-
-		self.csEnt:SetAngles(ang)
-		self.ghostAngs = ang
 
 		local col = item.color or white
 		if not basewars.items.canSpawn(item.item_id, owner, pos, ang) then

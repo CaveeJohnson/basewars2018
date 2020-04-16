@@ -115,7 +115,6 @@ ENT.renderBounds.max = Vector (-57.216064453125, -174.36408996582, -0.34375)
 	local nopower_color = Color(170, 60, 60)
 
 	local time_color = Color(120, 120, 120)
-	
 
 	local warning_textcolor = Color(200, 120, 120) 	--when you hover the icon, there's a popup cloud saying what this means
 													--this is the color for the text
@@ -806,9 +805,14 @@ net.Receive(net_tag, function()
 	local open_menu = net.ReadBool()
 	local ent = net.ReadEntity()
 
+	if not IsValid(ent) or ent:IsDormant() then return end
+
 	if open_menu then
 		ent:openMenu()
 	else
+
+		if not ent.doChange then return end --?
+
 		local stuff_in, stuff_out = {}, {}
 
 		local in_amt = net.ReadUInt(8)
@@ -822,7 +826,7 @@ net.Receive(net_tag, function()
 			local key = net.ReadString()
 			stuff_out[key] = math.Round(net.ReadFloat(), float_round)
 		end
-
+		
 		ent:doChange(stuff_in, stuff_out)
 	end
 end)

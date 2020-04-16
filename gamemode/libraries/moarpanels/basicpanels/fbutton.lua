@@ -29,13 +29,13 @@ function button:Init()
 end
 
 function button:SetColor(col, g, b, a)
-	if IsColor(col) then 
-		self.Color = col 
+	if IsColor(col) then
+		self.Color = col
 		if g then 	--if 2nd arg, that means apply now
 			self.drawColor = col:Copy()
 		end
-		return 
-	end 
+		return
+	end
 
 	local c = self.Color
 	c.r = col or 70
@@ -44,13 +44,27 @@ function button:SetColor(col, g, b, a)
 	c.a = a or 255
 end
 
+function button:SetTextColor(col, g, b, a)
+	print("called settextcolor")
+	if IsColor(col) then
+		self.LabelColor = col
+		return
+	end
+
+	local c = self.LabelColor
+	c.r = col or 255
+	c.g = g or 255
+	c.b = b or 255
+	c.a = a or 255
+end
+
 function button:HoverLogic()
 	local shadow = self.Shadow
 
 	if self:IsHovered() or self.ForceHovered then
 
-		hov = true 
-		local hm = self.HovMult 
+		hov = true
+		local hm = self.HovMult
 
 		local bg = self.Color
 
@@ -62,8 +76,8 @@ function button:HoverLogic()
 
 		if shadow.OnHover then shadow.Spread = L(shadow.Spread, shadow.MaxSpread, 20) end
 
-		if not self._IsHovered then 
-			self._IsHovered = true 
+		if not self._IsHovered then
+			self._IsHovered = true
 			self:OnHover()
 		end
 
@@ -75,10 +89,10 @@ function button:HoverLogic()
 
 		LC(self.drawColor, bg)
 
-		if shadow.OnHover then shadow.Spread = L(shadow.Spread, 0, 50) end 
+		if shadow.OnHover then shadow.Spread = L(shadow.Spread, 0, 50) end
 
-		if self._IsHovered then 
-			self._IsHovered = false 
+		if self._IsHovered then
+			self._IsHovered = false
 			self:OnUnhover()
 		end
 	end
@@ -103,7 +117,7 @@ end
 
 local function dRB(rad, x, y, w, h, dc, ex)
 
-	if ex then 
+	if ex then
 		local r = ex
 
 		local tl = (r.tl==nil and true) or r.tl
@@ -126,12 +140,12 @@ function button:Draw(w, h)
 	local rad = self.RBRadius or 8
 	local bg = self.drawColor or self.Color
 
-	local shadow = self.Shadow 
+	local shadow = self.Shadow
 
 	self.drawColor = self.drawColor
 
-	local hov = false 
-	
+	local hov = false
+
 	local x, y = 0, 0
 
 	self:HoverLogic()
@@ -140,15 +154,15 @@ function button:Draw(w, h)
 	local label = self.Label or nil
 
 	if not self.NoDraw then
-		if (self.DrawShadow and spr>0.01) or self.AlwaysDrawShadow then 
+		if (self.DrawShadow and spr>0.01) or self.AlwaysDrawShadow then
 			BSHADOWS.BeginShadow()
 			x, y = self:LocalToScreen(0,0)
 		end
 
-		local w2, h2 = w, h 
+		local w2, h2 = w, h
 		local x2, y2 = x, y
 
-		if self.Border then 
+		if self.Border then
 			dRB(rad, x, y, w, h, self.borderColor or self.Color or RED, self.RBEx)
 			local bw, bh = self.Border.w or 2, self.Border.h or 2
 			w2, h2 = w - bw*2, h - bh*2
@@ -158,9 +172,9 @@ function button:Draw(w, h)
 		dRB(rad, x2, y2, w2, h2, self.drawColor or self.Color or RED, self.RBEx)
 
 
-		
 
-		if (self.DrawShadow and spr>0.01) or self.AlwaysDrawShadow then 
+
+		if (self.DrawShadow and spr>0.01) or self.AlwaysDrawShadow then
 			local int = shadow.Intensity
 			local blur = shadow.Blur
 
@@ -175,17 +189,17 @@ function button:Draw(w, h)
 
 	end
 
-	if not self.NoDrawText and label then 
+	if not self.NoDrawText and label then
 
 		label = tostring(label)
 
 		if label:find("\n") then
-			draw.DrawText(label, self.Font, self.TextX or w/2, self.TextY or h/2, self.LabelColor,  self.TextAX or 1)
+			draw.DrawText(label, self.Font, self.TextX or w/2, self.TextY or h/2, self.LabelColor, self.TextAX or 1)
 		else
 			draw.SimpleText(label,self.Font, self.TextX or w/2, self.TextY or h/2, self.LabelColor, self.TextAX or 1,  self.TextAY or 1)
 		end
 	end
-	
+
 
 end
 

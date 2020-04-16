@@ -60,7 +60,7 @@ BSHADOWS.BeginShadow = function(x, y, w, h)
     local rt1 = draw.GetRT("bshadows", curW, curH)
     local rt2 = draw.GetRT("bshadows_shadow", curW, curH)
 
-    if not rt1 or not rt2 then print("The fuck nigga", rt1, rt2) return end
+    if not rt1 or not rt2 then print("failed to get Rt for the shadow or somethin?") return end
 
     CurRT = rt1
     ShadowRT = rt2
@@ -89,9 +89,6 @@ BSHADOWS.BeginShadow = function(x, y, w, h)
 
     --Now leave the rest to the user to draw onto the surface
 end
-
-local blackvec = vector_origin
-local whitevec = Vector(255, 255, 255)
 
 --This will draw the shadow, and mirror any other draw calls the happened during drawing the shadow
 BSHADOWS.EndShadow = function(intensity, spread, blur, opacity, direction, distance, _shadowOnly, color, color2)

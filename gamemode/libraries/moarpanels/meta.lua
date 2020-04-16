@@ -17,11 +17,20 @@ function META:GetCenter(xfrac, yfrac)
 	return x, y
 end
 
---[[
-	
-	
+function META:AddDockPadding(l, t, r, b)
+	l, t, r, b = l or 0, t or 0, r or 0, b or 0
 
-]]
+	local l1, t1, r1, b1 = self:GetDockPadding()
+	self:DockPadding(l1 + l, t1 + t, r1 + r, b1 + b)
+end
+
+function META:AddDockMargin(l, t, r, b)
+	l, t, r, b = l or 0, t or 0, r or 0, b or 0
+
+	local l1, t1, r1, b1 = self:GetDockMargin()
+	self:DockMargin(l1 + l, t1 + t, r1 + r, b1 + b)
+end
+
 function META:AddCloud(name, text)
 	local cls = self.__Clouds or {}
 	self.__Clouds = cls
@@ -391,6 +400,7 @@ function NewAnimation(len, del, ease, callback)
 end
 
 function Ease(num, how) --garry easing
+	num = math.Clamp(num, 0, 1)
 	local Frac = 0
 
 	if ( how < 0 ) then

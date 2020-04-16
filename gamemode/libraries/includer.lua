@@ -20,11 +20,9 @@ IncluderFunc("lib_it_up/*", _SH, nil, function(path)
 	lib_files = lib_files + 1
 end)
 
+
 --TODO: give the library a non-meme name lol
 basewars.logf("    loaded %d files from lib", lib_files)
-
-
-
 
 local panellib_files = 0
 

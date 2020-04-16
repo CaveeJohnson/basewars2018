@@ -22,7 +22,10 @@ function TabbedPanel:Init()
 
 	self.TabSize = 26
 
-	self:DockPadding(4, 26 + self.HeaderSize, 4, 4)
+	self.SelectedTabColor = Color(70, 170, 255)
+	self.UnselectedTabColor = color_white:Copy()
+
+	self:DockPadding(4, 26 + self.HeaderSize + 4, 4, 4)
 end
 
 function TabbedPanel:SetTabSize(size)
@@ -49,11 +52,20 @@ function TabbedPanel:AddTab(name, onopen, onclose)
 
 	self.OpenTabs[name] = onopen
 	self.CloseTabs[name] = onclose
-	tab.Col = Color(255, 255, 255)
-	tab.GCol = Color(255, 255, 255)
+
+	tab.Col = self.SelectedTabColor:Copy()
+
 	tab.Hov = 0
-	function tab.Paint(me,w,h)
-		me.Col = LC(me.Col, (self.ActiveTab == name and Color(70, 170, 255) ) or color_white, 15)
+	tab.SelTime = 0
+	tab.SelColor = tab.Col:Copy()
+
+	function tab.Paint(me, w, h)
+		local tocol = self.ActiveTab == name and self.SelectedTabColor or self.UnselectedTabColor
+
+		local frac = math.min((CurTime() - tab.SelTime) / 0.7, 1)
+		frac = Ease(frac, 0.4)
+
+		LerpColor(frac, me.Col, tocol)
 		draw.SimpleText(name, self.TabFont, w/2, h/2 - 1, me.Col, 1, 1)
 
 		if me:IsHovered() then
@@ -82,6 +94,9 @@ function TabbedPanel:AddTab(name, onopen, onclose)
 					self.CloseTabs[curtab](self.OpenTabs[name])				--exec that
 				end
 
+				self.Tabs[curtab].SelTime = CurTime()
+				self.Tabs[curtab].SelColor:Set(self.Tabs[curtab].Col)
+
 				if tabbtn.ReturnedPanel then --if there's a panel registered for auto-close,
 
 					local pnl = tabbtn.ReturnedPanel
@@ -97,7 +112,10 @@ function TabbedPanel:AddTab(name, onopen, onclose)
 				end
 			end
 
-			local pnl, instaremove = self.OpenTabs[name]()	--otherwise just run the open func
+			tabbtn.SelTime = CurTime()
+			tabbtn.SelColor:Set(self.Tabs[curtab].Col)
+
+			local pnl, instaremove = self.OpenTabs[name]()
 
 			if ispanel(pnl) then --if open func returned a panel then assume they want to auto-close it when tab switches
 				pnl.__InstaRemove = instaremove
@@ -110,17 +128,19 @@ function TabbedPanel:AddTab(name, onopen, onclose)
 
 	end
 
-	self:DockPadding(4, 30 + self.HeaderSize, 4, 4)
-
 	return tab
 end
 
 function TabbedPanel:SelectTab(name, dontanim)
-	if not self.Tabs[name] then error("Tried opening a non-existent tab!") return end
+	local tab = self.Tabs[name] --button
+	if not tab then error("Tried opening a non-existent tab!") return end
+
 	self.OpenTabs[name]()
 	self.ActiveTab = name
-	if not dontanim then
-		self.Tabs[name].SelW = self.Tabs[name]:GetWide() + 20
+
+	if dontanim then
+		self.SelX = tab.X
+		self.SelW = self.Tabs[name]:GetWide()
 	end
 
 end

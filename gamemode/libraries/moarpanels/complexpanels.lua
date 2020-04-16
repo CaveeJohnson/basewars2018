@@ -332,12 +332,16 @@ function ebutton:Init()
 		self:CreateExpandPanel(self:GetSize())
 	end
 
-	self.ResizeMult = 10
+	self.ExpandTime = 0.4
+	self.Easing = 0.3
+
 	self.Initted = true
 
 	self.LastOKW = 60
 	self.LastOKH = 30
+
 	self.CT = CurTime()
+	self.ClickTime = 0
 end
 
 function ebutton:CreateExpandPanel(w, h)
@@ -353,6 +357,7 @@ function ebutton:CreateExpandPanel(w, h)
 		me:SetSize(self:GetWide(), h)
 	end
 
+	self.ClickHeight = self:GetTall()
 end
 
 function ebutton:SetExpand(h)
@@ -404,17 +409,24 @@ end
 
 function ebutton:Think()
 	local w, h = self:GetSize()
+	self.ClickHeight = self.ClickHeight or h
+
 	self.FakeResize = true
+
+	local frac = (CurTime() - self.ClickTime) / self.ExpandTime
+	
+	frac = Ease(math.min(frac, 1), self.Easing)
+
 	if self.Expand then
 
-		self:SetSize(w, L(h, self.FakeH + self.ExpandTo, self.ResizeMult or 20, true))
+		self:SetSize(w, Lerp(frac, self.ClickHeight, self.FakeH + self.ExpandTo))
 		self.RBEx = {bl = false, br = false}
 
 	else
 
-		self:SetSize(w, L(h, self.FakeH, self.ResizeMult or 20, self.FakeH * 0.1))
+		self:SetSize(w, Lerp(frac, self.ClickHeight, self.FakeH))
 
-		if self.FakeH == h then self.RBEx = nil end
+		if frac >= 0.95 then self.RBEx = nil end
 	end
 
 end
@@ -431,6 +443,8 @@ function ebutton:DoClick()
 		self.Expand = not self.Expand
 	end
 
+	self.ClickHeight = self:GetTall()
+	self.ClickTime = CurTime()
 end
 
 function ebutton:Paint(w, h)

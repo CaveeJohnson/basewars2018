@@ -6,6 +6,8 @@ ext.factionTable  = ext:establishGlobalTable("factionTable")
 ext.teamToFaction = ext:establishGlobalTable("teamToFaction")
 ext.factionCount  = table.Count(ext.factionTable)
 
+local PLAYER = FindMetaTable("Player")
+
 if SERVER then
 	util.AddNetworkString(ext:getTag() .. "start")
 	util.AddNetworkString(ext:getTag() .. "connect")
@@ -72,15 +74,22 @@ function basewars.factions.getByCore(core)
 	return ext.factionTable[core]
 end
 
+--returns a player's faction and their rank, if they have one
+--returns nil otherwise
+
 function basewars.factions.getByPlayer(ply)
 	local sid64 = ply:SteamID64()
 
 	for c, v in pairs(ext.factionTable) do
-		if IsValid(c) and v.hierarchy_reverse[sid64] then return v end
+		local rank = v.hierarchy_reverse[sid64]
+		if IsValid(c) and rank then return v, rank end
 	end
 
 	return nil
 end
+
+PLAYER.getFaction = basewars.factions.getByPlayer
+PLAYER.GetFaction = basewars.factions.getByPlayer
 
 function ext:BW_PostTagParse(tbl, ply, isTeam)
 	if isTeam or not (IsValid(ply) and ply.Team) then return end
@@ -146,6 +155,29 @@ end
 
 function ext:BW_ShouldSell(ply, ent)
 	if ent.isCore and self.factionTable[ent] then return false, "Faction core cannot be sold, you must disband!" end
+end
+
+local canKick = {
+	["owner"] = true,
+	["officers"] = true,
+	["members"] = false
+}
+
+local privileges = {
+	["owner"] = math.huge,
+	["officers"] = 2,
+	["members"] = 1,
+}
+
+--todo: make it into a hook
+
+function ext:canKickFromFaction(kicker, kicked)
+	local kr_fac, kr_rank = kicker:getFaction()
+	local kd_fac, kd_rank = kicked:getFaction()
+
+	return 	kr_fac == kd_fac and
+			canKick[kr_rank] and
+			(privileges[kr_rank] or 0) > (privileges[kd_rank] or 0)
 end
 
 -- TODO: disconnect = blow stuff up, due to not own core
@@ -273,7 +305,7 @@ ext.clientEvents.join = function(_, ply, core, password)
 	local fac = ext.factionTable[core]
 	if not fac then return end
 
-	if fac.password ~= password then return end
+	if fac.password ~= password and password ~= true then return end
 
 	if ext:event("join", fac, ply:SteamID64()) then
 		ply:SetTeam(fac.team_id)
@@ -321,6 +353,37 @@ function basewars.factions.sendEvent(t, ...)
 		net.SendToServer()
 	end
 end
+
+--pass true as pw to ignore password check
+
+function basewars.factions.joinFaction(ply, core, pw)
+	if CLIENT then
+		basewars.factions.sendEvent("join", core, pw)
+	else
+		local _arg = core
+
+		if isstring(core) then --hueeh?
+
+			for k,v in pairs(ext.factionTable) do
+				if IsValid(k) and v.name:find(core) then
+					core = k
+					break
+				end
+			end
+
+		end
+
+		if not isentity(core) or not IsValid(core) or not core.isCore then
+			errorf("Player %s attempted to join a faction with an invalid 'core' argument (expected entity or part of name, received %s (%s) instead)", ply, type(_arg), _arg)
+			return
+		end
+
+		ext:clientEvent("join", ply, core, pw)
+	end
+end
+
+PLAYER.joinFaction = basewars.factions.joinFaction
+PLAYER.JoinFaction = basewars.factions.joinFaction
 
 net.Receive(ext:getTag() .. "event", function(len, ply)
 	local t = net.ReadString()

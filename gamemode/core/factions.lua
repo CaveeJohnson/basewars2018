@@ -190,7 +190,7 @@ ext.eventHandlers.leave = function(_, fac, sid64)
 	local status = fac.hierarchy_reverse[sid64]
 	if not status then return false end
 
-	if status == "owner" and not ext:promoteNewOwner(fac) then
+	if status == "owner" and not ext:promoteNewOwner(fac, true) then
 		return false
 	end
 
@@ -257,19 +257,30 @@ ext.eventHandlers.join = function(_, fac, sid64)
 	return true
 end
 
-ext.eventHandlers.ownerchange = function(_, fac, new, notOfficer)
+ext.eventHandlers.ownerchange = function(_, fac, new, notOfficer, leaving)
 	local old = fac.hierarchy.owner
-	table.insert(fac.hierarchy.officers, 1, old) -- slap the old owner back in at the front of the officer list
 
-	print("DEBUG: faction ownership changed " .. old .. " -> " .. new .. ". member only? ", notOfficer)
+	if old then
+		if leaving then
+			fac.hierarchy_reverse[old] = nil
+		else
+			table.insert(fac.hierarchy.officers, 1, old)	-- slap the old owner back in at the front of the officer list,
+			fac.hierarchy_reverse[old] = "officer"			-- but only if they're not leaving the faction entirely
+		end
+
+		print("DEBUG: faction ownership changed " .. old .. " -> " .. new .. ". member only? ", notOfficer)
+	else
+		print("DEBUG: faction ownership changed nil(???) -> " .. new .. ". member only? ", notOfficer)
+	end
 
 	fac.hierarchy.owner = new
+
 	if notOfficer then
 		table.RemoveByValue(fac.hierarchy.members, new)
 	else
 		table.RemoveByValue(fac.hierarchy.officers, new)
 	end
-	fac.hierarchy_reverse[old] = "officer"
+
 	fac.hierarchy_reverse[new] = "owner"
 
 	return true
@@ -425,15 +436,16 @@ function ext:getReplacementOwner(fac)
 	return nil
 end
 
-function ext:promoteNewOwner(fac)
+function ext:promoteNewOwner(fac, leaving)
 	local new, notOfficer = self:getReplacementOwner(fac)
 
 	if new then
-		self:event("ownerchange", fac, new, notOfficer)
+		self:event("ownerchange", fac, new, notOfficer, leaving)
 
 		local ply = player.GetBySteamID64(new)
+
 		if IsValid(ply) then
-			fac.core:CPPISetOwner(pply)
+			fac.core:CPPISetOwner(ply)
 		end
 	end
 

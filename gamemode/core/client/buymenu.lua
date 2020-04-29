@@ -232,7 +232,7 @@ function ext:buildSubcategory(scr, catdata, catname)
 		itemlist:SetSpaceX(4)
 
 
-		for id, item in ipairs(sc_data.items) do 
+		for id, item in ipairs(sc_data.items) do
 
 			local cost = item.cost
 			local cost_text
@@ -251,9 +251,8 @@ function ext:buildSubcategory(scr, catdata, catname)
 			btn.Label = ""
 			btn.Border = {}
 			btn.borderColor = itemBorder:Copy()
-			btn.DrawShadow = false 
-			btn.HovMult = 1.2 
-			
+			btn.DrawShadow = false
+			--btn.HovMult = 1.1
 
 			local icon = vgui.Create("SpawnIcon", btn)
 			icon:SetMouseInputEnabled(false)
@@ -268,7 +267,7 @@ function ext:buildSubcategory(scr, catdata, catname)
 			local clicc = 0
 
 			local down = 0
-			local held = false 
+			local held = false
 
 			function btn:DoClick()
 				surface.PlaySound("buttons/button9.wav")
@@ -280,7 +279,7 @@ function ext:buildSubcategory(scr, catdata, catname)
 
 			function btn:PrePaint(w, h)
 				if hook.Run("BW_PaintBuymenuSpawnIcon", self, w, h, ply, item) then return end
-				local col = itemBorder 
+				local col = itemBorder
 
 				local frac
 
@@ -303,10 +302,8 @@ function ext:buildSubcategory(scr, catdata, catname)
 					held = false
 				end
 
-				
-
 				frac = math.min(CurTime() - clicc, CurTime() - down, time) * (1/time)
-				 
+
 				LerpColor(frac, self.borderColor, col)
 
 				self.Color = ext:getIconColor(ply, item)
@@ -333,7 +330,7 @@ function ext:buildSubcategory(scr, catdata, catname)
 
 end
 
-local ft
+local LerpColor = draw.LerpColor
 
 local function catBtnPaint(self, w, h)
 	local ic = self.Icon
@@ -365,7 +362,8 @@ local function catBtnPaint(self, w, h)
 end
 
 function ext:buildCategories(pnl)
-	
+	noIconMat = nil --thank you garry very cool
+					--(refresh the mat so it's not black when you change gfx settings)
 
 	ext.mainFrame = pnl
 
@@ -377,13 +375,11 @@ function ext:buildCategories(pnl)
 	catpnl:SetWide(175)
 
 	function catpnl:Paint(w, h)
-		if not noIconMat then 
+		if not noIconMat then
 			noIconMat = draw.RenderOntoMaterial("spawnmenu-noicon", 32, 32, function()
 				draw.SimpleText("*", "R64", 16, 14, color_white, 1, 1)
 			end)
 		end
-
-		ft = FrameTime()
 
 		draw.RoundedBox(8, 0, 0, w, h, catsColor)
 
@@ -413,7 +409,7 @@ function ext:buildCategories(pnl)
 
 		local icon = catsIcons[catname]
 
-		if icon then 
+		if icon then
 			cat.Icon = icon
 
 			cat.TextX = 2 + icon.IconW + 4
@@ -422,6 +418,7 @@ function ext:buildCategories(pnl)
 		cat.PostPaint = catBtnPaint
 
 		function cat:DoClick()
+			if ext.selectedCategory == catname then return end --kk
 
 			ext:closeCategory(catname, catpnl, catdata)
 			ext.selectedCategory = catname
@@ -512,16 +509,21 @@ do
 	spawnmenu.Reload = spawnmenu.Reload or concommand.GetTable().spawnmenu_reload
 	concommand.Add("spawnmenu_reload", ext.reloadSpawnmenu)
 
-	cvars.AddChangeCallback("developer", function(_, old, new)
-		local val = tonumber(new) or 1
+	if not _G.addedDeveloperCallback then
 
-		local old_dev = developer
-		developer = val ~= 0
+		cvars.AddChangeCallback("developer", function(_, old, new)
+			local val = tonumber(new) or 1
 
-		if developer ~= old_dev then
-			ext.reloadSpawnmenu()
-		end
-	end, "bw_spawnmenu_reload")
+			local old_dev = developer
+			developer = val ~= 0
+
+			if developer ~= old_dev then
+				ext.reloadSpawnmenu()
+			end
+		end, "bw_spawnmenu_reload")
+
+		_G.addedDeveloperCallback = true
+	end
 
 	if g_SpawnMenu then
 		ext.reloadSpawnmenu()

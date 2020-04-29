@@ -2,6 +2,9 @@
 	Idea shamelessly stolen from Luvit
 ]]
 
+BlankFunc = function() end
+BLANKFUNC = BlankFunc
+
 Class = {}
 Class.Meta = {__index = Class}
 

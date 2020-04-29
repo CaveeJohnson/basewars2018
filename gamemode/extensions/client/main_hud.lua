@@ -264,7 +264,7 @@ function ext:HUDPaint()
 			local ar_b2col = color_armor2
 			local ar_tcol = off_white
 
-			if armor > max_armor then 
+			if armor > max_armor then
 				ar_bcol = over_load
 				ar_tcol = over_load_t
 			end
@@ -280,7 +280,7 @@ function ext:HUDPaint()
 			local hp_b2col = color_health2
 			local hp_tcol = off_white
 
-			if hp > max_hp then 
+			if hp > max_hp then
 				hp_bcol = over_load
 				hp_tcol = over_load_t
 			end
@@ -307,14 +307,14 @@ function ext:HUDPaint()
 
 			cury = cury - bar_height - bar_pad
 
-			
+
 
 			--[[
 				Drawing health text & bar
 			]]
 
 			tW, tH = surface.GetTextSize(hp_tx)
-			tY = cury + bar_height/2 - tH/2
+			tY = cury + bar_height / 2 - tH / 2
 
 			surface.SetTextColor(hp_tcol)
 			surface.SetTextPos(tX, tY)
@@ -331,11 +331,10 @@ function ext:HUDPaint()
 			--drawBar(curx, cury, bar_width, bar_height, color_armor2, color_armor1, armor / max_armor)
 			--drawString(, curx + bar_width + 4, cury - bar_height / 2 - 1, armor > max_armor and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 
-			
 			--drawString(basewars.nformat(hp), curx + bar_width + 4, cury - bar_height / 2 - 1, hp > max_hp and over_load or off_white, TEXT_ALIGN_LEFT, TEXT_ALIGN_CENTER)
 			--cury = cury - bar_height
 			--cury = cury - drawBar(curx, cury, bar_width, bar_height, color_health2, color_health1, hp / max_hp)
-			
+
 			--[[
 					Drawing:
 
@@ -348,6 +347,7 @@ function ext:HUDPaint()
 
 			local tW, tH = surface.GetTextSize(money_string)
 			local tX, tY = curx, cury - tH - tx_bar_pad
+
 			surface.SetTextColor(off_white_t)
 			surface.SetTextPos(tX, tY)
 			surface.DrawText(money_string)

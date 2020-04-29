@@ -5,11 +5,7 @@ setfenv(1, _G)
 
 local meta = FindMetaTable( "Panel" )
 
-local AnimObj = {}
-local AnimMeta = {}
-
-AnimObj.__index = AnimMeta 
-setmetatable(AnimObj, AnimMeta)
+local AnimMeta = Object:extend()
 
 function AnimMeta:Stop()
 	self.Parent.m_AnimList[self.Key] = nil
@@ -80,6 +76,8 @@ function meta:AnimationThinkInternal()
 				if anim.Swappable then continue end 
 
 				self.m_AnimList[k] = nil
+				anim.Valid = false
+				anim.Key = 0	--this animation isn't "valid" anymore; zero out the key so stopping the animation actually does nothing
 			end
 
 		end
@@ -156,7 +154,7 @@ function meta:NewAnimation( length, delay, ease, callback )
 		OnEnd = callback,
 		Parent = self,
 	}
-	setmetatable(anim, AnimObj)
+	setmetatable(anim, AnimMeta)
 
 	self:SetAnimationEnabled( true )
 	if ( self.m_AnimList == nil ) then self.m_AnimList = {} end

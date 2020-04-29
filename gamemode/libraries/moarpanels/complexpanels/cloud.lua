@@ -56,7 +56,10 @@ function Cloud:Init()
 	self.DescFont = "OSL18"
 	self:SetSize(2,2)
 	self:SetPos(2,2)
+
 	self:SetAlpha(0)
+	self.Frac = 0 --don't make it disappear instantly
+
 	self:SetMouseInputEnabled(false)
 
 	self.Label = "No label!"
@@ -69,10 +72,15 @@ function Cloud:Init()
 
 	self.HOffset = 0
 
-	self.ToX = nil
-	self.ToY = nil
+	self.ToX = 0
+	self.ToY = 0
 
-	self.Speed = 25
+	self.AppearTime = 0.2
+	self.DisappearTime = 0.2
+
+	self.AppearEase = 0.2
+	self.DisappearEase = 0.2
+	--self.Speed = 25
 
 	self.Color = Color(40, 40, 40)
 	self.TextColor = Color(255,255,255)
@@ -170,8 +178,8 @@ function Cloud:Paint()
 
 	ch = self.HOverride or th
 
-	local xoff = self.OffsetX or 4
-	local yoff = self.OffsetY or 0
+	local xoff = (self.OffsetX or 4) + self.ToX * self.Frac
+	local yoff = (self.OffsetY or 0) + self.ToY * self.Frac
 
 	local finY = 0
 
@@ -352,12 +360,18 @@ end
 function Cloud:Think()
 
 	if self.Active then
-		self:SetAlpha(L(self:GetAlpha(), 255, self.Speed, true))
+		self:To("Frac", 1, self.AppearTime, 0, self.AppearEase)
+		self.Frac = math.max(self.Frac, 0.01) --prevent disappearing for this frame
 	else
-		self:SetAlpha(L(self:GetAlpha(), 0, self.Speed, true))
-		if self:GetAlpha() == 0 and self.RemoveWhenDone then self:Remove() return end
+		self:To("Frac", 0, self.DisappearTime, 0, self.DisappearEase)
 	end
 
+	if self.Frac == 0 and self.RemoveWhenDone then 
+		self:Remove() 
+		return 
+	end
+
+	self:SetAlpha(self.Frac * 255)
 end
 
 function Cloud:FullInit()

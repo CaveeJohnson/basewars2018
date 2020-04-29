@@ -699,7 +699,6 @@ function draw.RenderOntoMaterial(name, w, h, func, rtfunc, matfunc, pre_rt, pre_
 
 			local id = rtm:Get("Number")
 			rtm:Set(id + 1, "Number")
-
 			rt = CreateRT(name .. id, w, h)
 			rtm:Set(rt, w, h)
 		end
@@ -727,18 +726,17 @@ function draw.RenderOntoMaterial(name, w, h, func, rtfunc, matfunc, pre_rt, pre_
 
 			if not has2d then cam.Start2D() end
 				local ok, err = pcall(func, w, h, rt)
-			
 
 
 			if rtfunc and ok then
 				local ok, keep = pcall(rtfunc, rt)
-				if ok and keep == false then 
+				if ok and keep == false then
 
-					render.PopRenderTarget() 
+					render.PopRenderTarget()
 					render.OverrideAlphaWriteEnable(false)
 					if not has2d then cam.End2D() end
 
-					return 
+					return
 				end
 			end
 
@@ -1000,11 +998,11 @@ function DownloadGIF(url, name)
 				file.Write(path:format(name .. "_info")  .. ".dat", util.TableToJSON(info))
 
 				file.Delete(("hdl/temp_gif%s.dat"):format(name))
-		
+
 				MoarPanelsMats[name].downloading = false
 
 				local tbl = ParseGIFInfo(path, name, info)
-			
+
 				tbl.fromurl = url
 				MoarPanelsMats[name] = tbl
 

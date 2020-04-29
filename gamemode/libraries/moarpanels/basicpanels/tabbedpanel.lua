@@ -8,7 +8,7 @@
 	TabbedPanel:AlignPanel(pnl)
 
 ---------------------------------------------------------------------------]]
-
+local LerpColor = draw.LerpColor
 local TabbedPanel = {}
 
 function TabbedPanel:Init()

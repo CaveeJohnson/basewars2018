@@ -151,7 +151,7 @@ BSHADOWS.EndShadow = function(intensity, spread, blur, opacity, direction, dista
 
     shmat:SetFloat("$alpha", opacity / 255)
 
-    --first draw the shadow 
+    --first draw the shadow
 
     render.SetMaterial(shmat)
 

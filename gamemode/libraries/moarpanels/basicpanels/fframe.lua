@@ -20,10 +20,11 @@ function PANEL:Init()
 	self:Center()
 	self:SetTitle("")
 	self:ShowCloseButton(false)
-	local w,h = self:GetSize()
+
+	local w, h = self:GetSize()
 
 	local b = vgui.Create("DButton", self)
-	self.CloseButton = b 
+	self.CloseButton = b
 	b:SetPos(w - 72, 2)
 	b:SetSize(64, 24)
 	b:SetText("")
@@ -35,17 +36,19 @@ function PANEL:Init()
 	end
 
 	b.DoClick = function()
-		if self.PreventClosing then return end 
-		
-		if self.OnClose then 
+		if self.PreventClosing then return end
+
+		if self.OnClose then
 			local ret = self:OnClose()
-			if ret==false then return end 
+			if ret==false then return end
 		end
 
 		self:Remove()
 	end
+
 	self.m_bCloseButton = b
-	self.Width, self.Height = w,h
+	self.LabelFont = "OSB24"
+
 	self.HeaderSize = 32
 	self.BackgroundColor = Color(50, 50, 50)
 	self.HeaderColor = Color(40, 40, 40)
@@ -90,13 +93,8 @@ function PANEL:SetCloseable(bool,remove)
 	end
 end
 
-surface.CreateFont( "PanelLabel", {
-	font = "Titillium Web SemiBold",
-	size = 30,
-	weight = 200,
-	antialias = true,
-} )
 local ceil = math.ceil
+
 function PANEL:OnChangedSize(w,h)
 
 end
@@ -106,11 +104,11 @@ function PANEL:GetColor()
 end
 
 function PANEL:OnSizeChanged(w,h)
+
 	if IsValid(self.m_bCloseButton) then 
 		self.m_bCloseButton:SetPos(w - 72, 2)
 	end
-	self.Width = w 
-	self.Height = h
+
 	self:OnChangedSize(w,h)
 
 end
@@ -165,7 +163,7 @@ function PANEL.DrawHeaderPanel(self, w, h, x, y)
 
 		end
 
-		draw.SimpleText(label, "PanelLabel", x+xoff, y, color_white, 0, 2)
+		draw.SimpleText(label, self.LabelFont, x+xoff, y, color_white, 0, 2)
 	end
 
 	if self:GetSizable() then 	--i spent like 3 hours on sizable support for FPanels from any corner, holy shit

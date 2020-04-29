@@ -1,5 +1,12 @@
 local META = FindMetaTable("Panel")
 
+function META:SetInput(b)
+	if b == nil then b = false end
+
+	self:SetMouseInputEnabled(b)
+	self:SetKeyboardInputEnabled(b)
+end
+
 function META:GetCenter(xfrac, yfrac)
 	xfrac = xfrac or 0.5
 	yfrac = yfrac or 0.5
@@ -36,7 +43,8 @@ function META:AddCloud(name, text)
 	self.__Clouds = cls
 
 	if IsValid(cls[name]) then
-		return cls[name]
+		cls[name]:Popup(true) --well if they requested to add it then they probably want it active
+		return cls[name], false
 	else
 		local cl = vgui.Create("Cloud", self)
 
@@ -47,7 +55,7 @@ function META:AddCloud(name, text)
 		cl.RemoveWhenDone = true
 		cl:Popup(true)
 
-		return cl
+		return cl, true
 	end
 end
 
@@ -84,8 +92,8 @@ function META:Lerp(key, val, dur, del, ease)
 		anim:Swap(dur, del, ease)
 
 	else
-
 		anim = self:NewAnimation(dur, del, ease)
+
 		anim:SetSwappable(true)
 
 		anim.ToVal = val
@@ -100,7 +108,47 @@ end
 
 META.To = META.Lerp
 
-function LerpColor(frac, col1, col2)
+local format = string.format
+
+local function hex(t)
+	return format("%p", t)
+end
+
+function META:MemberLerp(tbl, key, val, dur, del, ease)
+	local anims = self.__Animations or {}
+	self.__Animations = anims
+
+	local as_str = hex(tbl)
+
+	local anim = anims[key .. as_str]
+	local from = tbl[key] or 0
+
+	if tbl[key] == val then return end
+
+	if anim then
+		if anim.ToVal == val then return end
+
+		anim.ToVal = val
+		anim:Swap(dur, del, ease)
+
+	else
+
+		anim = self:NewAnimation(dur, del, ease)
+		anim:SetSwappable(true)
+
+		anim.ToVal = val
+		anim.FromTable = tbl
+		anims[key .. as_str] = anim
+	end
+
+	anim.Think = function(anim, self, fr)
+		tbl[key] = Lerp(fr, from, val)
+	end
+
+end
+
+--CW has its' own LerpColor which seems to work differently from this
+local function LerpColor(frac, col1, col2)
 
 	col1.r = Lerp(frac, col1.r, col2.r)
 	col1.g = Lerp(frac, col1.g, col2.g)
@@ -111,6 +159,20 @@ function LerpColor(frac, col1, col2)
 	end
 
 end
+
+draw.LerpColor = LerpColor
+
+local function LerpColorFrom(frac, col1, col2, col3) --the difference is that the result is written into col3 instead, acting like classic lerp
+	col3.r = Lerp(frac, col1.r, col2.r)
+	col3.g = Lerp(frac, col1.g, col2.g)
+	col3.b = Lerp(frac, col1.b, col2.b)
+
+	if col1.a ~= col2.a then
+		col3.a = Lerp(frac, col1.a, col2.a)
+	end
+end
+
+draw.LerpColorFrom = LerpColorFrom
 
 --[[
 	Because colors are tables, instead of giving a key you can give LerpColor a color as the first arg,
@@ -140,12 +202,14 @@ function META:LerpColor(key, val, dur, del, ease)
 		anims[key] = anim
 	end
 
+	local newfrom = from:Copy()
+
 	anim.Think = function(anim, self, fr)
 		if iscol then
-			LerpColor(fr, from, val)
+			LerpColorFrom(fr, newfrom, val, from)
 		else
-			self[key] = from
-			LerpColor(fr, from, val)
+			self[key] = (IsColor(self[key]) and self[key]) or from:Copy()
+			LerpColor(fr, newfrom, val, self[key])
 		end
 	end
 
@@ -159,7 +223,7 @@ function META:On(event, name, cb)
 
 	if isfunction(name) then
 		cb = name
-		name = #events:GetOrSet(event)
+		name = #(events:GetOrSet(event)) + 1
 	end
 
 	events:Set(cb, event, name)
@@ -179,13 +243,23 @@ function META:Emit(event, ...)
 	end
 end
 
-function META:PopIn(dur, del, func)
-	self:SetAlpha(0)
-	return self:AlphaTo(255, dur or 0.1, del or 0, (isfunction(func) and func) or function() end)
+function META:RemoveHook(event, name)
+	if not self.__Events then return end 
+
+	self.__Events:Set(nil, event, name)
+end
+
+function META:PopIn(dur, del, func, noalpha)
+	if not noalpha then self:SetAlpha(0) end
+	return self:AlphaTo(255, dur or 0.1, del or 0, (isfunction(func) and func) or BlankFunc)
 end
 
 function META:PopOut(dur, del, rem)
-	local func = (not rem and function(_, self) if IsValid(self) then self:Remove() end end) or rem
+
+	local func = (not rem and function(_, self)
+		if IsValid(self) then self:Remove() end
+	end) or rem
+
 	return self:AlphaTo(0, dur or 0.1, del or 0, func)
 end
 

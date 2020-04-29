@@ -28,7 +28,7 @@ function dmeta:Initialize()
 
 	self.ActiveWhen = CurTime()
 
-	self.Font = "SDZ20"
+	self.Font = "OS24"
 end
 
 ChainAccessor(dmeta, "Font", "Font")

@@ -14,18 +14,66 @@ function button:Init()
 
 	self:SetText("")
 
-	self.Font = "PanelLabel"
+	self.Font = "OS24"
 	self.DrawShadow = true
-	self.HovMult = 1.2
+	self.HovMult = 1.1
 
 	self.Shadow = {
 		MaxSpread = 0.6,
 		Intensity = 2,
+
 		OnHover = true,	--should the internal shadow logic be applied when the button gets hovered?
+		HoverSpeed = 0.3,
+		UnhoverSpeed = 0.3,
+
+		HoverEase = 0.1,
+		UnhoverEase = 0.1
 	}
 
 	self.LabelColor = Color(255, 255, 255)
 	self.RBRadius = 8
+	self.HoverColor = self.Color:Copy()
+
+	self.Icon = nil --[[
+	{
+		IconURL = "",
+		IconName = "",
+
+		IconMat = nil, --you can give it a plain material if you want
+
+		IconColor = color_white,
+
+		IconW = 24,
+		IconH = 24,
+
+		IconX = 4,	--offset to the left from the text
+
+		CenterWithText = false 	--if true, will take the icon's width into account as well for centering text
+	}
+	]]
+end
+
+function button:SetIcon(url, name, w, h, col)
+	local t = self.Icon or {}
+	self.Icon = t
+
+	if IsMaterial(url) then
+		t.IconMat = url
+
+		--shift args backwards by 1
+		col = h
+		h = w
+		w = name
+	else
+		t.IconURL = url
+		t.IconName = name
+	end
+
+
+	t.IconW = w
+	t.IconH = h
+
+	t.IconColor = col
 end
 
 function button:SetColor(col, g, b, a)
@@ -45,7 +93,7 @@ function button:SetColor(col, g, b, a)
 end
 
 function button:SetTextColor(col, g, b, a)
-	print("called settextcolor")
+
 	if IsColor(col) then
 		self.LabelColor = col
 		return
@@ -72,9 +120,17 @@ function button:HoverLogic()
 		local fg = math.min(bg.g*hm, 255)
 		local fb = math.min(bg.b*hm, 255)
 
-		LCC(self.drawColor, fr, fg, fb)
+		if self.HoverColorGenerated ~= self.Color then
+			self.HoverColor:Set(fr, fg, fb)
+			self.HoverColorGenerated = self.Color
+		end
 
-		if shadow.OnHover then shadow.Spread = L(shadow.Spread, shadow.MaxSpread, 20) end
+		LC(self.drawColor, self.HoverColor, 10) --this just looks better, idfk
+		--self:LerpColor(self.drawColor, self.HoverColor, 1.1, 0, 0.2)
+
+		if shadow.OnHover then
+			self:MemberLerp(shadow, "Spread", shadow.MaxSpread, shadow.HoverSpeed, 0, shadow.HoverEase)
+		end
 
 		if not self._IsHovered then
 			self._IsHovered = true
@@ -85,11 +141,13 @@ function button:HoverLogic()
 	else
 
 		local bg = self.Color
-		self.Color = bg
 
+		--self:LerpColor(self.drawColor, bg, 0.4, 0, 0.8)
 		LC(self.drawColor, bg)
 
-		if shadow.OnHover then shadow.Spread = L(shadow.Spread, 0, 50) end
+		if shadow.OnHover then
+			self:MemberLerp(shadow, "Spread", 0, shadow.UnhoverSpeed, 0, shadow.UnhoverEase)
+		end
 
 		if self._IsHovered then
 			self._IsHovered = false
@@ -133,18 +191,64 @@ local function dRB(rad, x, y, w, h, dc, ex)
 
 end
 
-
-
-function button:Draw(w, h)
+-- draw the background
+function button:DrawButton(x, y, w, h)
 
 	local rad = self.RBRadius or 8
-	local bg = self.drawColor or self.Color
+
+	local bordercol = self.borderColor or self.Color or RED
+	local bg = self.drawColor or self.Color or RED
+
+	local rbinfo = self.RBEx
+
+	local w2, h2 = w, h
+	local x2, y2 = x, y
+
+	if self.Border then
+		dRB(rad, x, y, w, h, bordercol, rbinfo)
+		local bw, bh = self.Border.w or 2, self.Border.h or 2
+		w2, h2 = w - bw*2, h - bh*2
+		x2, y2 = x + bw, y + bh
+	end
+
+	dRB(rad, x2, y2, w2, h2, bg, rbinfo)
+
+end
+
+--draw the text on the button
+function button:DrawLabel(x, y, w, h, label)
+
+end
+
+function button:PaintIcon(x, y, tw, th)
+	if not istable(self.Icon) then return end
+
+	local ic = self.Icon
+
+	local iW = ic.IconW or 24
+	local iH = ic.IconH or 24
+	local ioff = ic.IconX or 4
+
+	local col = ic.IconColor or color_white
+	surface.SetDrawColor(col.r, col.g, col.b, col.a)
+
+	local iX = x - iW - ioff
+	local iY = y + th/2 - iH/2
+
+	if ic.IconMat then 
+		surface.SetMaterial(ic.IconMat)
+		surface.DrawTexturedRect(iX, iY, iW, iH)
+	elseif ic.IconURL then
+		surface.DrawMaterial(ic.IconURL, ic.IconName, iX, iY, iW, iH)
+	end
+end
+
+--mostly shadow logic and caller for Draw* functions
+function button:Draw(w, h)
 
 	local shadow = self.Shadow
 
 	self.drawColor = self.drawColor
-
-	local hov = false
 
 	local x, y = 0, 0
 
@@ -154,27 +258,15 @@ function button:Draw(w, h)
 	local label = self.Label or nil
 
 	if not self.NoDraw then
-		if (self.DrawShadow and spr>0.01) or self.AlwaysDrawShadow then
+
+		if (self.DrawShadow and spr > 0.05) or self.AlwaysDrawShadow then
 			BSHADOWS.BeginShadow()
 			x, y = self:LocalToScreen(0,0)
 		end
 
-		local w2, h2 = w, h
-		local x2, y2 = x, y
+		self:DrawButton(x, y, w, h)
 
-		if self.Border then
-			dRB(rad, x, y, w, h, self.borderColor or self.Color or RED, self.RBEx)
-			local bw, bh = self.Border.w or 2, self.Border.h or 2
-			w2, h2 = w - bw*2, h - bh*2
-			x2, y2 = x + bw, y + bh
-		end
-
-		dRB(rad, x2, y2, w2, h2, self.drawColor or self.Color or RED, self.RBEx)
-
-
-
-
-		if (self.DrawShadow and spr>0.01) or self.AlwaysDrawShadow then
+		if (self.DrawShadow and spr > 0.05) or self.AlwaysDrawShadow then
 			local int = shadow.Intensity
 			local blur = shadow.Blur
 
@@ -184,7 +276,7 @@ function button:Draw(w, h)
 				blur = 1
 			end
 
-			BSHADOWS.EndShadow(int, spr, blur or 2, self.Shadow.Alpha, self.Shadow.Dir, self.Shadow.Distance, nil, self.Shadow.Color)
+			BSHADOWS.EndShadow(int, spr, blur or 2, self.Shadow.Alpha, self.Shadow.Dir, self.Shadow.Distance, nil, self.Shadow.Color, self.Shadow.Color2)
 		end
 
 	end
@@ -193,10 +285,20 @@ function button:Draw(w, h)
 
 		label = tostring(label)
 
+		local tx = self.TextX or w/2
+		local ty = self.TextY or h/2
+
+		local ax = self.TextAX or 1
+		local ay = self.TextAY or 1
+
 		if label:find("\n") then
-			draw.DrawText(label, self.Font, self.TextX or w/2, self.TextY or h/2, self.LabelColor, self.TextAX or 1)
+			local tw = draw.DrawText(label, self.Font, tx, ty, self.LabelColor, ax)
 		else
-			draw.SimpleText(label,self.Font, self.TextX or w/2, self.TextY or h/2, self.LabelColor, self.TextAX or 1,  self.TextAY or 1)
+			local tw, th = draw.SimpleText(label, self.Font, tx, ty, self.LabelColor, ax, ay)
+
+			local iX = tx - tw*(ax/2)
+			local iY = ty - th*(ay/2)
+			self:PaintIcon(iX, iY, tw, th)
 		end
 	end
 

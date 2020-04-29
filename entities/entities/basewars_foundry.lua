@@ -316,6 +316,7 @@ end
 local gearCol = color_white:Copy()
 
 --pref is prefix ("+" / "-")
+local LerpColor = draw.LerpColor
 
 local function PaintHistory(self, tbl, pref, x, y, w, h)
 	local ft = FrameTime()

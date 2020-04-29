@@ -21,6 +21,19 @@ function ext:PostPlayerInitialSpawn(ply)
 	end
 end
 
+function ext:subLimit(ply, ent)
+	local id = ply:SteamID64()
+
+	if isentity(ent) then
+		local class = ent:GetClass()
+		ent:RemoveCallOnRemove("bw_ent_limits")
+		ent = ent:GetClass()
+	end
+
+	self.limiter[id][ent] = (self.limiter[id][class] or 1) - 1
+	ply:SetNW2Int("bw_limit_" .. ent, self.limiter[id][ent])
+end
+
 function ext:setupLimits(ent, ply, item)
 	local class = item.class
 	local id = ply:SteamID64()

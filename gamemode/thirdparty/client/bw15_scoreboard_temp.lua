@@ -160,7 +160,7 @@ function SCOREBOARD_LINE:Load(ply)
 	avatar:Dock(LEFT)
 	avatar:DockMargin(30, 2, 0, 2)
 	avatar:SetWidth(32 - 2)
-	avatar:SetPlayer(self.ply, 128)
+	avatar:SetPlayer(self.ply, 32)
 
 	local avatarbutton = avatar:Add("DButton")
 	avatarbutton:Dock(FILL)

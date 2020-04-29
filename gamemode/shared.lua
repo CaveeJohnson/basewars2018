@@ -155,7 +155,7 @@ do
 	-- the extension so that it is readonly and always can be refreshed by luarefresh.
 	-- NOTE: due to this, anyt MUTATOR you may call must be aware ext = extension, self = INSTANCE, keep this in mind!
 	function basewars.getExtension(name)
-		if not basewars.__ext[name] then return end
+		--if not basewars.__ext[name] then return end
 		return setmetatable({}, {__index = function(t, k) return basewars.__ext[name][k] end, __tostring = function(o) return string.format("basewars_extension [%s] (INSTANCE)", o:getTag()) end})
 	end
 end

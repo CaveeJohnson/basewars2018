@@ -14,6 +14,20 @@ if SERVER then
 	util.AddNetworkString(ext:getTag() .. "event")
 end
 
+function ext:EntityRemoved(ent)
+	if ent.isCore then 
+		local fac = self.factionTable[ent]
+		if not fac then return end 
+
+		self.factions[fac.name] = nil
+		self.factions[fac.name:lower()] = nil 
+		self.factions[fac.name:upper()] = nil
+
+		self.factionTable[ent] = nil
+		hook.Run("BW_FactionDisband", fac)
+	end
+end
+
 function ext:cleanTables()
 	local count = 0
 	local new = {}
@@ -121,17 +135,33 @@ function ext:PlayerShouldTakeDamage(ply, atk)
 	if atk:IsPlayer() and ply:Team() == atk:Team() and ply:Team() ~= TEAM_UNASSIGNED then return false end
 end
 
-function basewars.factions.canStartFaction(ply, name, password, color)
+function basewars.factions.eligibleForCreation(ply)
 	if basewars.factions.getByPlayer(ply) then
 		return false, "You are already in a faction"
 	end
 
-	if utf8.len(name) < 2 then
-		return false, "Your faction name must be 2 or more characters"
-	end
-
 	if not basewars.basecore.has(ply) then
 		return false, "You must have a core to start a faction"
+	end
+
+	local res, err = hook.Run("BW_AllowedToStartFaction", ply)
+
+	if res == false then
+		return res, err
+	end
+
+	return true
+end
+
+function basewars.factions.canStartFaction(ply, name, password, color)
+	local ok, err = basewars.factions.eligibleForCreation(ply)
+
+	if not ok then
+		return ok, err
+	end
+
+	if utf8.len(name) < 2 then
+		return false, "Your faction name must be 2 or more characters"
 	end
 
 	if ext.factions[name] or ext.factions[name:lower()] or ext.factions[name:upper()] then
@@ -219,7 +249,7 @@ ext.eventHandlers.leave = function(_, fac, sid64)
 	fac.flat_member_count = fac.flat_member_count - 1
 
 	fac.hierarchy_reverse[sid64] = nil
-
+	hook.Run("BW_FactionLeft", fac, ply, sid64, status)
 	return true
 end
 
@@ -231,12 +261,20 @@ ext.eventHandlers.disband = function(_, fac, sid64)
 
 	if status ~= "owner" then return false end
 
+	local ply = player.GetBySteamID64(sid64)
+	hook.Run("BW_FactionDisband", fac, ply, sid64)
+
+	ext.factions[fac.name:lower()] = nil 
+	ext.factions[fac.name] = nil 
+	ext.factions[fac.name:upper()] = nil
+
 	if SERVER then
 		fac.core:selfDestruct() -- this should do, it makes the core invalid = faction is invalid
 
 		for _, v in ipairs(team.GetPlayers(fac.team_id)) do
 			v:SetTeam(TEAM_UNASSIGNED)
 		end
+
 	end
 
 	return true
@@ -253,6 +291,9 @@ ext.eventHandlers.join = function(_, fac, sid64)
 	fac.flat_member_count = fac.flat_member_count + 1
 
 	fac.hierarchy_reverse[sid64] = "members"
+
+	local ply = player.GetBySteamID64(sid64)
+	hook.Run("BW_FactionJoined", fac, ply, sid64)
 
 	return true
 end
@@ -287,7 +328,7 @@ ext.eventHandlers.ownerchange = function(_, fac, new, notOfficer, leaving)
 end
 
 function ext:event(t, fac, ...)
-	if hook.Run("BW_CanFactionEvent", t, fac, ...) == false then return false end
+	if hook.Run("BW_CanFactionEvent", t, fac, ...) == false then print("cannot do event", t, Realm()) return false end
 
 	if SERVER then
 		net.Start(ext:getTag() .. "event")
@@ -305,6 +346,8 @@ function ext:event(t, fac, ...)
 
 	if self.eventHandlers[t] then
 		return self.eventHandlers[t](t, fac, ...)
+	else
+		errorf("didn't find event %s", t)
 	end
 
 	return true
@@ -445,6 +488,11 @@ function ext:promoteNewOwner(fac, leaving)
 		local ply = player.GetBySteamID64(new)
 
 		if IsValid(ply) then
+			if IsPlayer(fac.core:CPPIGetOwner()) then 	--because we're reassigning core owner, drop that player's core count to 0
+				local old = fac.core:CPPIGetOwner()
+				basewars.getExtension("core.items"):subLimit(old, fac.core)
+				old:SetNW2Entity("baseCore", NULL) --unregister from old core
+			end
 			fac.core:CPPISetOwner(ply)
 		end
 	end
@@ -477,6 +525,8 @@ function ext:BW_CoreSelfDestructed(core)
 		for _, v in ipairs(team.GetPlayers(fac.team_id)) do -- ripe
 			v:SetTeam(TEAM_UNASSIGNED)
 		end
+
+		self:cleanTables()
 	end)
 end
 
@@ -556,6 +606,8 @@ function basewars.factions.startFaction(ply, name, password, color)
 	color = color or HSVToColor(math.random(359), 0.8 + 0.2 * math.random(), 0.8 + 0.2 * math.random())
 	color = Color(color.r or 255, color.g or 255, color.b or 255, 255)
 
+	ext:cleanTables()
+
 	if SERVER then
 		return ext:startFaction(ply, name, password, color, nil)
 	else
@@ -569,8 +621,10 @@ end
 function ext:PlayerReallySpawned(ply)
 	self:cleanTables()
 
-	for _, v in pairs(self.factionTable) do
-		ext:handleStartNetworking(v.core, v.hierarchy.owner, v.name, nil, v.color, v.team_id, v.hierarchy, ply)
+	for core, v in pairs(self.factionTable) do
+		if IsValid(core) then
+			ext:handleStartNetworking(v.core, v.hierarchy.owner, v.name, nil, v.color, v.team_id, v.hierarchy, ply)
+		end
 	end
 
 	local fac = basewars.factions.getByPlayer(ply)

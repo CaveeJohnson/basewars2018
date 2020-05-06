@@ -1,6 +1,6 @@
 
-netstack_meta = {}
-local nsm = netstack_meta 
+netstack = Object:callable()
+local nsm = netstack 
 
 for k,v in pairs(net) do
 	if k:find("Write*") then
@@ -11,7 +11,7 @@ for k,v in pairs(net) do
 				args = aeiou,
 				--trace = debug.traceback(),	--not worth it
 				func = function()
-					net[k](unpack(aeiou))
+					net[k](...)
 				end
 			}
 		end
@@ -27,7 +27,7 @@ function net.WriteNetStack(ns)
 			local args = v.args
 			local str = ""
 
-			for _, v in pairs(args) do
+			for _, v in ipairs(args) do
 				str = str .. tostring(v) .. ", "
 			end
 
@@ -41,8 +41,6 @@ function net.WriteNetStack(ns)
 	end
 end
 
-netstack = {}
-netstack.__index = netstack_meta
 netstack.__call = net.WriteNetStack
 
 function netstack:new()
@@ -53,37 +51,18 @@ function netstack:new()
 end
 
 netstack.__tostring = function(self)
-	local s = "NetStack: %d ops:"
-	s = s:format(#self.Ops)
-	local s2 = ""
+	local head = "NetStack: %d ops:"
+	head = head:format(#self.Ops)
+
+	local args = ""
 
 	for k,v in ipairs(self.Ops) do
-		local argsstr = ""
+		local argsstr = table.concat(v.args, ", ")
 
-		for k, arg in ipairs(v.args) do
-			argsstr = argsstr .. tostring(arg) .. ", "
-		end
-
-		argsstr = argsstr:sub(1, #argsstr - 2)
-
-		s2 = s2 .. ("%d: %s - %s\n"):format(k, v.type, argsstr)
+		args = args .. ("%d: %s - %s\n"):format(k, v.type, argsstr)
 	end
 
-	s2 = s2:sub(1, #s2 - 1)
+	args = args:sub(1, #args - 1)
 
-	return s .. "\n" .. s2
-end
-
-function bit.GetLast(num, n)
-	return num % (2^n)
-end
-
-function bit.GetFirst(num, n)
-	local len = bit.GetLen(num)
-
-	return bit.rshift(num, math.max(len - n, 0))
-end
-
-function bit.GetLen(num)
-	return (num == 0 and 1) or math.ceil(math.log(math.abs(num), 2))
+	return head .. "\n" .. args
 end

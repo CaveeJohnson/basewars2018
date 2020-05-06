@@ -8,6 +8,7 @@ local greyed = Color(80, 80, 80)
 local btngray = Color(70, 70, 70)
 
 Colors.Button = btngray
+Colors.Header = Color(40, 40, 40)
 
 local close_hov = Color(235, 90, 90)
 local close_unhov = Color(205, 50, 50)
@@ -21,7 +22,7 @@ function PANEL:Init()
 	self:SetTitle("")
 	self:ShowCloseButton(false)
 
-	local w, h = self:GetSize()
+	local w = self:GetWide()
 
 	local b = vgui.Create("DButton", self)
 	self.CloseButton = b
@@ -30,7 +31,7 @@ function PANEL:Init()
 	b:SetText("")
 	b.Color = Color(205, 50, 50)
 
-	function b:Paint(w,h)
+	function b:Paint(w, h)
 		b.Color = LC(b.Color, (self.PreventClosing and greyed) or (self:IsHovered() and close_hov) or close_unhov, 15)
 		draw.RoundedBox(4, 0, 0, w, h, b.Color)
 	end
@@ -51,7 +52,7 @@ function PANEL:Init()
 
 	self.HeaderSize = 32
 	self.BackgroundColor = Color(50, 50, 50)
-	self.HeaderColor = Color(40, 40, 40)
+	self.HeaderColor = Colors.Header:Copy()
 
 	self.DimColor = Color(0, 0, 0, 220)
 
@@ -67,8 +68,8 @@ end
 
 function PANEL:SetColor(r, g, b)
 
-	if IsColor(r) then 
-		self.BackgroundColor = r 
+	if IsColor(r) then
+		self.BackgroundColor = r
 		local h, s, v = ColorToHSV(r)
 		self.HeaderColor = HSVToColor(h, s*0.9, v*0.8)
 	else
@@ -76,7 +77,7 @@ function PANEL:SetColor(r, g, b)
 		local bgc = self.BackgroundColor
 		bgc.r = r
 		bgc.g = g
-		bgc.b = b 
+		bgc.b = b
 
 		local h, s, v = ColorToHSV(bgc)
 		self.HeaderColor = HSVToColor(h, s*0.9, v*0.8)
@@ -88,24 +89,23 @@ end
 
 function PANEL:SetCloseable(bool,remove)
 	self.PreventClosing = not bool --shh
-	if remove and IsValid(self.CloseButton) then 
+	if remove and IsValid(self.CloseButton) then
 		self.CloseButton:Remove()
 	end
 end
 
-local ceil = math.ceil
 
 function PANEL:OnChangedSize(w,h)
 
 end
 
 function PANEL:GetColor()
-	return self.BackgroundColor 
+	return self.BackgroundColor
 end
 
 function PANEL:OnSizeChanged(w,h)
 
-	if IsValid(self.m_bCloseButton) then 
+	if IsValid(self.m_bCloseButton) then
 		self.m_bCloseButton:SetPos(w - 72, 2)
 	end
 
@@ -132,17 +132,17 @@ function PANEL.DrawHeaderPanel(self, w, h, x, y)
 
 	local icon = (self.Icon and self.Icon.mat) or nil
 
-	if self.Shadow then 
+	if self.Shadow then
 		--surface.DisableClipping(false)
 		BSHADOWS.BeginShadow()
 		if not x then x, y = self:LocalToScreen(0, 0) end
 	end
 
-	x = x or 0 
+	x = x or 0
 	y = y or 0
-	
+
 	local hh = self.HeaderSize
-	local tops = true 
+	local tops = true
 
 	if hh > 0 then
 		draw.RoundedBoxEx(self.HRBRadius or rad, x, y, w, hh, hc, true, true)
@@ -167,14 +167,14 @@ function PANEL.DrawHeaderPanel(self, w, h, x, y)
 	end
 
 	if self:GetSizable() then 	--i spent like 3 hours on sizable support for FPanels from any corner, holy shit
-		local sx, sy, sw, sh = self:GetSizableBounds()
+		local _, _, sw, sh = self:GetSizableBounds()
 
 		local nx, ny = x + self.SizableBoxX * self:GetWide(), y + self.SizableBoxY * self:GetTall()
-		
+
 		local rot = rots[self.SizableNum]
 
 		local c = math.cos( math.rad( rot ) )
-		local s = math.sin( math.rad( rot ) )	--:pensive:	
+		local s = math.sin( math.rad( rot ) )	--:pensive:
 
 		local x0, y0 = sw/2, -sh/2
 		local newx = y0 * s - x0 * c
@@ -190,7 +190,7 @@ function PANEL.DrawHeaderPanel(self, w, h, x, y)
 		surface.DisableClipping(false)
 	end
 
-	if self.Shadow then 
+	if self.Shadow then
 		local int = self.Shadow.intensity or 2
 		local spr = self.Shadow.spread or 2
 		local blur = self.Shadow.blur or 2
@@ -223,9 +223,9 @@ function PANEL:SetSizablePos(num)
 
 	local YPos = math.ceil(num / 2) - 1
 
-	self.SizableNum = num 
+	self.SizableNum = num
 
-	self.SizableBoxX = XPos 
+	self.SizableBoxX = XPos
 	self.SizableBoxY = YPos
 end
 
@@ -238,12 +238,12 @@ function PANEL:GetSizableBounds()
 
 	local boxW, boxH = 20, 20
 
-	if self.SizableBoxX > 0 then 
-		boxX = boxX - boxW 
+	if self.SizableBoxX > 0 then
+		boxX = boxX - boxW
 	end
 
-	if self.SizableBoxY > 0 then 
-		boxY = boxY - boxH 
+	if self.SizableBoxY > 0 then
+		boxY = boxY - boxH
 	end
 
 	return boxX, boxY, boxW, boxH
@@ -263,8 +263,6 @@ function PANEL:Think()
 
 	local mousex = math.Clamp( gui.MouseX(), 1, ScrW() - 1 )
 	local mousey = math.Clamp( gui.MouseY(), 1, ScrH() - 1 )
-
-	local screenX, screenY = self:LocalToScreen( 0, 0 )
 
 	if ( self.Dragging ) then
 
@@ -286,60 +284,53 @@ function PANEL:Think()
 	local boxX, boxY = self.SizableBoxX * self:GetWide(), self.SizableBoxY * self:GetTall()
 	local boxW, boxH = 20, 20
 
-	if self.SizableBoxX > 0 then 
-		boxX = boxX - boxW 
+	if self.SizableBoxX > 0 then
+		boxX = boxX - boxW
 	end
 
-	if self.SizableBoxY > 0 then 
-		boxY = boxY - boxH 
+	if self.SizableBoxY > 0 then
+		boxY = boxY - boxH
 	end
 
-	local sbX, sbY = self:LocalToScreen(boxX, boxY)
 	local mX, mY = self:ScreenToLocal(mousex, mousey)
 
 	self:On("Think")
 
 	if ( self.Sizing ) then
 
-		local otherX, otherY = bit.band(self.SizableBoxX + 1, 1), bit.band(self.SizableBoxY + 1, 1) 
+		local otherX, otherY = bit.band(self.SizableBoxX + 1, 1), bit.band(self.SizableBoxY + 1, 1)
 
-		local mulX, mulY = -self.SizableBoxX, -self.SizableBoxY
-
-		local anchorX, anchorY = self:GetWide() * otherX, self:GetTall() * otherY 
+		local anchorX, anchorY = self:GetWide() * otherX, self:GetTall() * otherY
 		anchorX, anchorY = self:LocalToScreen(anchorX, anchorY)
 
-		local x = mousex - self.Sizing[1]
-		local y = mousey - self.Sizing[2]
-
-		if self.SizableBoxX > 0 then 
-			x = self.Sizing[1] - mousex
-		end
-
-		if self.SizableBoxY > 0 then 
-			y = mousey - self.Sizing[2]
-		end
-
 		local px, py = self:GetPos()
-
-		
 
 		local oldsizeX, oldsizeY = self:GetSize()
 		local newsizeX, newsizeY = 0, 0
 
-		if self.SizableBoxY == 0 then 
+		if self.SizableBoxY == 0 then
 			newsizeY = self:GetTall() - mY
-		else 
+		else
 			newsizeY = mY
 		end
 
-		if self.SizableBoxX == 0 then 
+		if self.SizableBoxX == 0 then
 			newsizeX = self:GetWide() - mX
-		else 
+		else
 			newsizeX = mX
 		end
 
-		if ( newsizeX < self.m_iMinWidth ) then newsizeX = self.m_iMinWidth elseif ( newsizeX > ScrW() - px && self:GetScreenLock() ) then newsizeX = ScrW() - px end
-		if ( newsizeY < self.m_iMinHeight ) then newsizeY = self.m_iMinHeight elseif ( newsizeY > ScrH() - py && self:GetScreenLock() ) then newsizeY = ScrH() - py end
+		if ( newsizeX < self.m_iMinWidth ) then
+			newsizeX = self.m_iMinWidth
+		elseif ( newsizeX > ScrW() - px and self:GetScreenLock() ) then
+			newsizeX = ScrW() - px
+		end
+
+		if ( newsizeY < self.m_iMinHeight ) then
+			newsizeY = self.m_iMinHeight
+		elseif ( newsizeY > ScrH() - py and self:GetScreenLock() ) then
+			newsizeY = ScrH() - py
+		end
 
 		local sizediffX, sizediffY = newsizeX - oldsizeX, newsizeY - oldsizeY
 
@@ -359,13 +350,12 @@ function PANEL:Think()
 	end
 
 
-	if ( self.Hovered && self.m_bSizable && math.PointIn2DBox(mX, mY, boxX, boxY, boxW, boxH) ) then
-
+	if ( self.Hovered and self.m_bSizable and math.PointIn2DBox(mX, mY, boxX, boxY, boxW, boxH) ) then
 		self:SetCursor(cursors[self.SizableBoxX][self.SizableBoxY])
 		return
 	end
 
-	if ( self.Hovered && self:GetDraggable() && mY < self.DraggableH ) then
+	if ( self.Hovered and self:GetDraggable() and mY < self.DraggableH ) then
 		self:SetCursor( "sizeall" )
 		return
 	end
@@ -382,21 +372,21 @@ function PANEL:Think()
 end
 
 function PANEL:OnMousePressed()
-	self.DraggableH = self.DraggableH or self.HeaderSize 
-	
-	local screenX, screenY = self:LocalToScreen( 0, 0 )
+	self.DraggableH = self.DraggableH or self.HeaderSize
+
+	local _, screenY = self:LocalToScreen( 0, 0 )
 
 	if self:GetSizable() then
 		local boxX, boxY = self.SizableBoxX * self:GetWide(), self.SizableBoxY * self:GetTall()
 
 		local boxW, boxH = 20, 20
 
-		if self.SizableBoxX > 0 then 
-			boxX = boxX - boxW 
+		if self.SizableBoxX > 0 then
+			boxX = boxX - boxW
 		end
 
-		if self.SizableBoxY > 0 then 
-			boxY = boxY - boxH 
+		if self.SizableBoxY > 0 then
+			boxY = boxY - boxH
 		end
 
 		local mX, mY = gui.MouseX(), gui.MouseY()
@@ -410,7 +400,7 @@ function PANEL:OnMousePressed()
 		end
 	end
 
-	if ( self:GetDraggable() && gui.MouseY() < ( screenY + self.DraggableH ) ) then
+	if ( self:GetDraggable() and gui.MouseY() < ( screenY + self.DraggableH ) ) then
 		self.Dragging = { gui.MouseX() - self.x, gui.MouseY() - self.y }
 		self:MouseCapture( true )
 		self:Emit("OnDrag")

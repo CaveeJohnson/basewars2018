@@ -82,11 +82,11 @@ function META:Lerp(key, val, dur, del, ease)
 	local anim
 	local from = self[key] or 0
 
-	if self[key] == val then return end 
+	if self[key] == val then return false, false end
 
 	if anims[key] then
 		anim = anims[key]
-		if anim.ToVal == val then return end --don't re-create animation if we're already lerping to that anyways
+		if anim.ToVal == val then return anim, false end --don't re-create animation if we're already lerping to that anyways
 
 		anim.ToVal = val
 		anim:Swap(dur, del, ease)
@@ -104,6 +104,7 @@ function META:Lerp(key, val, dur, del, ease)
 		self[key] = Lerp(fr, from, val)
 	end
 
+	return anim, true
 end
 
 META.To = META.Lerp
@@ -256,9 +257,9 @@ end
 
 function META:PopOut(dur, del, rem)
 
-	local func = (not rem and function(_, self)
+	local func = rem or function(_, self)
 		if IsValid(self) then self:Remove() end
-	end) or rem
+	end
 
 	return self:AlphaTo(0, dur or 0.1, del or 0, func)
 end

@@ -5,11 +5,8 @@
 ]]
 
 
-DeltaText = DeltaText or Object:extend() 	--allow autorefresh of existing objects' metas
-local dmeta = DeltaText.Meta 
-
-DeltaText.__call = DeltaText.new 
-
+DeltaText = DeltaText or Object:callable() 	--allow autorefresh of existing objects' metas
+local dmeta = DeltaText.Meta
 
 function dmeta:Initialize()
 	self.Elements = {}
@@ -38,7 +35,7 @@ function dmeta:AddText(tx, rep, timing)
 	local key = #self.Elements + 1
 	local t
 
-	if not rep then 
+	if not rep then
 
 		t = DeltaTextPiece:new(self, tx, self.Font, key, rep)
 
@@ -47,7 +44,7 @@ function dmeta:AddText(tx, rep, timing)
 
 	else
 		local txel = self.Elements[self.LastAddedText] --grab last text
-		if not txel then PrintTable(self.Elements) print(self.LastAddedText) error("can't add a text replacer if there's no textpieces!") return end 
+		if not txel then PrintTable(self.Elements) print(self.LastAddedText) error("can't add a text replacer if there's no textpieces!") return end
 
 		t = DeltaTextEvent:new(key)
 
@@ -106,27 +103,27 @@ end
 function dmeta:CycleReset()
 	local last
 
-	for i=1, #self.Active do 
+	for i=1, #self.Active do
 		local elem = self.Active[i]
-		if elem and not elem.IsEvent then 
-			elem:Reset() 
-			last = elem 
+		if elem and not elem.IsEvent then
+			elem:Reset()
+			last = elem
 		end
 	end
 
 	self.LastActive = 0
-	self.LastTiming = 0 
+	self.LastTiming = 0
 
 	table.Empty(self.Active)
 
 	if last then last:Disappear() end
-	for k,v in pairs(self.Timings) do 
-		v.Activated = false 
+	for k,v in pairs(self.Timings) do
+		v.Activated = false
 	end
 end
 
 function dmeta:GetElements()
-	return self.Elements 
+	return self.Elements
 end
 
 function dmeta:GetPreviousElement()
@@ -238,12 +235,12 @@ function dmeta:Paint(x, y)
 
 	local offx = -self.Alignment / 2 * tw
 
-	for k, tp in pairs(self.Active) do 
+	for k, tp in pairs(self.Active) do
 		if not tp.Paint then continue end
 		tp:Paint(x + offx, y)
 	end
 
-	for k, tp in pairs(self.Disappearing) do 
+	for k, tp in pairs(self.Disappearing) do
 		if not tp.Paint then continue end
 		tp:Paint(x, y)
 	end
@@ -251,11 +248,11 @@ function dmeta:Paint(x, y)
 
 	local timing = self.Timings[self.LastActive + 1]
 
-	if timing then 
+	if timing then
 		local when = self.ActiveWhen
 
-		if not timing.Activated and when + timing.time < CurTime() then 
-			--activate 
+		if not timing.Activated and when + timing.time < CurTime() then
+			--activate
 			timing:OnActive(self)
 			timing.Activated = true
 			--self:ActivateElement(timing.key)

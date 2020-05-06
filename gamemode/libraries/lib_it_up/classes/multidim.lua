@@ -1,10 +1,9 @@
 --rip your RAM
 
-muldim = Class:Callable()
+muldim = Class:callable()
 local mmeta = muldim.Meta
 
 local weak = muldim:Callable()
-weak.Meta.__mode = "kv"
 weak.__mode = "kv"
 
 function mmeta:Get(...)

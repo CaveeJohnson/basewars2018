@@ -3,6 +3,8 @@
 		Calling methods on it will call the methods on its' children instead.
 
 		Can only have numbered keys.
+
+		Easylua, anyone?
 ]]
 
 UnionTable = {}

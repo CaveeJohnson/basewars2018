@@ -63,8 +63,8 @@ local rankPaints = {
 
 function ext.generateBasePanel(par)	--helper function to create an invis panel which will automatically fill the parent
 	local pnl = vgui.Create("InvisPanel", par)
-	pnl:SetPos(par.X + par.Scroll:GetWide() + 16, 0) --+8 padding +8 offset for the animation
-	pnl:SetSize(par:GetWide() - par.Scroll:GetWide() - 16, par:GetTall()) --fuck docking
+	pnl:SetPos(par.Scroll:GetWide() + 16 + 8, 0) --+16 padding +8 offset for the animation
+	pnl:SetSize(par:GetWide() - pnl.X, par:GetTall()) --fuck docking
 
 	pnl:PopIn()
 	pnl:MoveBy(-8, 0, 0.3, 0, 0.3)
@@ -178,7 +178,7 @@ function ext.createMemberList(par, plys)
 
 		self:Emit("Paint", w, h)
 	end
-	
+
 
 	local fac = vgui.Create("Icon", membs)
 	fac:SetSize(32, 32)
@@ -234,11 +234,11 @@ function ext.createMemberList(par, plys)
 
 	function membs:ReloadMembers(fac, plys)
 
-		for k,v in ipairs(memLabels) do 
+		for k,v in ipairs(memLabels) do
 			v:Remove()
 		end
 
-		for k,v in ipairs(addHooks) do 
+		for k,v in ipairs(addHooks) do
 			membs:RemoveHook("Paint", k)
 		end
 
@@ -281,10 +281,10 @@ function ext.createMemberList(par, plys)
 
 
 	--par:On("Paint", function(self, w, h)
-		
+
 	--end)
 
-	
+
 
 	return membs
 end
@@ -303,7 +303,7 @@ function ext.generateNewFactionControls(par)
 
 	print(ext.lastFacName, ext.lastFacPW)
 
-	if ext.lastFacName then 
+	if ext.lastFacName then
 		name:SetValue(ext.lastFacName)
 	end
 
@@ -339,7 +339,7 @@ function ext.generateNewFactionControls(par)
 	pw.Y = name.Y + name:GetTall() + 8
 	pw:SetPlaceholderText("Password...")
 
-	if ext.lastFacPW then 
+	if ext.lastFacPW then
 		pw:SetValue(ext.lastFacPW)
 	end
 
@@ -355,7 +355,7 @@ function ext.generateNewFactionControls(par)
 	local h, s, v
 	local curcol
 
-	if ext.lastFacCol then 
+	if ext.lastFacCol then
 		curcol = ext.lastFacCol
 		h, s, v = ColorToHSV(ext.lastFacCol)
 	else
@@ -363,9 +363,9 @@ function ext.generateNewFactionControls(par)
 		curcol = HSVToColor(h, s, v)
 	end
 
-	if v > 0.75 then 
+	if v > 0.75 then
 		name.TextColor = color_black:Copy()
-	else 
+	else
 		name.TextColor = color_white:Copy()
 	end
 
@@ -406,7 +406,7 @@ function ext.generateNewFactionControls(par)
 	errDT:SetFont("OS20")
 	local errpiece = errDT:AddText("")
 	errDT:CycleNext()
-	
+
 	local facname = name:GetValue()
 	local facpw = pw:GetValue()
 
@@ -429,11 +429,11 @@ function ext.generateNewFactionControls(par)
 	function doeet:DoClick()
 		if not self.can then return end
 		hook.Add("BW_FactionCreated", pnl, function(self, owsid, fac)
-			if ext.curFacPnl == self and owsid == LocalPlayer():SteamID64() then 
+			if ext.curFacPnl == self and owsid == LocalPlayer():SteamID64() then
 				ext.fac = fac
 				ext.TabFrame:GenerateFactionPanel(fac)
 			end
-		end) 
+		end)
 		local wut, huh = basewars.factions.startFaction(LocalPlayer(), name:GetValue(), pw:GetValue(), col:GetColor())
 		print(wut, huh)
 	end
@@ -450,13 +450,13 @@ function ext.generateNewFactionControls(par)
 	pnl.errorFrac = 0
 
 	pnl:On("Paint", function(self, w, h)
-		if not doeet.can then 
+		if not doeet.can then
 			self:To("errorFrac", 1, 0.3, 0, 0.3)
-		else 
+		else
 			self:To("errorFrac", 0, 0.2, 0, 0.3)
 		end
 
-		if doeet.err then 
+		if doeet.err then
 			local _, fr = errpiece:ReplaceText(fragnum, doeet.err, nil, true)
 		end
 
@@ -486,12 +486,12 @@ function ext.generateFactionControls(par, fac)	--panel that lets you control or 
 	local memblist = ext.createMemberList(pnl, plys)
 
 	hook.Add("BW_FactionJoined", memblist, function(self, fac2, ply)
-		if fac ~= fac2 then return end 
+		if fac ~= fac2 then return end
 		self:ReloadMembers(fac)
 	end)
 
 	hook.Add("BW_FactionLeft", memblist, function(self, fac2, ply)
-		if fac ~= fac2 then return end 
+		if fac ~= fac2 then return end
 		self:ReloadMembers(fac)
 	end)
 
@@ -510,11 +510,11 @@ function ext.generateFactionControls(par, fac)	--panel that lets you control or 
 	disband:SetSize(150, 35)
 	disband.X = pnl:GetWide()/2 - 150 - 8
 	disband.Y = pnl:GetTall() - 50 - 10
-	
+
 	disband.Font = "OS24"
 
-	
-	
+
+
 	local red = Color(190, 70, 70)			--used for Leave Faction
 	local brighterred = Color(220, 100, 100) --used for shake animation for leave, also used for cloud error if the player attempts to disband a faction while not being the owner
 
@@ -529,22 +529,22 @@ function ext.generateFactionControls(par, fac)	--panel that lets you control or 
 
 	local function ShakeThink(self, orX, orY)
 		local shake = 6
-		local needTime = self.LeaveTime 
+		local needTime = self.LeaveTime
 
-		if self:IsDown() and not self.NoShake then 
+		if self:IsDown() and not self.NoShake then
 			self.HoldFrac = math.min(1, self.HoldFrac + FrameTime()/needTime)
 			self.LastHold = CurTime()
 			shake = shake * self.HoldFrac
 		elseif CurTime() - self.LastHold > 0.5 or self.NoShake then
 			self.HoldFrac = math.max(0, self.HoldFrac - FrameTime()/needTime)
 			shake = shake * self.HoldFrac / 3
-		else 
+		else
 			shake = shake * self.HoldFrac / 1.5
 		end
-		
+
 		self:SetPos(orX + math.random(-shake, shake), orY + math.random(-shake, shake))
 
-		if self.HoldFrac == 1 and not self.NoShake then 
+		if self.HoldFrac == 1 and not self.NoShake then
 			self:FullShake()
 		end
 	end
@@ -573,9 +573,9 @@ function ext.generateFactionControls(par, fac)	--panel that lets you control or 
 	end
 
 	function disband:OnHover()
-		if not isowner then 
+		if not isowner then
 			local cl, new = self:AddCloud("whynot")
-			if new then 
+			if new then
 				cl.Font = "OS20"
 				cl:SetText("Only the owner can disband a faction!")
 				cl.TextColor = brighterred
@@ -625,19 +625,19 @@ function ext.generateFactionControls(par, fac)	--panel that lets you control or 
 
 		if memamt > 1 then canLeave = true elseif isowner then canLeave = false end
 
-		if canLeave then 
+		if canLeave then
 			ShakeThink(self, lX, lY)
 			self:SetColor(red)
-		else 
-			self:SetColor(Colors.Button) 
+		else
+			self:SetColor(Colors.Button)
 		end
 
 	end
-	
+
 	function leave:PostPaint(w, h)
 		local sx, sy = self:LocalToScreen(0, 0)
 		local fr = Ease(self.HoldFrac, 0.2)
-		
+
 		render.SetScissorRect(sx, sy, sx + w * fr, sy + h, true)
 			draw.RoundedBox(self.RBRadius, 0, 0, w, h, brighterred)
 		render.SetScissorRect(0, 0, 0, 0, false)
@@ -655,16 +655,16 @@ function ext.generateFactionControls(par, fac)	--panel that lets you control or 
 		ext.fac = nil
 		ext.TabFrame:GenerateFactionPanel()
 
-		local can = basewars.factions.sendEvent("leave") 
+		local can = basewars.factions.sendEvent("leave")
 		self.NoShake = true
 		self.drawColor:Set(brighterred)
 		self:SetColor(Colors.Button)
 	end
 
 	function leave:OnHover()
-		if not canLeave then 
+		if not canLeave then
 			local cl, new = self:AddCloud("whynot")
-			if new then 
+			if new then
 				cl.Font = "OS20"
 				cl:SetText("You can't leave a faction as the only person in it!")
 				cl.TextColor = brighterred
@@ -685,7 +685,7 @@ function ext.generateFactionControls(par, fac)	--panel that lets you control or 
 	local btn = vgui.Create("FButton", pnl)
 	btn:SetSize(36, 36)
 
-	local ph = ( f3ext.FF:GetTall() - f3ext.FF.TabSize - f3ext.FF.HeaderSize) / 2
+	local ph = ( f3ext.FF:GetTall() - f3ext.FF.HeaderSize) / 2
 	btn.Y = ph/2 + par.Y - btn:GetTall() / 2
 
 	btn.X = pnl:GetWide() - 64
@@ -785,12 +785,12 @@ function ext.generateFactionPanel(par, fac)	--faction panel that gives you more 
 	local memblist = ext.createMemberList(pnl, plys)
 
 	hook.Add("BW_FactionJoined", memblist, function(self, fac2, ply)
-		if fac ~= fac2 then return end 
+		if fac ~= fac2 then return end
 		self:ReloadMembers(fac)
 	end)
 
 	hook.Add("BW_FactionLeft", memblist, function(self, fac2, ply)
-		if fac ~= fac2 then return end 
+		if fac ~= fac2 then return end
 		self:ReloadMembers(fac)
 	end)
 
@@ -881,7 +881,7 @@ function ext.addFactionButton(scr, fac)
 
 		local ended = false
 
-		
+
 
 		local function OnEnd()
 
@@ -912,11 +912,11 @@ function ext.addFactionButton(scr, fac)
 
 		for i=k, #facBtns do
 			local btn = facBtns[i] and facBtns[i][1]
-			if not IsValid(btn) then continue end 
+			if not IsValid(btn) then continue end
 
 			btn.newIndex = (btn.newIndex or i-1) - 1
 
-			if btn.shiftAnim then 
+			if btn.shiftAnim then
 				btn.shiftAnim:Stop()
 			end
 
@@ -937,7 +937,7 @@ function ext.addFactionButton(scr, fac)
 			--self:DockMargin(0, 4, 0, 4 - (self:GetTall() + 4)*fr)
 
 		end
-	
+
 		a.OnEnd = function()
 			OnEnd()
 		end]]
@@ -1011,12 +1011,14 @@ function ext:F3_CreateTab(FF)
 	ext.fac = LocalPlayer():getFaction()
 	ext.FF = FF
 
-	FF:AddTab("Factions", function()
+	local btn = FF:AddTab("Factions", function(_, oldpanel, navbar)
+		if IsValid(oldpanel) then
+			return oldpanel
+		end
+
 		local f = vgui.Create("InvisPanel", FF)
 		ext.TabFrame = f
-
-		f:Dock(FILL)
-		f:InvalidateParent(true)
+		FF:PositionPanel(f) 	--has to be done to make correct sizes n' shit
 
 		local scr = vgui.Create("FScrollPanel", f)
 		f.Scroll = scr
@@ -1054,17 +1056,14 @@ function ext:F3_CreateTab(FF)
 		function f:Paint(w, h)
 			local x = w - scr:GetWide() - 16
 
-			surface.DisableClipping(true)
+			draw.RoundedBoxEx(9, scr:GetWide() + 16, 0, w - scr:GetWide() - 16, h, self.PushedColor, false, false, false, true)
 
-				draw.RoundedBoxEx(9, scr:GetWide() + 16, -8, w - scr:GetWide() - 8, h + 16, self.PushedColor, false, false, false, true)
+			surface.SetMaterial(MoarPanelsMats.gl)
+			surface.SetDrawColor(20, 20, 20)
+			surface.DrawTexturedRect(scr:GetWide() + 16, 0, 4, h + 16)
 
-				surface.SetMaterial(MoarPanelsMats.gl)
-				surface.SetDrawColor(20, 20, 20)
-				surface.DrawTexturedRect(scr:GetWide() + 16, -8, 4, h + 16)
-
-				surface.SetMaterial(MoarPanelsMats.gu)
-				surface.DrawTexturedRect(scr:GetWide() + 16, -8, w - scr:GetWide() - 8, 4)
-			surface.DisableClipping(false)
+			surface.SetMaterial(MoarPanelsMats.gu)
+			surface.DrawTexturedRect(scr:GetWide() + 16, 0, w - scr:GetWide() - 8, 4)
 
 		end
 
@@ -1121,7 +1120,7 @@ function ext:F3_CreateTab(FF)
 		end
 
 		local makeFac = vgui.Create("FButton", f)
-		makeFac:SetPos(scr.X + 24, f:GetTall() - 40)
+		makeFac:SetPos(scr.X + 24, f:GetTall() - 44)
 		makeFac:SetSize(scr:GetWide() - 48, 40)
 
 		local canCol = Color(65, 190, 65)
@@ -1240,6 +1239,21 @@ function ext:F3_CreateTab(FF)
 	FF:On("Show", function()
 		self.fac = LocalPlayer():getFaction()
 	end)
+
+	btn:SetIcon("https://i.imgur.com/MLRSYYG.png", "faction.png")
+	btn:SetDescription("faction n' shit")
+
+
+	local btn = FF:AddTab("settings or smth", function(_, navbar)
+		local b = vgui.Create("FButton", FF)
+		FF:PositionPanel(b)
+		b.Label = "Jebaited no settings yet Jebaited"
+		b:PopIn()
+		return b
+	end)
+
+	btn:SetIcon("https://i.imgur.com/ZDzJwTM.png", "gear64.png", 48)
+	btn:SetDescription("poggers settings, you can setup so much shit!!! fuckin AMAZING")
 end
 
 hook.Run("F3_ModuleLoaded", ext)

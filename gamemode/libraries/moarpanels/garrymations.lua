@@ -5,7 +5,7 @@ setfenv(1, _G)
 
 local meta = FindMetaTable( "Panel" )
 
-local AnimMeta = Object:extend()
+local AnimMeta = Emitter:extend()
 
 function AnimMeta:Stop()
 	self.Parent.m_AnimList[self.Key] = nil
@@ -27,6 +27,8 @@ function AnimMeta:Swap(length, delay, ease, callback)
 
 	return self
 end
+
+
 --[[---------------------------------------------------------
 	Name: SetTerm
 	Desc: Kill the panel at this time
@@ -40,7 +42,7 @@ end
 
 --[[---------------------------------------------------------
 	Name: AnimationThinkInternal
------------------------------------------------------------]]  
+-----------------------------------------------------------]] 
 function meta:AnimationThinkInternal()
 
 	local systime = SysTime()
@@ -49,7 +51,7 @@ function meta:AnimationThinkInternal()
 	if ( !self.m_AnimList ) then return end -- This can happen if we only have term
 
 	for k, anim in pairs( self.m_AnimList ) do
-		if anim.Ended then continue end 
+		if anim.Ended then continue end
 
 		if ( systime >= anim.StartTime ) then
 
@@ -68,12 +70,18 @@ function meta:AnimationThinkInternal()
 				end
 
 				anim:Think( self, Frac )
+				anim:Emit("Think", Frac)
 			end
 
 			if ( Fraction == 1 ) then
 
-				if anim.OnEnd and not anim.Ended then anim:OnEnd( self ) anim.Ended = true end
-				if anim.Swappable then continue end 
+				if not anim.Ended then
+					if anim.OnEnd then anim:OnEnd( self ) end
+					anim:Emit("End")
+					anim.Ended = true
+				end
+
+				if anim.Swappable then continue end
 
 				self.m_AnimList[k] = nil
 				anim.Valid = false
@@ -89,7 +97,7 @@ end
 --[[---------------------------------------------------------
 	Name: SetAnimationEnabled
 	Desc: Enables animations on a panel
------------------------------------------------------------]]  
+-----------------------------------------------------------]] 
 function meta:SetAnimationEnabled( b )
 
 	if ( !b ) then

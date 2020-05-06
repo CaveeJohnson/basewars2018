@@ -1,12 +1,12 @@
-MoarPanelsMats = MoarPanelsMats or {
+MoarPanelsMats = MoarPanelsMats or {}
 
-}
-
+setfenv(1, _G) --never speak to me or my son
 
 MoarPanelsMats.gu = Material("vgui/gradient-u")
 MoarPanelsMats.gd = Material("vgui/gradient-d")
 MoarPanelsMats.gr = Material("vgui/gradient-r")
 MoarPanelsMats.gl = Material("vgui/gradient-l")
+MoarPanelsMats.g = Material("gui/gradient", "noclamp smooth")
 
 local spinner = Material("data/hdl/spinner.png")
 local cout = Material("data/hdl/circle_outline256.png")
@@ -84,7 +84,7 @@ function draw.DrawLoading(pnl, x, y, w, h)
 
 	w = math.min(w, h)	--smallest square
 	h = math.min(w, h)
-	
+
 
 	local amt = 3
 	local dur = 2 --seconds
@@ -173,9 +173,9 @@ function draw.DrawCircle(x, y, rad, seg, perc, reverse, matsize)
 				end
 			break end 	--+1 due to poly #1 being a [0,0]
 
-			if reverse and (k-3 < seg-segfull) and k ~= 1 then 
+			if reverse and (k-3 < seg-segfull) and k ~= 1 then
 
-				if segdec and k-2 >= seg-segfull then 
+				if segdec and k-2 >= seg-segfull then
 
 					local a = mrad( ( (k-2-segdec) / seg ) * degoff)
 					local s = sin(a)
@@ -204,7 +204,7 @@ function draw.DrawCircle(x, y, rad, seg, perc, reverse, matsize)
 	else
 
 		local segfull, segdec = math.modf(segs)
-		segdec = (segdec~=0 and segdec) or nil 
+		segdec = (segdec~=0 and segdec) or nil
 
 		for i=0, seg do --generate full circle...
 
@@ -280,7 +280,7 @@ end
 
 draw.Circle = draw.DrawCircle --noob mistakes
 
-local rbcache = muldim:new()
+local rbcache = muldim:new(true)
 
 local function GenerateRBPoly(rad, x, y, w, h, notr, nobr, nobl, notl)
 
@@ -344,7 +344,7 @@ local function GenerateRBPoly(rad, x, y, w, h, notr, nobr, nobl, notl)
 			local c = cos(a) * rad
 
 			p[#p + 1] = {
-				x = lx + s, 
+				x = lx + s,
 				y = by - c,
 			}
 		end
@@ -363,7 +363,7 @@ local function GenerateRBPoly(rad, x, y, w, h, notr, nobr, nobl, notl)
 			local c = cos(a) * rad
 
 			p[#p + 1] = {
-				x = lx - s, 
+				x = lx - s,
 				y = ty - c,
 			}
 		end
@@ -375,9 +375,9 @@ local function GenerateRBPoly(rad, x, y, w, h, notr, nobr, nobl, notl)
 
 	return p
 end
-
-
-function draw.RoundedPolyBox(rad, x, y, w, h, col)
+												--   clockwise order:
+												-- V no topright, no bottomright, no bottomleft, no topleft
+function draw.RoundedPolyBox(rad, x, y, w, h, col, notr, nobr, nobl, notl)
 
 	--[[
 		coords for post-rounded corners
@@ -386,13 +386,13 @@ function draw.RoundedPolyBox(rad, x, y, w, h, col)
 	surface.SetDrawColor(col)
 	draw.NoTexture()
 
-	local cache = rbcache:Get(rad, x, y, w, h)
+	local cache = rbcache:Get(rad, x, y, w, h, notr, nobr, nobl, notl)
 
 	if not cache then
 
-		local p = GenerateRBPoly(rad, x, y, w, h)
+		local p = GenerateRBPoly(rad, x, y, w, h, notr, nobr, nobl, notl)
 
-		rbcache:Set(p, rad, x, y, w, h)
+		rbcache:Set(p, rad, x, y, w, h, notr, nobr, nobl, notl)
 		cache = p
 	end
 
@@ -400,7 +400,42 @@ function draw.RoundedPolyBox(rad, x, y, w, h, col)
 	BenchPoly(cache)
 end
 
-local rbexcache = muldim:new()
+local rbexcache = muldim:new(true)
+
+
+--mostly useful for stencils
+
+--if bottom is true, it'll make the bottom shorter
+--otherwise the top is shorter
+
+function draw.RightTrapezoid(x, y, w, h, leg, bottom)
+
+
+	local poly = {
+
+		{ --top left
+			x = x,
+			y = y,
+		},
+
+		{ --top right
+			x = x + w - (bottom and 0 or leg),
+			y = y,
+		},
+
+		{ --bottom right
+			x = x + w - (bottom and leg or 0),
+			y = y + h,
+		},
+
+		{ --bottom left
+			x = x,
+			y = y + h,
+		}
+	}
+
+	surface.DrawPoly(poly)
+end
 
 function draw.RoundedPolyBoxEx(rad, x, y, w, h, col, notr, nobr, nobl, notl)
 
@@ -523,11 +558,11 @@ draw.Color = surface.SetDrawColor
 
 function surface.DrawMaterial(url, name, x, y, w, h, rot)
 	local mat = GetOrDownload(url, name)
-	if not mat then return end
+	if not mat then return false end
 
 	if mat and (mat.downloading or mat.mat:IsError()) then
 		draw.DrawLoading(x + w/2, y + h/2, w, h)
-		return
+		return false
 	end
 
 	surface.SetMaterial(mat.mat)
@@ -535,17 +570,17 @@ function surface.DrawMaterial(url, name, x, y, w, h, rot)
 	if rot then
 		surface.DrawTexturedRectRotated(x, y, w, h, rot)
 	else
-
-	surface.DrawTexturedRect(x, y, w, h)
+		surface.DrawTexturedRect(x, y, w, h)
 	end
 
+	return mat
 end
 
 function surface.DrawUVMaterial(url, name, x, y, w, h, u1, v1, u2, v2)
 	local mat = GetOrDownload(url, name, "smooth")
 	if not mat then return end
 
-	if mat and mat.downloading or not mat.mat or mat.mat:IsError() then 
+	if mat and mat.downloading or not mat.mat or mat.mat:IsError() then
 		draw.DrawLoading(x + w/2, y + h/2, w, h)
 		return
 	end
@@ -635,7 +670,7 @@ end
 
 function draw.GetRT(name, w, h)
 	local rt
-	if not w or not h then error("error #2 or #3: expected width and height, received nothin'") return end 
+	if not w or not h then error("error #2 or #3: expected width and height, received nothin'") return end
 
 	if not RTs[name] then
 
@@ -783,7 +818,7 @@ function draw.DrawOrRender(pnl, mdl, x, y, w, h)
 
 	icname = icname:gsub("%.mdl", "")
 
-	if not icname:find("%.png") then 
+	if not icname:find("%.png") then
 		icname = icname .. ".png"
 	end
 
@@ -809,7 +844,7 @@ function draw.DrawOrRender(pnl, mdl, x, y, w, h)
 		draw.DrawLoading(pnl, x + w/2, y + h/2, w, h)
 
 		return
-	elseif isbool(mdls[mdl]) then 
+	elseif isbool(mdls[mdl]) then
 		draw.DrawLoading(pnl, x + w/2, y + h/2, w, h)
 		return
 	end
@@ -905,7 +940,7 @@ local function ParseGIFInfo(_, name, info)
 	tbl.h = cmat:Height()
 	tbl.i = info
 
-	tbl.frw = info.wid 
+	tbl.frw = info.wid
 	tbl.frh = info.hgt
 
 	local dur = 0
@@ -915,14 +950,14 @@ local function ParseGIFInfo(_, name, info)
 	local timings = {}
 
 	for i=1, info.amt do
-		
+
 		if info[i] then time = info[i] end
 
 		dur = dur + time
 
 		fulltimes[i] = time
 		timings[i] = dur
-	
+
 	end
 
 	tbl.dur = dur / 100 --centiseconds
@@ -933,7 +968,7 @@ local function ParseGIFInfo(_, name, info)
 end
 
 function DownloadGIF(url, name)
-	if url == "-" or name == "-" then return false end 
+	if url == "-" or name == "-" then return false end
 
 	local path = "hdl/%s"
 
@@ -958,7 +993,7 @@ function DownloadGIF(url, name)
 															h = mat:Height()
 															i = info
 
-															frw = info.wid 
+															frw = info.wid
 															frh = info.hgt
 
 															dur = full duration in centiseconds
@@ -1084,6 +1119,6 @@ function draw.DrawGIF(url, name, x, y, dw, dh, frw, frh, start, pnl)
 	local u1, v1 = startX / (w - 1) , startY / (h - 1)		--before you ask where -1 came from, I DONT KNOW.
 	local u2, v2 = endX / (w - 1), endY / (h - 1)			--ALL OF THIS JUST WORKS
 
-															--i spent 4 days fixing this and turns out i just needed to sub 1 PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands 
+															--i spent 4 days fixing this and turns out i just needed to sub 1 PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands
 	surface.DrawTexturedRectUV(x, y, dw, dh, u1, v1, u2, v2)
 end

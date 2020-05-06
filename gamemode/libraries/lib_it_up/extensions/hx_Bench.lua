@@ -4,8 +4,32 @@
 	*** It seems to show different times taken if you re-run the same tests!, don't trust it! ***
 	Its still useful though as it shows the difference, if not the accurate time taken.
 
+	----------------------------
 
-	i took the liberty of modding it
+	pimp ma lib
+	its cooler now
+
+	bench([name,][times])
+		creates a benchmark object
+		if frames is defined, calling :print() on it won't print anything until it's been attempted to print `times` times
+
+	b:Open()
+		opens the benchmark (duh)
+		can't open an opened benchmark or it'll throw an error
+
+	b:Close()
+		closes the benchmark and flushes the time it took into a different var
+		can't close a closed benchmark or it'll throw an error
+
+	b:Read()
+		returns how many seconds it took in total
+
+	b:Reset()
+		resets the benchmark
+
+	b:print() or b:p()
+		prints out the benchmark
+		use this instead of plain printing it if you're using `times` arg
 ]]
 
 benchmark = {}
@@ -33,17 +57,6 @@ function benchmark:Open()
 	if self._Start != 0 then Error("This bench is already started, Close it first!") end
 	self._Start = SysTime()
 	return self
-end
-
-function benchmark:DoFunc(func)
-	if not isfunction(func) then Error("DoFunc needs a function, not a "..type(func).."!") end
-
-	self:Open()
-		local ret, err = pcall(func)
-		if err then
-			Error("! benchmark:DoFunc error: "..err.."\n")
-		end
-	self:Close()
 end
 
 function benchmark:Close()

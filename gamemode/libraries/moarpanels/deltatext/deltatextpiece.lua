@@ -521,9 +521,8 @@ function pmeta:ReplaceText(num, rep, onend, nolerp)
 		frag.OffsetY = fr * dropstr
 		frag.Alpha = a - fr*a
 
-		frag.LerpNext = fr 
+		frag.LerpNext = fr
 		newfrag.LerpFromLast = fr --doing it in the fading _out_ looks better than doing it on fading _in_
-		
 
 	end, function()
 

@@ -178,11 +178,11 @@ local function dRB(rad, x, y, w, h, dc, ex)
 	if ex then
 		local r = ex
 
-		local tl = (r.tl==nil and true) or r.tl
-		local tr = (r.tr==nil and true) or r.tr
+		local tl = (r.tl == nil and true) or r.tl
+		local tr = (r.tr == nil and true) or r.tr
 
-		local bl = (r.bl==nil and true) or r.bl
-		local br = (r.br==nil and true) or r.br
+		local bl = (r.bl == nil and true) or r.bl
+		local br = (r.br == nil and true) or r.br
 
 		draw.RoundedBoxEx(rad, x, y, w, h, dc, tl, tr, bl, br)
 	else
@@ -235,7 +235,7 @@ function button:PaintIcon(x, y, tw, th)
 	local iX = x - iW - ioff
 	local iY = y + th/2 - iH/2
 
-	if ic.IconMat then 
+	if ic.IconMat then
 		surface.SetMaterial(ic.IconMat)
 		surface.DrawTexturedRect(iX, iY, iW, iH)
 	elseif ic.IconURL then
@@ -296,8 +296,8 @@ function button:Draw(w, h)
 		else
 			local tw, th = draw.SimpleText(label, self.Font, tx, ty, self.LabelColor, ax, ay)
 
-			local iX = tx - tw*(ax/2)
-			local iY = ty - th*(ay/2)
+			local iX = tx - tw * (ax/2)
+			local iY = ty - th * (ay/2)
 			self:PaintIcon(iX, iY, tw, th)
 		end
 	end

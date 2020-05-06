@@ -5,12 +5,12 @@
 ]]
 
 DeltaTextEvent = DeltaTextEvent or Object:extend()
-local emeta = DeltaTextEvent.Meta 
+local emeta = DeltaTextEvent.Meta
 
 function emeta:Initialize(key)
 	self.IsEvent = true
 	self.Key = key
-end 
+end
 
 function emeta:OnActive()
 

@@ -78,7 +78,7 @@ function Cloud:Init()
 	self.AppearTime = 0.2
 	self.DisappearTime = 0.2
 
-	self.AppearEase = 0.2
+	self.AppearEase = 0.7
 	self.DisappearEase = 0.2
 	--self.Speed = 25
 

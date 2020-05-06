@@ -43,7 +43,7 @@ function FScrollPanel:Init()
 		draw.RoundedBoxEx(4, 0, 0, w, h, Color(80,80,80), false, false, true, true)
 	end
 
-	self.Shadow = false --if used as a stand-alone panel 
+	self.Shadow = false --if used as a stand-alone panel
 
 	self.GradBorder = false
 
@@ -69,6 +69,8 @@ end
 
 
 function FScrollPanel:Draw(w, h)
+	if self.NoDraw then return end
+
 	local ebh, eth = 0, 0
 
 	local expw = 0
@@ -124,32 +126,56 @@ function FScrollPanel:Paint(w, h)
 	self:PostPaint(w, h)
 end
 
-function FScrollPanel:PaintOver(w, h)
-	if not self.GradBorder then return end
+function FScrollPanel:DrawBorder(w, h, bt, bb, br, bl)
+	--bt, bb, br, bl = border top, border bottom, etc...
 
-	local ebh, eth = self.ExpandBH, self.ExpandTH
+	surface.SetDrawColor(self.BorderColor)
 
-
-	surface.DisableClipping(true)
-
-		surface.SetDrawColor(self.BorderColor)
-
+	if bt then
 		surface.SetMaterial(gu)
-		surface.DrawTexturedRect(0, -eth, w, self.BorderTH)
+		surface.DrawTexturedRect(0, 0, w, bt)
+	end
 
+	if bb then
 		surface.SetMaterial(gd)
-		surface.DrawTexturedRect(0, h - self.BorderBH + ebh, w, self.BorderBH)
+		surface.DrawTexturedRect(0, h - bb, w, bb)
+	end
 
+	if br then
 		surface.SetMaterial(gr)
-		surface.DrawTexturedRect(w - self.BorderR, 0, self.BorderR, h)
+		surface.DrawTexturedRect(w - br, 0, br, h)
+	end
 
+	if bl then
 		surface.SetMaterial(gl)
-		surface.DrawTexturedRect(0, 0, self.BorderL, h)
-
-	surface.DisableClipping(false)
-
+		surface.DrawTexturedRect(0, 0, bl, h)
+	end
 
 end
+
+function FScrollPanel:GetBorders()
+	local bb, bt = self.BorderBH, self.BorderTH
+	local br, bl = self.BorderR, self.BorderL
+
+	return bl, bt, br, bb
+end
+
+function FScrollPanel:SetBorders(bl, bt, br, bb)
+	self.BorderBH = bb
+	self.BorderTH = bt
+	self.BorderR = br
+	self.BorderL = bl
+end
+
+function FScrollPanel:PaintOver(w, h)
+	self:Emit("PaintOver", w, h)
+
+	if not self.GradBorder then return end
+
+	local bl, bt, br, bb = self:GetBorders()
+	self:DrawBorder(w, h, bt, bb, br, bl)
+end
+
 function FScrollPanel:OnMouseWheeled( dlta )
 	local scroll = self.VBar
 	scroll.ToWheel = (scroll.ToWheel or 0) + (dlta / 2 * self.ScrollPower)

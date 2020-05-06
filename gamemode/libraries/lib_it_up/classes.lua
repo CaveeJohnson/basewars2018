@@ -22,28 +22,29 @@ Class.Meta = {__index = Class}
 
 function Class:extend()
 	local new = {}
+	local old = self
 
-	new.Meta = {} --table.Copy(self.Meta)	-- copy the parent's meta...
-	new.Meta.__index = self 			-- ...but this time, __index points to the copied meta
+	new.Meta = {}
+	new.Meta.__index = old 				-- this time, __index points to the the parent
+										-- which points to that parent's meta, which points to that parent's parent, so on
+	setmetatable(new.Meta, old)
 
-	setmetatable(new.Meta, new.Meta)
-
-	new.__index = function(self, k)				-- We have to use a function here. If we don't give :new()'s return an __index,
-		return rawget(new, k) or new.Meta[k]	-- then we have to check in both "new" and "new.Meta" here, and theres no way to do that without a function
+	new.__index = function(t, k)
+		return rawget(new, k) or new.Meta[k]
 	end
 
-	new.__parent = self
+	new.__parent = old
 
-	if self.OnExtend then
-		self:OnExtend(new)
+	if old.OnExtend then
+		old:OnExtend(new)
 	end
 
-	return setmetatable(new, new)
+	return setmetatable(new, new.Meta)
 end
 
 function Class:callable()
 	local new = self:extend()
-	new.__call = new.new
+	new.Meta.__call = new.new
 	return new
 end
 Class.Callable = Class.callable
@@ -56,7 +57,7 @@ Class.Callable = Class.callable
 
 function Class:new(...)
 
-	local func = self.Initialize or self.initialize
+	local func = self.Initialize or self.initialize or self.Meta.Initialize or self.Meta.initialize
 
 	local obj = {}
 	setmetatable(obj, self)

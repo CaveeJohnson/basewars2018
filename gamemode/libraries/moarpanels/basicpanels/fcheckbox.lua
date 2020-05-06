@@ -80,9 +80,9 @@ function CB:Changed(var)
 
 end
 function CB:OnChange(var)
-	if self.Sound then 
+	if self.Sound then
 		local snd = self.Sound[var] or self.Sound[tonumber(var)] or (isstring(self.Sound) and self.Sound) or ""
-		if snd~="" and isstring(snd) then 
+		if snd ~= "" and isstring(snd) then
 			surface.PlaySound(snd)
 		end
 	end

@@ -13,7 +13,7 @@ local err = Material("__error")
 function I:Init(w,h)
 	self.Icon = err
 
-	self.IconURL = nil 
+	self.IconURL = nil
 	self.IconName = nil
 	self.Color = color_white:Copy()
 
@@ -25,7 +25,7 @@ function I:Paint(w,h)
 
 	surface.SetDrawColor(self.Color)
 
-	if self.IconURL then 
+	if self.IconURL then
 		surface.DrawMaterial(self.IconURL, self.IconName, w/2, h/2, w, h, self.Rotation)
 	else
 		surface.SetMaterial(mat)

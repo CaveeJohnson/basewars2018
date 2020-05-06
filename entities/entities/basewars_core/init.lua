@@ -279,6 +279,8 @@ function ENT:selfDestruct(dmginfo)
 	self.__alarm = CreateSound(self, "ambient/alarms/apc_alarm_loop1.wav")
 	self.__alarm:Play()
 
+	local needtoplay = true
+
 	local boom = function()
 		hook.Run("BW_CoreSelfDestructed", self, dmginfo)
 
@@ -314,8 +316,18 @@ function ENT:selfDestruct(dmginfo)
 			end
 		end
 
-		self:explodeEffects()
+		if needtoplay then
+			self:explodeEffects()
+		end
+
 		self:explode(false, 500)
+	end
+	local sat = basewars.getExtension("satellite")
+
+	if sat.reachTime then
+		local SDtime = self.selfDestructSounds[#self.selfDestructSounds][2]
+		basewars.preparedNukeEffect(self:GetPos(), SDtime)
+		needtoplay = false
 	end
 
 	self:doSequence("selfDestruct", self.selfDestructSounds, boom, true)

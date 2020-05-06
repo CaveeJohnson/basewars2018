@@ -1,10 +1,11 @@
+local ext = basewars.createExtension"satellite"
+ext.reachTime = 0.2 	--seconds for the beam to reach the hitpos
+ext.fadeTime = 0.5		--seconds before the end of the sequence when the beam starts to fade
 if SERVER then
 	util.PrecacheModel("models/props_combine/combine_mortar01a.mdl")
-
 	return
 end
 
-local ext = basewars.createExtension"satellite"
 
 ext.angles = Angle(32, 0, 0)
 ext.pos = Vector()
@@ -12,10 +13,12 @@ ext.mat = Material("models/props/de_tides/clouds")
 ext.beamMat = Material("cable/blue_elec")
 ext.fn = FrameNumber()
 
-function ext:BW_OnNukeEffect(pos)
+function ext:BW_StartNukeEffect(pos, firedur)
 	self.hitPos = pos
-	self.fireUntil = CurTime() + 1
+	self.fireUntil = CurTime() + (firedur or 1)
+end
 
+function ext:BW_PlayNukeEffect(pos)
 	surface.PlaySound("ambient/levels/citadel/portal_beam_shoot3.wav")
 	surface.PlaySound("ambient/levels/citadel/portal_beam_shoot5.wav")
 	surface.PlaySound("ambient/levels/citadel/portal_beam_shoot6.wav")
@@ -187,9 +190,15 @@ function ext:PostDrawTranslucentRenderables(depth, sky)
 
 	render.SetMaterial(self.beamMat)
 	local rem = self.fireUntil - CurTime()
-	self.beamMat:SetFloat("$alpha", rem)
+	local passed = 1 - rem
 
-	render.DrawBeam(self.satPos, self.hitPos, 1000, 0, 1, color_white)
+	self.beamMat:SetFloat("$alpha", math.min(rem * (1 / ext.fadeTime), 1))
+
+	local endfrac = Ease(math.min(passed * (1 / ext.reachTime), 1), 3)
+	local endvec = LerpVector(endfrac, self.satPos, self.hitPos)
+
+	local rand = math.random()*5
+	render.DrawBeam(self.satPos, endvec, 1000, rand-1-math.random(), rand, color_white)
 end
 
 function ext:InitPostEntity()

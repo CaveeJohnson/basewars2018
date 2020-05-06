@@ -156,7 +156,12 @@ do
 	-- NOTE: due to this, anyt MUTATOR you may call must be aware ext = extension, self = INSTANCE, keep this in mind!
 	function basewars.getExtension(name)
 		--if not basewars.__ext[name] then return end
-		return setmetatable({}, {__index = function(t, k) return basewars.__ext[name][k] end, __tostring = function(o) return string.format("basewars_extension [%s] (INSTANCE)", o:getTag()) end})
+		return setmetatable({}, {__index = function(t, k) return basewars.__ext[name][k] end, __tostring = function(o) return string.format("basewars_extension [%s] (INSTANCE)", o:getTag()) end, __real = basewars.__ext[name]})
+	end
+
+	function basewars.getRealExtension(name)
+		--if not basewars.__ext[name] then return end
+		return basewars.__ext[name]
 	end
 end
 

@@ -53,40 +53,6 @@ function ext:doSpawnEffect(ent, money)
 	util.Effect("propspawn", ed, true, true)
 end
 
-
-local function DropToFloor(ent, pos, min, max)
-	local trmin, trmax = Vector(), Vector()
-	trmin:Set(min)
-	trmax:Set(max)
-
-	trmin:Mul(0.5)
-	trmax:Mul(0.5)
-
-	trmin.z = 0
-	trmax.z = 0	--flatten out the OBB so it doesn't leak through world upwards/downwards
-
-	local res = util.TraceHull{
-		start  = pos,
-		endpos = pos - Vector(0, 0, 128),
-		filter = ent,
-		mins   = trmin,
-		maxs   = trmax,
-	}
-
-	if res.StartSolid then
-		return pos
-	else
-		local hp = Vector()
-		hp:Set(res.HitPos)
-		hp.z = hp.z - min.z
-
-		local mid = hp
-
-		return mid
-	end
-
-end
-
 function ext:spawnGenericItem(item, ply, pos, ang, norm)
 	local ent = ents.Create(item.wep and "basewars_weapon_container" or item.class)
 	if not IsValid(ent) then return "ents.Create failed" end
@@ -109,7 +75,7 @@ function ext:spawnGenericItem(item, ply, pos, ang, norm)
 		if item.stickToSurface then
 			pos = pos + off - (min + max) / 2
 		else
-			pos = DropToFloor(ent, pos + off, min, max)
+			pos = basewars.dropToFloor(ent, pos + off, min, max)
 		end
 
 		ent:SetPos(pos)

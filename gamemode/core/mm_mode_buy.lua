@@ -10,40 +10,6 @@ mode.instructions = {
 	["SHIFT+E"] = "Rotate Item (Snapping)",
 }
 
-local function DropToFloor(ent, pos, min, max)
-
-	local trmin, trmax = Vector(), Vector()
-	trmin:Set(min)
-	trmax:Set(max)
-
-	trmin:Mul(0.5)
-	trmax:Mul(0.5)
-
-	trmin.z = 0
-	trmax.z = 0	--flatten out the OBB so it doesn't leak through world upwards/downwards
-
-	local res = util.TraceHull{
-		start  = pos,
-		endpos = pos - Vector(0, 0, 128),
-		filter = ent,
-		mins   = trmin,
-		maxs   = trmax,
-	}
-
-	if res.StartSolid then
-		return pos
-	else
-
-		local hp = Vector()
-		hp:Set(res.HitPos)
-		hp.z = hp.z - min.z
-
-		return hp
-
-	end
-
-end
-
 function ext:BW_MatterManipulatorLoadModes(modes)
 	table.insert(modes, mode)
 end
@@ -168,7 +134,7 @@ if CLIENT then
 		if item.stickToSurface then
 			pos = pos - (min + max) / 2
 		else
-			pos = DropToFloor(self.csEnt, pos, min, max)
+			pos = basewars.dropToFloor(self.csEnt, pos, min, max)
 		end
 
 		self.csEnt:SetPos(pos)

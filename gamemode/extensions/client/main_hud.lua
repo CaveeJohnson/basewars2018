@@ -284,8 +284,18 @@ function ext:HUDPaint()
 				hp_bcol = over_load
 				hp_tcol = over_load_t
 			end
-			draw.RoundedBox(16, 0, scrH - bar_height * 5, bar_width + 70, bar_height * 5, gray)
+
 			surface.SetFont(main_font)
+
+			local money_string = string.format("Bank:  %s    Deployed:  %s", basewars.currency(ply:getMoney()), basewars.currency(0))
+			local _, moneyH = surface.GetTextSize(money_string)
+
+
+			local boxH = yindent + bar_height + bar_pad + tx_bar_pad + moneyH + 4
+			local boxY = scrH - boxH
+			draw.RoundedBox(16, 0, boxY, bar_width + 70, boxH, gray)
+
+
 			surface.SetTextColor(ar_tcol)
 
 			--[[
@@ -343,10 +353,7 @@ function ext:HUDPaint()
 				[1]	Bank: []   Deployed: []
 			]]
 
-			local money_string = string.format("Bank:  %s    Deployed:  %s", basewars.currency(ply:getMoney()), basewars.currency(0))
-
-			local tW, tH = surface.GetTextSize(money_string)
-			local tX, tY = curx, cury - tH - tx_bar_pad
+			tX, tY = curx, cury - moneyH - tx_bar_pad
 
 			surface.SetTextColor(off_white_t)
 			surface.SetTextPos(tX, tY)

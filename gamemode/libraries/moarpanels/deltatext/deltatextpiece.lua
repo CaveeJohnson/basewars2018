@@ -13,8 +13,8 @@ local function NewFragment(text, col)
 		OffsetY = 0,
 		OffsetX = 0,
 
-		AlignX = 0,
-		AlignY = 0,
+		--AlignX = 0,
+		--AlignY = 0,
 
 		Alpha = 255,
 		Color = col,
@@ -52,8 +52,8 @@ function pmeta:Initialize(par, tx, font, key, rep)
 		to :CreateAnimation, this will be used
 	]]
 
-	aninfo.Length = 0.3
-	aninfo.Ease = 0.4
+	aninfo.Length = 0.4
+	aninfo.Ease = 0.3
 	aninfo.Delay = 0
 	aninfo.AnimationFunction = function(self, len, delay, ease, onend, think) return NewAnimation(len, delay, ease, onend) end
 
@@ -127,27 +127,27 @@ end
 	Don't override it; use :AppearAnimation() and :DisappearAnimation callbacks instead.
 ]]
 
-function pmeta:AnimateAppearance(fr)
+function pmeta:AnimateAppearance(fr, a)
 	if self:AppearAnimation(fr) then return end
 
 	self.Alpha = fr * 255
 
-	local xo, yo = self.Offsets.XAppear, self.Offsets.YAppear
+	local xo, yo = self.Offsets.XAppear, -self:GetLiftStrength()
 
-	self.Offsets.X = -xo + fr * xo
-	self.Offsets.Y = -yo + fr * yo
+	self.Offsets.X = Lerp(fr, xo, 0)
+	self.Offsets.Y = Lerp(fr, yo, 0)
 
 	self:AppearAnimation(fr)
 end
 
-function pmeta:AnimateDisappearance(fr)
+function pmeta:AnimateDisappearance(fr, a, x, y)
 	if self:DisappearAnimation(fr) then return end
 
-	self.Alpha = 255 - fr * 255
-	local xo, yo = self.Offsets.XDisappear, self.Offsets.YDisappear
+	self.Alpha = a - fr * a
+	local xo, yo = self.Offsets.XDisappear, self:GetDropStrength()
 
-	self.Offsets.X = fr * xo
-	self.Offsets.Y = fr * yo
+	self.Offsets.X = Lerp(fr, x, xo)
+	self.Offsets.Y = Lerp(fr, y, yo)
 
 end
 
@@ -155,20 +155,27 @@ end
 function pmeta:Disappear()
 	self:StopAnimation("Appear")	--stop spazzing out
 
-	self.Parent.Active[self.Key] = false		-- Deactivate self for the parent
-	self.Parent.Disappearing[self.Key] = self	-- and set self for disappearing
+	self.Parent.Disappearing[self.Key] = self	-- set self for disappearing
+	self.Disappearing = true
+
+	local fromX, fromY = self.Offsets.X, self.Offsets.Y
+	local a = self.Alpha
 
 	self:CreateAnimation("Disappear", function(fr)
-		self:AnimateDisappearance(fr)
+		self:AnimateDisappearance(fr, a, fromX, fromY)
 	end, function()
 		self.Parent.Disappearing[self.Key] = nil
+		self.Disappeared = true
 	end)
 
 end
 
 function pmeta:Appear()
-	--it's unlikely an :Appear() will be ever called after a Disappear so we're not stopping animations here
+	self:StopAnimation("Disappear")
 	self:CreateAnimation("Appear", function(fr) self:AnimateAppearance(fr) end, function() end)
+
+	self.Disappearing = false
+	self.Disappeared = false
 end
 
 --[[
@@ -198,10 +205,12 @@ function pmeta:DrawText(x, y, col, tx, frag) --Available for override
 end
 
 function pmeta:Paint(x, y)
+	local parent = self.Parent
+
 	self.Color.a = self.Alpha
 
-	if self.Font ~= self.Parent.LastFont then
-		self.Parent.LastFont = self.Font
+	if self.Font ~= parent.LastFont then
+		parent.LastFont = self.Font
 		surface.SetFont(self.Font)
 	end
 
@@ -217,7 +226,7 @@ function pmeta:Paint(x, y)
 		local lerpfrom = 0
 
 		for k,v in pairs(self.Fragments) do
-			local alignX = v.AlignX or 0
+			local alignX = v.AlignX or parent.AlignX or 0
 			alignX = alignX / 2
 			if (not v.Font and curfont ~= self.Font) or (v.Font and v.Font ~= curfont) then
 				surface.SetFont(v.Font or self.Font)
@@ -260,7 +269,7 @@ function pmeta:Paint(x, y)
 
 			local tw, th = surface.GetTextSize(v.Text)
 
-			local alignX, alignY = v.AlignX or 0, v.AlignY or 0
+			local alignX, alignY = v.AlignX or parent.AlignX or 0, v.AlignY or parent.AlignY or 0
 			alignX, alignY = alignX / 2, alignY / 2
 
 			--0 = left/top
@@ -293,7 +302,17 @@ function pmeta:Paint(x, y)
 		return
 	end
 
-	self:DrawText(x + self.Offsets.X, y + self.Offsets.Y, self.Color, self.Text)
+	local tw, th = surface.GetTextSize(self.Text)
+
+	local alignX = self.AlignX or parent.AlignX or 0
+	local alignY = self.AlignY or parent.AlignY or 0
+
+	alignX, alignY = alignX / 2, alignY / 2
+
+	local tX = x + self.Offsets.X - alignX * tw
+	local tY = y + self.Offsets.Y + alignY * th
+
+	self:DrawText(tX, tY, self.Color, self.Text)
 
 end
 

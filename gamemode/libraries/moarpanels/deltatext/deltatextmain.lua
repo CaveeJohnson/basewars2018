@@ -69,7 +69,12 @@ function dmeta:AddText(tx, rep, timing)
 		}
 	end
 
-	return t
+	return t, key
+end
+
+function dmeta:RemoveElement(num)
+	if not self.Elements[num] then error("Can't remove a non-existent element!") return end
+	table.remove(self.Elements, num)
 end
 
 function dmeta:SetAlignment(a)
@@ -127,16 +132,17 @@ function dmeta:GetElements()
 end
 
 function dmeta:GetPreviousElement()
-	return self.Active[#self.LastActive - 1]
+	return self.Active[self.LastActive - 1]
 end
 
 function dmeta:GetCurrentElement()
-	return self.Active[#self.LastActive]
+	return self.Active[self.LastActive]
 end
 
 function dmeta:CycleNext()
 
-	local key = self.LastActive or #self.Active
+	self:ActivateElement( (self.LastActive or #self.Active) + 1 )
+	--[[local key = self.LastActive or #self.Active
 	local tx = self.Elements[key + 1] --new object to activate
 
 	local lasttx = self.LastActiveText
@@ -169,6 +175,16 @@ function dmeta:CycleNext()
 		return self.Active[key + 1]
 	else
 		return false
+	end]]
+
+end
+
+function dmeta:DisappearCurrentElement()
+
+	local cur = self:GetCurrentElement()
+
+	if cur and not cur.Disappearing then
+		cur:Disappear()
 	end
 
 end
@@ -185,8 +201,19 @@ end
 function dmeta:ActivateElement(num) 	--this skips certain elements from the cycle
 
 	local tx = self.Elements[num] --new object to activate
+	local lasttx = self.LastActiveText
 
 	if tx then
+
+		if self.LastActive == num then
+
+			if tx.Disappearing then
+				tx:Appear()
+				tx:OnAppear()
+			end
+
+			return tx
+		end
 
 		if tx.IsEvent then
 			self.Active[num] = tx
@@ -208,7 +235,8 @@ function dmeta:ActivateElement(num) 	--this skips certain elements from the cycl
 		self.ActiveWhen = CurTime()
 
 		local ac = self.Active[lasttx]	--current text, make it disappear
-		if ac and not ac.IsEvent and not tx.PreventDisappear then key = ac.Key ac:Disappear() end
+
+		if ac and not ac.IsEvent and not ac.Disappeared then key = ac.Key ac:Disappear() end
 
 		return self.Active[num]
 	end

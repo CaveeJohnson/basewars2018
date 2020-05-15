@@ -1056,18 +1056,19 @@ function DownloadGIF(url, name)
 	return MoarPanelsMats[name]
 end
 
---[[
-	because source is poopoo it somehow fucks up with this
-	i double-checked my maths, i tried different values and making sure that U/V on emotes get calculated as small as possible(0.2 instead of 0.20001582061),
-	i tried bringing emotes to power of 2 before using and calculating uv shit, tried noclamp flag which also does that
-	but it didn't work, which leads me to believe it might be source fucking this
+function surface.DrawNewlined(tx, x, y, first_x, first_y)
+	local i = 0
+	local _, th = surface.GetTextSize(tx:gsub("\n", ""))
 
-	basically, emotes float off somehow
-	this is most visible with OzenWant, which isn't even a big emote
-	i really have no fucking clue what's up with that
+	for s in tx:gmatch("[^\n]+") do
+		surface.SetTextPos(first_x or x, (first_y or y) + i*th)
+		surface.DrawText(s)
+		i = i + 1
 
-	give me a shout if you come up with a solution which isn't downloading 200 frames per emote as separate files
-]]
+		first_x, first_y = nil, nil
+	end
+
+end
 
 function draw.DrawGIF(url, name, x, y, dw, dh, frw, frh, start, pnl)
 	local mat = DownloadGIF(url, name)
@@ -1116,7 +1117,7 @@ function draw.DrawGIF(url, name, x, y, dw, dh, frw, frh, start, pnl)
 	local startY = col * frh + col * yo
 	local endY = startY + frh
 
-	local u1, v1 = startX / (w - 1) , startY / (h - 1)		--before you ask where -1 came from, I DONT KNOW.
+	local u1, v1 = startX / (w - 1) , startY / (h - 1)		--before you ask where -1 came from, I DONT KNOW
 	local u2, v2 = endX / (w - 1), endY / (h - 1)			--ALL OF THIS JUST WORKS
 
 															--i spent 4 days fixing this and turns out i just needed to sub 1 PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands

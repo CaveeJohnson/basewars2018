@@ -1,6 +1,6 @@
---[[
-	Idea shamelessly stolen from Luvit
-]]
+--[[----------------------------------]]
+--  Idea shamelessly stolen from Luvit
+--[[----------------------------------]]
 
 BlankFunc = function() end
 BLANKFUNC = BlankFunc
@@ -18,7 +18,11 @@ Class.Meta = {__index = Class}
 				NewClass -> NewClassMeta -> OldClass -> OldClassMeta
 
 			There's not much difference between sticking methods in the class and the class' .Meta afaik so do whatever
-]]
+--]]
+
+local function getInitFunc(self)
+	return self.Initialize or self.initialize or self.Meta.Initialize or self.Meta.initialize
+end
 
 function Class:extend()
 	local new = {}
@@ -35,9 +39,47 @@ function Class:extend()
 
 	new.__parent = old
 
+	local curobj
+
+	new.__init = function(newobj, ...) --this function is kinda hard to wrap your head around, so i'll try to explain
+		local is_def = false 	--is this the function call that defined curobj?
+
+		if not curobj then
+			curobj = newobj
+			is_def = true
+		end
+
+		if self.__init then 							--recursively call the parents' __init's
+			local ret = self.__init(curobj, ...)		--if any of the initializes return a new object,
+			curobj = ret or curobj						--that object will be used forward going up the chain
+		end
+
+
+	  --[[------------------------------]]
+	  --	  calling :Initialize()
+	  --[[------------------------------]]
+
+		local func = getInitFunc(curobj)	--after the oldest __init was called it'll start calling :Initialize()
+											--this way we call :Initialize() starting from the oldest one and going up to the most recent one
+		if func then
+			local ret = func(curobj, ...)		--returning an object from any of the Initializes will use
+			curobj = ret or curobj 				--that returned object on every initialize up the chain
+		end
+
+		if is_def then
+			local temp = curobj 	--return curobj to original state
+			curobj = nil
+
+			return temp
+		end
+
+		return curobj
+	end
+
 	if old.OnExtend then
 		old:OnExtend(new)
 	end
+
 
 	return setmetatable(new, new.Meta)
 end
@@ -57,12 +99,12 @@ Class.Callable = Class.callable
 
 function Class:new(...)
 
-	local func = self.Initialize or self.initialize or self.Meta.Initialize or self.Meta.initialize
+	local func = self.__init or getInitFunc(self)
 
 	local obj = {}
 	setmetatable(obj, self)
 
-	if isfunction(func) then
+	if func then
 		local new = func(obj, ...)
 		if new then return new end
 	end

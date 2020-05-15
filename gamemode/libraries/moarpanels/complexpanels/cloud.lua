@@ -112,6 +112,10 @@ function Cloud:Init()
 	CLOUDS[#CLOUDS + 1] = self
 end
 
+function Cloud:OnRemove()
+	self:Emit("Remove")
+end
+
 function Cloud:MoveAbove(pnl, px)
 	local x, y = pnl:LocalToScreen(pnl:GetWide() / 2, 0)
 

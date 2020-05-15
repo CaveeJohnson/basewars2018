@@ -422,7 +422,6 @@ function NavPanel:Init()
 	navbar:SetWide(200)
 
 	navbar:On("Expand", function(...)
-		print("expand called", ...)
 		self:GenerateInvisibleButton(...)
 	end)
 
@@ -445,7 +444,7 @@ end
 function NavPanel:GenerateInvisibleButton(nav)
 	if IsValid(self.__InvisButton) then error("this should never happen: invisible un-retract button generated twice!") return end
 	local btn = vgui.Create("DButton", self)
-	btn:SetPos(self.RetractedSize, self.HeaderSize)
+	btn:SetPos(0, self.HeaderSize)
 	btn:SetSize(self:GetWide(), self:GetTall())
 	btn:SetText("")
 	btn.Paint = BlankFunc

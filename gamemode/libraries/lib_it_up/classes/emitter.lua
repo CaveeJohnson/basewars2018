@@ -60,8 +60,11 @@ function Emitter:Emit(event, ...)
 	if evs then
 		for k,v in pairs(evs) do
 			--if event name isn't a string, isn't a number and isn't valid then bail
-			if not (isstring(k) or isnumber(k) or IsValid(k)) then evs[k] = nil continue end
-			v(self, ...)
+			if not (isstring(k) or isnumber(k) or IsValid(k)) then
+				evs[k] = nil
+			else
+				v(self, ...)
+			end
 		end
 	end
 

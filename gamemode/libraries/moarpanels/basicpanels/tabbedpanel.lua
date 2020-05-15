@@ -31,7 +31,7 @@ end
 function TabbedPanel:SetTabSize(size)
 	self.TabSize = size
 	local l, t, r, b = self:GetDockPadding()
-	self:DockPadding(l, size + self.HeaderSize, r, b)
+	self:DockPadding(l, size + self.HeaderSize + 4, r, b)
 end
 
 function TabbedPanel:AddTab(name, onopen, onclose)
@@ -97,7 +97,7 @@ function TabbedPanel:AddTab(name, onopen, onclose)
 				self.Tabs[curtab].SelTime = CurTime()
 				self.Tabs[curtab].SelColor:Set(self.Tabs[curtab].Col)
 
-				if tabbtn.ReturnedPanel then --if there's a panel registered for auto-close,
+				if tabbtn and tabbtn.ReturnedPanel then --if there's a panel registered for auto-close,
 
 					local pnl = tabbtn.ReturnedPanel
 
@@ -112,8 +112,10 @@ function TabbedPanel:AddTab(name, onopen, onclose)
 				end
 			end
 
-			tabbtn.SelTime = CurTime()
-			tabbtn.SelColor:Set(self.Tabs[curtab].Col)
+			if tabbtn then
+				tabbtn.SelTime = CurTime()
+				tabbtn.SelColor:Set(self.Tabs[curtab].Col)
+			end
 
 			local pnl, instaremove = self.OpenTabs[name]()
 

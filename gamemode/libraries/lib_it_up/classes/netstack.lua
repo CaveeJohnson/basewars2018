@@ -11,7 +11,7 @@ for k,v in pairs(net) do
 				args = aeiou,
 				--trace = debug.traceback(),	--not worth it
 				func = function()
-					net[k](...)
+					net[k](unpack(aeiou)) --i cant use ... cuz its outside of this function!!!
 				end
 			}
 		end

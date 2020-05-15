@@ -190,7 +190,7 @@ local function WrapWord(word, curwid, fullwid, widtbl, line)
 
 	if curwid + tw > fullwid - 8 then --have to wrap
 
-		local too_wide = tw > fullwid * 0.75 --very wide word; wrap by letters if true
+		local too_wide = tw > fullwid * 0.65 --very wide word; wrap by letters if true
 
 		if not too_wide then
 

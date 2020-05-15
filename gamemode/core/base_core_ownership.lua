@@ -1,15 +1,20 @@
 local ext = basewars.createExtension"core.base-core-ownership"
 basewars.basecore = basewars.basecore or {}
 
+local PLAYER = FindMetaTable("Player")
+
 function basewars.basecore.get(ply)
 	if not IsValid(ply) then return false end
 
 	return hook.Run("BW_GetPlayerCore", ply) or ply:GetNW2Entity("baseCore") -- DOCUMENT:
 end
+PLAYER.getCore = basewars.basecore.get
 
 function basewars.basecore.has(ply)
 	return IsValid(basewars.basecore.get(ply))
 end
+
+PLAYER.hasCore = basewars.basecore.has
 
 function ext:wantEntity(ent)
 	return ent.isCore

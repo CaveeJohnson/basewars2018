@@ -15,7 +15,7 @@ local catsIcons = {
 
 		Subcats = {
 			Construction =  {
-				URL = "https://i.imgur.com/poRxTau.png", 
+				URL = "https://i.imgur.com/poRxTau.png",
 				Name = "electricity.png",
 
 				IconW = 32,
@@ -55,7 +55,7 @@ local itemBorder = Color(80, 80, 80)
 local itemClickedBorder = Color(220, 220, 220)
 local itemBorderHeld = Color(10, 10, 10)
 
-local grey  = Color(90 , 90 , 90 , 180)
+local grey  = Color(110 , 110 , 110 , 180)
 local grey2 = Color(190, 190, 190, 180)
 local green = Color(90 , 200, 0  , 180)
 local red   = Color(200, 0  , 20 , 180)
@@ -82,21 +82,28 @@ do
 		weight = 1,
 	})
 
-	function ext:getIconColor(ply, item)
+	function ext:getIconColor(ply, item, core)
 		local level = not item.level or ply:hasLevel(item.level)
 		local cost  = item.cost
+		local needscore = item.requiresCore
 
-		local col
-		if not level then
+		local col, err
+		if (needscore and not core) then
 			col = grey
+			err = "Item requires base core!"
+		elseif not level then
+			col = grey
+			err = "Insufficient level!"
 		elseif cost > 0 then
 			col = green
 			local money = ply:getMoney()
 
 			if cost >= money * 25 then
 				col = grey
+				err = "Not enough money!"
 			elseif cost > money then
 				col = red
+				err = "Not enough money!"
 			elseif cost > money / 3 then
 				col = yello
 			elseif cost < money / 100 then
@@ -104,7 +111,7 @@ do
 			end
 		end
 
-		return col or grey2
+		return col or grey2, err
 
 	end
 
@@ -176,8 +183,14 @@ function ext:openCategory(catname, catpnl, catdata)
 	items:Dock(FILL)
 	items:DockMargin(4, 0, 0, 0)
 	items.BackgroundColor = itemlistBGColor:Copy()
-	items.GradBorder = true 
+	items.GradBorder = true
 	items.BorderColor = itemlistGradColor:Copy()
+
+	items.Buttons = {}
+
+	function items:Think()
+		self.hasCore = LocalPlayer():hasCore()
+	end
 
 	items:GetCanvas():DockPadding(8, 8, 8, 0)
 
@@ -198,8 +211,27 @@ function ext:buildSubcategory(scr, catdata, catname)
 	local items = catdata.items
 
 	local ply = LocalPlayer()
+	local subcats = catdata.subcats
+	local sorted = {}
 
-	for sc_name, sc_data in SortedPairs(catdata.subcats) do 
+	for k,v in pairs(subcats) do
+		sorted[#sorted + 1] = {k, v.prio}
+	end
+
+	table.sort(sorted, function(a, b)
+		local ap = a[2]
+		local bp = b[2]
+
+		if ap and ap > 0 and not bp then return true end 	--if A has prio set and its more than 0 and B doesn't, auto-move A above
+		if bp and bp > 0 and not ap then return false end 	--vice versa
+
+		if ap and bp then return ap > bp end 				--if both have prio set, just compare and select the highest
+		return a[1] < b[1]									--otherwise, alphabetical sort
+	end)
+
+	for k,v in ipairs(sorted) do
+		local sc_name = v[1]
+		local sc_data = subcats[v[1]]
 
 		local subframe = vgui.Create("InvisPanel", scr)
 		subframe:Dock(TOP)
@@ -215,7 +247,7 @@ function ext:buildSubcategory(scr, catdata, catname)
 			surface.SetDrawColor(color_white)
 
 			if subcat_icon then
-				local w, h = subcat_icon.IconW or 32, subcat_icon.IconH or 32 
+				local w, h = subcat_icon.IconW or 32, subcat_icon.IconH or 32
 
 				surface.DrawMaterial(subcat_icon.URL, subcat_icon.Name, 8, 36/2 - h/2, w, h)
 			else
@@ -245,6 +277,8 @@ function ext:buildSubcategory(scr, catdata, catname)
 
 			local btn = itemlist:Add("FButton")
 
+			scr.Buttons[#scr.Buttons + 1] = btn
+
 			btn:SetDoubleClickingEnabled(false) --fast clixx
 			btn:SetSize(88, 88)
 
@@ -252,6 +286,7 @@ function ext:buildSubcategory(scr, catdata, catname)
 			btn.Border = {}
 			btn.borderColor = itemBorder:Copy()
 			btn.DrawShadow = false
+			btn.Description = item.description
 			--btn.HovMult = 1.1
 
 			local icon = vgui.Create("SpawnIcon", btn)
@@ -289,15 +324,15 @@ function ext:buildSubcategory(scr, catdata, catname)
 					time = 0.2					--(aka hold/unhold animation)
 				end
 
-				if self:IsDown() then 
+				if self:IsDown() then
 					col = itemBorderHeld
 
-					if not held then 
+					if not held then
 						down = CurTime()
 					end
 
 					held = true
-				elseif held then 	--button got unpushed this frame 
+				elseif held then 	--button got unpushed this frame
 					down = CurTime()
 					held = false
 				end
@@ -306,13 +341,112 @@ function ext:buildSubcategory(scr, catdata, catname)
 
 				LerpColor(frac, self.borderColor, col)
 
-				self.Color = ext:getIconColor(ply, item)
+				local col, err = ext:getIconColor(ply, item, scr.hasCore)
+
+				self.Color = col
+				self.Error = err
+
+				if self.Error and self:IsHovered() then 	--moved this to PrePaint cuz it was unreliable if you opened the spawnmenu while a condition changed
+					local cl, new = self:AddCloud("whynot") --this shouldn't make too much of a performance difference cuz AddCloud and GetCloud cache already
+
+					if new then
+						cl.Font = "OS20"
+						cl:SetText(self.Error)
+						cl.TextColor = Colors.DarkerRed
+						cl.MaxW = 500
+						cl:SetRelPos(self:GetWide() / 2, self:GetTall())
+						cl.ToY = 8
+						cl.YAlign = 0
+
+						hook.Add("OnSpawnMenuClose", cl, function()
+							cl:Hide()
+						end)
+
+						hook.Add("OnSpawnMenuOpen", cl, function()
+							cl:Show()
+						end)
+
+						cl:On("Remove", "spawnmenu", function()
+							hook.Remove("OnSpawnMenuClose", cl)
+							hook.Remove("OnSpawnMenuOpen", cl)
+						end)
+
+					end
+
+				else
+					local cl = self:GetCloud("whynot")
+
+					if cl then
+						self:RemoveCloud("whynot")
+					end
+				end
+
 			end
 
 			function btn:PaintOver(w, h)
 				ext:paintOverSpawnIcon(4, 4, w, h, ply, item, cost_text)
 
 				--SpawnIcon.PaintOver(panel, w, h)
+			end
+
+			function btn:OnHover()
+
+				--[[if self.Error then
+					local cl, new = self:AddCloud("whynot")
+
+					if new then
+						cl.Font = "OS20"
+						cl:SetText(self.Error)
+						cl.TextColor = brighterred
+						cl.MaxW = 500
+						cl:SetRelPos(self:GetWide() / 2, self:GetTall())
+						cl.ToY = 8
+						cl.YAlign = 0
+
+						hook.Add("OnSpawnMenuClose", cl, function()
+							cl:Hide()
+						end)
+
+						hook.Add("OnSpawnMenuOpen", cl, function()
+							cl:Show()
+						end)
+					end
+
+				end]]
+				print(self.Description, item.description)
+				if self.Description then
+					local cl, new = self:AddCloud("description")
+
+					if new then
+						cl.Font = "OS20"
+						cl:SetText(self.Error)
+						cl.TextColor = color_white
+						cl.MaxW = 350
+						cl:SetRelPos(self:GetWide() / 2, 4)
+						cl.ToY = -8
+
+						hook.Add("OnSpawnMenuClose", cl, function()
+							cl:Hide()
+						end)
+
+						hook.Add("OnSpawnMenuOpen", cl, function()
+							cl:Show()
+						end)
+					end
+				end
+			end
+
+			function btn:OnUnhover()
+				--[[local cl = self:GetCloud("whynot")
+				if cl then
+					self:RemoveCloud("whynot")
+					cl:On("Remove", "spawnmenu", function()
+						hook.Remove("OnSpawnMenuClose", cl)
+						hook.Remove("OnSpawnMenuOpen", cl)
+					end)
+				end
+				]]
+				self:RemoveCloud("description")
 			end
 
 		end
@@ -323,9 +457,7 @@ function ext:buildSubcategory(scr, catdata, catname)
 	end
 	--[[
 	for _, tbl in SortedPairsByMemberValue(items, "cost") do
-		
 
-		
 	end]]
 
 end
@@ -428,35 +560,6 @@ function ext:buildCategories(pnl)
 
 	end
 end
-
-
---using --[[]] gets you lua'd
-
-/*
-function ext:buildItems(pnl)
-	
-	local cats = pnl:Add("DCategoryList")
-		cats:Dock(FILL)
-		function cats:Paint() end
-
-	local items = basewars.items.getCategorized()
-
-	for catName, data in SortedPairs(items) do
-
-		local layout = vgui.Create("DIconLayout")
-			layout:Dock(FILL)
-
-			layout:SetSpaceX(4)
-			layout:SetSpaceY(4)
-
-		self:buildCategory(layout, data)
-
-		local cat = cats:Add(catName:gsub("([%[%]]*)", ""))
-			cat:SetContents(layout)
-			cat:SetExpanded(true)
-	end
-end
-*/
 
 function ext.makeBuyMenuPanel()
 	local pnl = vgui.Create("InvisPanel")

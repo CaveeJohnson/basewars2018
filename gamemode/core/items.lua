@@ -58,6 +58,7 @@ function basewars.items.createItemEx(id, tbl)
 
 	local cat = tbl.category or "Other"
 	local subcat_name = tbl.subcategory or tbl.subcat or "Other"
+	local prio = tbl.subcatpriority
 
 	local icat = items_categories[cat] or {
 		subcats = {},
@@ -83,6 +84,10 @@ function basewars.items.createItemEx(id, tbl)
 
 		subcat = subcats[subcat_name]
 
+	end
+
+	if prio then
+		subcat.prio = math.max(subcat.prio or 0, prio)
 	end
 
 	if subcat.itemclasses[id] then 		--this item is already in the spawnmenu; update the existing one

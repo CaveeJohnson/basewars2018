@@ -148,7 +148,48 @@ local level_text_final = string.format("%s    %s", level_text, xp_text)
 
 local playtime_text, afk_text
 
+local graph_proportionalConvar = GetConVar("net_graphproportionalfont")
+local graph_enabledConvar = GetConVar("net_graph")
+local graph_posConvar = GetConVar("net_graphpos")
+
+local graph_mode
+local graph_proportional
+
+local graph_isviolatingmoney = false 	--if true, the hud element will move up cuz the graph is obstructing it
+local graph_isviolatingammo = false
+
+local graph_txheight = 10
+local graph_txwidth = 0
+local graph_estimatedwidth = 0 	-- "fps:  435  ping: 533 ms lerp 112.3 ms   0/0" with proportional font
+								-- this is how valve does it btw
+
+--[[------------------------------]]
+-- net_graph font for calculations
+--[[------------------------------]]
+
+local font_name = ext:getTag() .. "graphFont"
+
+surface.CreateFont(font_name .. "proportional", {
+	font = system.IsWindows() and "Lucida Console" or "Verdana",
+	size = ScrH() / 47.5 --picked with guesswork
+})
+
+surface.CreateFont(font_name, {
+	font = system.IsWindows() and "Lucida Console" or "Verdana",
+	size = system.IsWindows() and 10 or 14
+})
+
+hook.Add("OnScreenSizeChanged", "godwhy", function()
+	surface.CreateFont(font_name .. "proportional", {
+		font = system.IsWindows() and "Lucida Console" or "Verdana",
+		size = ScrH() / 47.5
+	})
+
+	graph_estimatedwidth = 0
+end)
+
 timer.Create(ext:getTag(), 1, 0, function()
+
 	local ply = LocalPlayer()
 	if not IsValid(ply) then return end
 
@@ -161,6 +202,91 @@ timer.Create(ext:getTag(), 1, 0, function()
 	level_text       = string.format("Level:  %d" , basewars.nformat(level))
 	xp_text          = string.format("XP:  %d/ %d", xp, next_xp)
 	level_text_final = string.format("%s    %s"   , level_text, xp_text)
+
+	--[[
+		SourceScheme.res
+
+		"DefaultFixedOutline"
+		{
+			"1"
+			{
+				"name"		"Lucida Console" [$WINDOWS]
+				"name"		"Verdana" [!$WINDOWS]
+				"tall"		"14" [$LINUX]
+				"tall"		 "10"
+				"tall_lodef" "15"
+				"tall_hidef" "20"
+				"weight"	 "0"
+				"outline"	 "1"
+			}
+		}
+
+	]]
+
+	graph_enabled = graph_enabledConvar:GetInt()
+	graph_proportional = graph_proportionalConvar:GetBool()
+	graph_mode = graph_enabledConvar:GetInt()
+
+	if graph_estimatedwidth == 0 then
+		surface.SetFont(font_name .. "proportional")
+		graph_estimatedwidth = (surface.GetTextSize("fps:  435  ping: 533 ms lerp 112.3 ms   0/0"))
+	end
+
+	if graph_mode > 0 then
+		if graph_proportional then
+			graph_txheight = ScrH() / 47.5 --47.5 obtained via guesswork cuz valve
+		else
+			graph_txheight = system.IsWindows() and 14 or 14
+		end
+
+		--[[
+			*x = rect->x + 5;
+
+			switch ( net_graphpos.GetInt() )
+			{
+			case 0:
+				break;
+			case 1:
+				*x = rect->x + rect->width - 5 - width;
+				break;
+			case 2:
+				*x = rect->x + ( rect->width - 10 - width ) / 2;
+				break;
+			default:
+				*x = rect->x + clamp( (int) XRES( net_graphpos.GetInt() ), 5, rect->width - width - 5 );
+			}
+
+			*y = rect->y+rect->height - LERP_HEIGHT - 5;
+		]]
+
+		local gpos = graph_posConvar:GetInt()
+
+		if gpos == 0 then --it's on bottom left
+			graph_isviolatingmoney = true
+			graph_isviolatingammo = false
+
+		elseif gpos == 1 then --it's on bottom right
+			graph_isviolatingmoney = false
+			graph_isviolatingammo = true
+
+		elseif gpos == 2 then --it's in the middle
+			graph_isviolatingmoney = false
+			graph_isviolatingammo = false
+		else
+			local x = math.max(ScreenScale(gpos), 5)
+
+			local text_size = ScreenScale(50) --assume text would extend the unsafe area by 100px
+			--scrw * 0.15 is barsize
+
+			graph_isviolatingmoney = x <= ScrW() * 0.15 + 70 + text_size
+			graph_isviolatingammo = x > ScrW() - 12 - ScrW() * 0.15 - text_size - graph_estimatedwidth
+
+		end
+
+	else
+		graph_isviolatingmoney = false
+		graph_isviolatingammo = false
+	end
 
 	core = basewars.basecore.get(ply)
 	encompassing_core = basewars.basecore.getForPos(ply)
@@ -243,7 +369,7 @@ function ext:HUDPaint()
 	local yindent = xindent + 10
 	if is3d then yindent = yindent + rot_y end
 
-	local curx, cury = xindent, scrH - yindent
+	local curx, cury = xindent, scrH - yindent - (graph_isviolatingmoney and (graph_txheight * 3 + 32) or 0)
 
 	local bar_width, bar_height = ScrW() * 0.15, ScrH() * 0.015
 	local bar_pad = 8
@@ -292,7 +418,8 @@ function ext:HUDPaint()
 
 
 			local boxH = yindent + bar_height + bar_pad + tx_bar_pad + moneyH + 4
-			local boxY = scrH - boxH
+			local boxY = cury - boxH + yindent
+
 			draw.RoundedBox(16, 0, boxY, bar_width + 70, boxH, gray)
 
 
@@ -441,6 +568,7 @@ function ext:HUDPaint()
 	self:ex()
 
 	curx, cury = scrW - xindent, yindent
+
 	self:en(rot_y)
 		local off = 0
 		if playtime_text then
@@ -468,7 +596,7 @@ function ext:HUDPaint()
 			cury = cury + drawString(own and "Friendly" or "Hostile", curx, cury, own and off_white_t2 or pure_red, TEXT_ALIGN_RIGHT, TEXT_ALIGN_TOP)
 		end
 
-		cury = scrH - yindent
+		cury = scrH - yindent - (graph_isviolatingammo and (graph_txheight * 3 + 32) or 0)
 
 		local wep = ply:GetActiveWeapon()
 		if ply:Alive() and IsValid(wep) then

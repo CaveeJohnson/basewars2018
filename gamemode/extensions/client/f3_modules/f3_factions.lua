@@ -404,13 +404,16 @@ function ext.generateNewFactionControls(par)
 
 	local errDT = DeltaText()
 	errDT:SetFont("OS20")
-	local errpiece = errDT:AddText("")
-	errDT:CycleNext()
+	errDT.AlignX = 1
+	--local errpiece = errDT:AddText("")
+	--errDT:CycleNext()
 
-	local facname = name:GetValue()
-	local facpw = pw:GetValue()
+	local elems = {}
 
-	local can, err = basewars.factions.canStartFaction(me, facname, facpw, curcol)
+	--local facname = name:GetValue()
+	--local facpw = pw:GetValue()
+
+	--local can, err = basewars.factions.canStartFaction(me, facname, facpw, curcol)
 	--create an error for deltapiece instantly
 
 	local green = Color(60, 210, 60)
@@ -428,24 +431,25 @@ function ext.generateNewFactionControls(par)
 
 	function doeet:DoClick()
 		if not self.can then return end
+
 		hook.Add("BW_FactionCreated", pnl, function(self, owsid, fac)
 			if ext.curFacPnl == self and owsid == LocalPlayer():SteamID64() then
 				ext.fac = fac
 				ext.TabFrame:GenerateFactionPanel(fac)
 			end
 		end)
+
 		local wut, huh = basewars.factions.startFaction(LocalPlayer(), name:GetValue(), pw:GetValue(), col:GetColor())
-		print(wut, huh)
 	end
 
 	local txCol = Color(220, 70, 70)
 
-	local fragnum, frag = errpiece:AddFragment(err or "", nil, false)
-	frag.Color = txCol
-	frag.AlignX = 1
+	--local fragnum, frag = errpiece:AddFragment(err or "", nil, false)
+	--frag.Color = txCol
+	--frag.AlignX = 1
 
-	errpiece:SetDropStrength(12)
-	errpiece:SetLiftStrength(-12)
+	--errpiece:SetDropStrength(12)
+	--errpiece:SetLiftStrength(-12)
 
 	pnl.errorFrac = 0
 
@@ -456,8 +460,32 @@ function ext.generateNewFactionControls(par)
 			self:To("errorFrac", 0, 0.2, 0, 0.3)
 		end
 
-		if doeet.err then
-			local _, fr = errpiece:ReplaceText(fragnum, doeet.err, nil, true)
+		local err = doeet.err
+
+		if not doeet.can then
+
+			if not elems[err] then
+				local elem, num = errDT:AddText(err)
+
+				elem:SetDropStrength(18)
+				elem:SetLiftStrength(18)
+
+				elem.Color = txCol
+				elem.AlignX = 1
+
+				elem.error = err
+
+				elems[err] = num
+
+				errDT:ActivateElement(num)
+			else--if errDT:GetCurrentElement().error ~= err then
+				errDT:ActivateElement(elems[err])
+			end
+			--local _, fr = errpiece:ReplaceText(fragnum, doeet.err, nil, true)
+		else
+			if errDT:GetCurrentElement() then
+				errDT:DisappearCurrentElement()
+			end
 		end
 
 		txCol.a = self.errorFrac * 255

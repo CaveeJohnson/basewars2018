@@ -35,20 +35,14 @@ end)
 
 function chathud.Include()
 
-	shinclude("xp3/chattags.lua")
-	shinclude("xp3/emotes.lua")
+	shinclude("chathud/chattags.lua")
+	shinclude("chathud/emotes.lua")
+
+	clinclude("chathud/chathud.lua")
+	clinclude("chathud/chatbox.lua")
 
 
-	clinclude("xp3/chathud.lua")
-	clinclude("xp3/chatbox.lua")
-	clinclude("xp3/cl_emote_request.lua")
-
-
-	shinclude("xp3/chatexp.lua")
-
-	if SERVER then 
-		include("xp3/sv_emote_request.lua")
-	end 
+	shinclude("chathud/chatexp.lua")
 
 end
 

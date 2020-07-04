@@ -62,7 +62,7 @@ end)
 hook.Add("PlayerButtonDown", "Basewars.F3", function(ply, key)
 	if key ~= KEY_F3 then return end
 	if not IsFirstTimePredicted() then return end
-	if IsValid(ply:GetActiveWeapon()) and ply:GetActiveWeapon().dt.State == CW_CUSTOMIZE then return end --cw 2.0 support
+	if IsValid(ply:GetActiveWeapon()) and CW_CUSTOMIZE ~= nil and ply:GetActiveWeapon().dt.State == CW_CUSTOMIZE then return end --cw 2.0 support
 
 	local firstpress = not is_down
 	is_down = true

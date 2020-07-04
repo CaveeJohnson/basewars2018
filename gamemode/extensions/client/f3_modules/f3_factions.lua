@@ -1,11 +1,11 @@
 local ext = basewars.createExtension"f3.factions"
 local f3ext = basewars.getExtension"f3.menu"
 
-local brightTextColor = color_white --Color for bright text (when V in faction color's HSV is <0.75)
-local darkTextColor = color_black   --Color for dark text (when V in faction color's HSV is >0.75)
+local brightTextColor = color_white:Copy() --Color for bright text (when V in faction color's HSV is <0.75)
+local darkTextColor = color_black:Copy()   --Color for dark text (when V in faction color's HSV is >0.75)
 
 local pushedBorderColor = Colors.Money:Copy()
-local alt_pushedBorderColor = color_white--Color(255, 60, 60)
+local alt_pushedBorderColor = color_white:Copy() --Color(255, 60, 60)
 
 local pickBorderColor = function(h, s, v)	--called to determine if we should pick an alternate color for the pushed border; return a color to override
 

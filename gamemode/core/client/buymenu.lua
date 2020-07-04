@@ -422,7 +422,7 @@ function ext:buildSubcategory(scr, catdata, catname)
 					if new then
 						cl.Font = "OS20"
 						cl:SetText(self.Description)
-						cl.TextColor = color_white
+						cl.TextColor = color_white:Copy()
 						cl.MaxW = 350
 						cl:SetRelPos(self:GetWide() / 2, 4)
 						cl.ToY = -8

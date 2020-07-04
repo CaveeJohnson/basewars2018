@@ -35,6 +35,8 @@ local catsIcons = {
 
 }
 
+local LerpColor = draw.LerpColor
+
 local catsColor = Color(200, 200, 200) -- Categories color (panel on the left)
 local catsGradColor = Color(65, 65, 65)
 

@@ -80,7 +80,6 @@ function ext:HUDPaint()
 	render.SetColorModulation(1, 0.2, 0.2)
 	render.SetBlend(0.4)
 		local targs = self.targetEnts
-		print(self.showAmt)
 		for i = 1, self.showAmt do
 			local v = targs[i][3]
 

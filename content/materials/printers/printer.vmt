@@ -1,0 +1,8 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "grp/printers/printer"
+
+	"$surfaceprop" "metal"
+	"$model" 1
+	
+}

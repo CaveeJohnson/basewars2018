@@ -1,0 +1,15 @@
+//I didnt make those models, obviously
+//Courtesy of valve, taken from de_nuke
+//and pasted to fastdl
+
+vertexlitgeneric
+{
+	"$basetexture"            "models/props/computers/supercomputer_01_color"
+	"$blendtintbybasealpha"   "1"
+
+	"$envmaplightscale"       "1"
+	"$envmaplightscaleminmax" "[0 0.6]"
+
+	"$envmapmask"             "models/props/computers/supercomputer_01_color"
+	"$surfaceprop"            "metal"
+}

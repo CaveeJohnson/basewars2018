@@ -1,0 +1,11 @@
+vertexlitgeneric
+{
+	"$basetexture"            "models/props/computers/supercomputer_02_color"
+	"$blendtintbybasealpha"   "1"
+	
+	"$envmaplightscale"       "1"
+	"$envmaplightscaleminmax" "[0 0.6]"
+
+	"$envmapmask"             "models/props/computers/supercomputer_02_color"
+	"$surfaceprop"            "metal"
+}

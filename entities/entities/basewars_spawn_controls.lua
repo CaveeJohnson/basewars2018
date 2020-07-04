@@ -74,6 +74,7 @@ function ext:PostReloaded()
 
 	self:spawn()
 end
+ext.PostCleanupMap = ext.PostReloaded
 
 function ext:InitPostEntity()
 	self:spawn()

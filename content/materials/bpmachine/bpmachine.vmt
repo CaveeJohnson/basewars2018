@@ -1,0 +1,8 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "grp/bpmachine/bpmachine"
+
+	"$surfaceprop" "metal"
+	"$model" 1
+	
+}

@@ -188,14 +188,93 @@ function basewars.npcs.spawn(type, pos)
     --util.Effect("Explosion", eff)
 
     timer.Simple(spawn_time, function()
-        local npc = ents.Create(type)
+        local npc_data = list.Get("NPC")[type] or {}
+        local npc = ents.Create(npc_data["Class"] or type)
         if not IsValid(npc) then return end
-            npc:SetPos(pos)
+            local weapon = npc_data["Weapons"] or npc_data["weapon"]
+            if weapon then
+                if istable(weapon) then
+                    weapon = table.Random(weapon)
+                end
+
+                npc:SetKeyValue("additionalequipment", weapon)
+            end
+
+            npc:SetPos(pos + Vector(0, 0, 16))
+            npc:SetAngles(Angle(0, math.random(0, 360), 0))
             npc:DropToFloor()
         npc:Spawn()
+
+        local model = npc_data["Model"] or npc_data["model"]
+        if model then
+            npc:SetModel(model)
+        end
+
+        local scale = npc_data["Scale"] or npc_data["scale"]
+        if scale then
+            npc:SetModelScale(scale)
+        end
+
+        local health = npc_data["Health"] or npc_data["health"]
+        if health and health > 0 then
+            npc:SetHealth(health)
+            npc:SetMaxHealth(health)
+        end
+
+        local spawnflags = npc_data["SpawnFlags"] or npc_data["spawn_flags"]
+        if spawnflags and spawnflags > 0 then
+            npc:SetKeyValue("spawnflags", spawnflags)
+        end
+
+        local keyvalues = npc_data["KeyValues"] or npc_data["key_values"]
+        if keyvalues then
+            for k, v in pairs(keyvalues) do
+                npc:SetKeyValue(k, v)
+            end
+        end
+
+        local wepprof = npc_data["WeaponProficiency"] or npc_data["weapon_proficiency"]
+        if npc.SetCurrentWeaponProficiency and wepprof then
+            local weaponProficiency = nil
+
+            if     wepprof == "Poor" then
+                weaponProficiency = WEAPON_PROFICIENCY_POOR
+            elseif wepprof == "Average" then
+                weaponProficiency = WEAPON_PROFICIENCY_AVERAGE
+            elseif wepprof == "Good" then
+                weaponProficiency = WEAPON_PROFICIENCY_GOOD
+            elseif wepprof == "Very good" then
+                weaponProficiency = WEAPON_PROFICIENCY_VERY_GOOD
+            elseif wepprof == "Perfect" then
+                weaponProficiency = WEAPON_PROFICIENCY_PERFECT
+            elseif isnumber(wepprof) then
+                weaponProficiency = wepprof
+            end
+
+            if weaponProficiency then
+                npc:SetCurrentWeaponProficiency(weaponProficiency)
+            end
+        end
+
         npc:Activate()
+        npc:Fire("StartPatrolling")
+        npc:Fire("SetReadinessHigh")
+        if npc.SetNPCState then npc:SetNPCState(NPC_STATE_COMBAT) end
 
         sound.Play(summon_sound_done, pos)
     end)
+end
 
+function basewars.npcs.findSpawnable()
+    local areas = navmesh.GetAllNavAreas()
+
+    for _, v in RandomPairs(areas) do
+        local p = v:GetRandomPoint()
+
+        if not v:IsUnderwater() and not basewars.bases.getForPos(p) then
+            return p
+        end
+    end
+
+    return false
 end

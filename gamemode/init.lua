@@ -19,4 +19,5 @@ end
 resource.AddWorkshop("160250458" ) -- wire
 resource.AddWorkshop("173482196" ) -- sprops
 
-resource.AddWorkshop("420970650" ) -- Sci-fi weapons
+resource.AddWorkshop("2131057232") -- ARCCW Base
+resource.AddWorkshop("2135529088") -- ARCCW MW2 Weps

@@ -179,3 +179,4 @@ basewars.loadExtFolder("core/")
 basewars.loadExtFolder("extensions/")
 basewars.loadExtFolder("thirdparty/")
 
+include("xp_cv3.lua")

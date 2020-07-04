@@ -1,5 +1,5 @@
 local ext = basewars.createExtension"core.buy-menu"
-
+setfenv(1, _G)
 --TODO: move somewhere more appropriate
 local catsIcons = {
 
@@ -341,7 +341,7 @@ function ext:buildSubcategory(scr, catdata, catname)
 
 				frac = math.min(CurTime() - clicc, CurTime() - down, time) * (1/time)
 
-				LerpColor(frac, self.borderColor, col)
+				LerpColor(frac, self.borderColor, col, itemClickedBorder)
 
 				local col, err = ext:getIconColor(ply, item, scr.hasCore)
 
@@ -478,10 +478,10 @@ local function catBtnPaint(self, w, h)
 
 	if ext.selectedCategory == self.catName then
 		self:To("selFrac", 1, catSelTime, 0, catEase)
-		LerpColor(fr, self.currentColor, selCol)
+		LerpColor(fr, self.currentColor, selCol, unselCol)
 	else
 		self:To("selFrac", 0, catUnselTime, 0, catEase)
-		LerpColor(1 - fr, self.currentColor, unselCol)
+		LerpColor(1 - fr, self.currentColor, unselCol, selCol)
 	end
 
 	self.iconX = math.ceil( 4 + fr * catPush )

@@ -415,13 +415,13 @@ function ext:buildSubcategory(scr, catdata, catname)
 					end
 
 				end]]
-				print(self.Description, item.description)
+				-- print(self.Description, item.description)
 				if self.Description then
 					local cl, new = self:AddCloud("description")
 
 					if new then
 						cl.Font = "OS20"
-						cl:SetText(self.Error)
+						cl:SetText(self.Description)
 						cl.TextColor = color_white
 						cl.MaxW = 350
 						cl:SetRelPos(self:GetWide() / 2, 4)

@@ -1,3 +1,5 @@
+AddCSLuaFile()
+
 color_white = Color(255,255,255,255)
 
 chathud = chathud or {}

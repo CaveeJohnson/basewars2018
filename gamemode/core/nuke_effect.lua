@@ -1,8 +1,6 @@
 local net_tag = "bw-nuke-effect"
 
 function basewars.doNukeEffect(pos, prepared)
-	print("doing nuke effects", Realm())
-
 	if hook.Run("BW_PlayNukeEffect", pos) then return end
 
 	if SERVER then
@@ -27,8 +25,6 @@ local sat = basewars.getExtension("satellite")
 function basewars.preparedNukeEffect(pos, time)
 
 	local reachTime = sat.reachTime
-
-	print("prepared nuke", Realm(), "in", reachTime)
 
 	timer.Simple(time - reachTime, function()
 		hook.Run("BW_StartNukeEffect", pos)

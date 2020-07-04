@@ -328,7 +328,7 @@ ext.eventHandlers.ownerchange = function(_, fac, new, notOfficer, leaving)
 end
 
 function ext:event(t, fac, ...)
-	if hook.Run("BW_CanFactionEvent", t, fac, ...) == false then print("cannot do event", t, Realm()) return false end
+	if hook.Run("BW_CanFactionEvent", t, fac, ...) == false then print("cannot do event", t, CLIENT and "CLIENT" or "SERVER") return false end
 
 	if SERVER then
 		net.Start(ext:getTag() .. "event")

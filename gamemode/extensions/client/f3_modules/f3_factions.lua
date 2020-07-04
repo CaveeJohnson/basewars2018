@@ -1151,6 +1151,7 @@ function ext:F3_CreateTab(FF)
 		makeFac:SetPos(scr.X + 24, f:GetTall() - 44)
 		makeFac:SetSize(scr:GetWide() - 48, 40)
 
+		local ply = LocalPlayer()
 		local canCol = Color(65, 190, 65)
 		makeFac.Color = (basewars.factions.eligibleForCreation(ply) and canCol) or Colors.Button
 

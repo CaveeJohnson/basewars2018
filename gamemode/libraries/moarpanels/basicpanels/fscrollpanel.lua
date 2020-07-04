@@ -13,20 +13,13 @@ function FScrollPanel:Init()
 
 
 	local dgray = Color(30,30,30)
+
 	function scroll:Paint(w,h)
 		draw.RoundedBox(4, 0, 0, w, h, dgray)
-
-		if self.ToWheel ~= 0 then
-
-			local wheel = L(self.ToWheel, 0, 25)
-			self:OnMouseWheeled( wheel )
-			self.ToWheel = wheel
-
-		end
 	end
 
 	scroll:SetWide(10)
-
+	scroll.CurrentWheel = 0
 	local grip = scroll.btnGrip
 	local up = scroll.btnUp
 	local down = scroll.btnDown
@@ -178,8 +171,21 @@ end
 
 function FScrollPanel:OnMouseWheeled( dlta )
 	local scroll = self.VBar
-	scroll.ToWheel = (scroll.ToWheel or 0) + (dlta / 2 * self.ScrollPower)
+	scroll.ToWheel = (scroll.ToWheel or 0) + (dlta * self.ScrollPower)
 
+	if scroll.ScrollAnim then scroll.ScrollAnim:Stop() end
+
+	local anim = scroll:To("CurrentWheel", scroll.ToWheel, 0.3, 0, 0.2)
+	scroll.ScrollAnim = anim
+
+	if anim then
+		anim.LastWheel = scroll.CurrentWheel
+		anim:On("Think", "OnWheel", function(self, fr)
+			local delta = scroll.CurrentWheel - self.LastWheel
+			self.LastWheel = scroll.CurrentWheel
+			scroll:OnMouseWheeled(delta)
+		end)
+	end
 end
 
 vgui.Register("FScrollPanel", FScrollPanel, "DScrollPanel")

@@ -53,7 +53,7 @@ function button:Init()
 	]]
 end
 
-function button:SetIcon(url, name, w, h, col)
+function button:SetIcon(url, name, w, h, col, rot)
 	local t = self.Icon or {}
 	self.Icon = t
 
@@ -74,6 +74,7 @@ function button:SetIcon(url, name, w, h, col)
 	t.IconH = h
 
 	t.IconColor = col
+	t.IconRotation = rot
 end
 
 function button:SetColor(col, g, b, a)
@@ -227,19 +228,28 @@ function button:PaintIcon(x, y, tw, th)
 
 	local iW = ic.IconW or 24
 	local iH = ic.IconH or 24
-	local ioff = ic.IconX or 4
+	local ioff = ic.IconX or (self.Label and 4) or 0
 
 	local col = ic.IconColor or color_white
 	surface.SetDrawColor(col.r, col.g, col.b, col.a)
+	local xoff = (self.Label and 1) or 0.5
 
-	local iX = x - iW - ioff
-	local iY = y + th/2 - iH/2
+	local iX
+	local iY
+
+	if not ic.IconRotation then
+		iX = x - iW * xoff - ioff
+		iY = y + th/2 - iH/2
+	else
+		iX = x - ioff
+		iY = y
+	end
 
 	if ic.IconMat then
 		surface.SetMaterial(ic.IconMat)
 		surface.DrawTexturedRect(iX, iY, iW, iH)
 	elseif ic.IconURL then
-		surface.DrawMaterial(ic.IconURL, ic.IconName, iX, iY, iW, iH)
+		surface.DrawMaterial(ic.IconURL, ic.IconName, iX, iY, iW, iH, ic.IconRotation)
 	end
 end
 
@@ -300,8 +310,10 @@ function button:Draw(w, h)
 			local iY = ty - th * (ay/2)
 			self:PaintIcon(iX, iY, tw, th)
 		end
+		return
 	end
 
+	self:PaintIcon(w/2, h/2, 0, 0)
 
 end
 

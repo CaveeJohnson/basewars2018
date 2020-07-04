@@ -5,28 +5,7 @@ setfenv(1, _G)
 
 local meta = FindMetaTable( "Panel" )
 
-local AnimMeta = Emitter:extend()
-
-function AnimMeta:Stop()
-	self.Parent.m_AnimList[self.Key] = nil
-end
-
-function AnimMeta:SetSwappable(b)
-	self.Swappable = (b==nil and true) or b
-	return self
-end
-
-function AnimMeta:Swap(length, delay, ease, callback)
-
-	self.StartTime = delay + SysTime()
-	self.EndTime = delay + length + SysTime()
-	self.Ease = ease 
-	self.OnEnd = callback
-
-	self.Ended = false 
-
-	return self
-end
+if not AnimMeta then error("Garrymations rely on AnimMeta!") return end --wut
 
 
 --[[---------------------------------------------------------
@@ -42,7 +21,7 @@ end
 
 --[[---------------------------------------------------------
 	Name: AnimationThinkInternal
------------------------------------------------------------]] 
+-----------------------------------------------------------]]
 function meta:AnimationThinkInternal()
 
 	local systime = SysTime()
@@ -97,7 +76,7 @@ end
 --[[---------------------------------------------------------
 	Name: SetAnimationEnabled
 	Desc: Enables animations on a panel
------------------------------------------------------------]] 
+-----------------------------------------------------------]]
 function meta:SetAnimationEnabled( b )
 
 	if ( !b ) then
@@ -138,7 +117,7 @@ end
 --[[---------------------------------------------------------
 	Name: NewAnimation
 	Desc: Creates a new animation
------------------------------------------------------------]]  
+-----------------------------------------------------------]]
 function meta:NewAnimation( length, delay, ease, callback )
 
 	if ( delay == nil ) then delay = 0 end
@@ -155,20 +134,20 @@ function meta:NewAnimation( length, delay, ease, callback )
 
 	end
 
-	local anim = {
+	local anim = AnimMeta:new()
+	table.Merge(anim, {
 		EndTime = delay + length,
 		StartTime = delay,
 		Ease = ease,
 		OnEnd = callback,
 		Parent = self,
-	}
-	setmetatable(anim, AnimMeta)
+	})
 
 	self:SetAnimationEnabled( true )
 	if ( self.m_AnimList == nil ) then self.m_AnimList = {} end
 
 	local key = table.insert( self.m_AnimList, anim )
-	anim.Key = key 
+	anim.Key = key
 
 	return anim
 

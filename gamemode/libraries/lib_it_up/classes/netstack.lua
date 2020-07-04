@@ -1,6 +1,6 @@
 
-netstack = Object:callable()
-local nsm = netstack 
+netstack = netstack or Object:callable()
+local nsm = netstack
 
 for k,v in pairs(net) do
 	if k:find("Write*") then
@@ -14,6 +14,7 @@ for k,v in pairs(net) do
 					net[k](unpack(aeiou)) --i cant use ... cuz its outside of this function!!!
 				end
 			}
+			return self.Ops[#self.Ops]
 		end
 	end
 end
@@ -43,11 +44,18 @@ end
 
 netstack.__call = net.WriteNetStack
 
-function netstack:new()
-	local ret = {}
-	ret.Ops = {}
-	setmetatable(ret, netstack)
-	return ret
+function netstack:Initialize()
+	self.Ops = {}
+end
+
+function netstack:GetOps()
+	return self.Ops
+end
+
+function netstack:MergeInto(ns)
+	for k,v in ipairs(self.Ops) do
+		ns.Ops[#ns.Ops + 1] = v
+	end
 end
 
 netstack.__tostring = function(self)
@@ -57,7 +65,12 @@ netstack.__tostring = function(self)
 	local args = ""
 
 	for k,v in ipairs(self.Ops) do
-		local argsstr = table.concat(v.args, ", ")
+		local argsstr = ""	--can't do `table.concat(v.args, ", ")` because it may have shit like userdata(entities) which table.concat doesn't like
+		for k,v in ipairs(v.args) do
+			argsstr = argsstr .. tostring(v) .. ", "
+		end
+
+		argsstr = argsstr:sub(1, #argsstr - 2)
 
 		args = args .. ("%d: %s - %s\n"):format(k, v.type, argsstr)
 	end

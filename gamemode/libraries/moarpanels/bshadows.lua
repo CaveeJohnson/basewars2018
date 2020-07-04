@@ -70,7 +70,7 @@ BSHADOWS.BeginShadow = function(x, y, w, h)
 
     --Clear is so that theres no color or alpha
     render.OverrideAlphaWriteEnable(true, true)
-    render.Clear(0, 0, 0, 0, true)
+        render.Clear(0, 0, 0, 0, true)
     render.OverrideAlphaWriteEnable(false, false)
 
     --Start Cam2D as where drawing on a flat surface

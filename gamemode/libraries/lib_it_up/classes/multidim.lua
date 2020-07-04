@@ -43,7 +43,7 @@ function mmeta:Set(val, ...)
 				curvar[v] = muldim:new() --recursively create new dim objects
 			else
 				curvar[v] = val --or just set the value
-				return val
+				return val, curvar
 			end
 
 		else
@@ -57,7 +57,7 @@ function mmeta:Set(val, ...)
 		curvar = curvar[v]
 	end
 
-	return val
+	return val, curvar
 end
 
 function muldim:Initialize(mode)

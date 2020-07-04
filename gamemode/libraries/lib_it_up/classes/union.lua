@@ -7,15 +7,12 @@
 		Easylua, anyone?
 ]]
 
-UnionTable = {}
-UnionTable.Meta = {}
+UnionTable = UnionTable or Object:callable()
 
-local meta = UnionTable.Meta
+UnionTable.IsUnion = true
 
-meta.IsUnion = true
-
-function meta.__index(self, key)
-	local raw = rawget(self, key) or rawget(meta, key)
+function UnionTable:__index(key)
+	local raw = rawget(UnionTable, key)
 
 	if raw or isnumber(key) then
 		return raw
@@ -42,11 +39,12 @@ function meta.__index(self, key)
 
 		for k,v in pairs(self) do
 
-			if isfunction(v[key]) then
+			local val = v[key]
 
-				local func = v[key]
-
-				outs[v] = func( useself and v or args_orig[1], unpack(args) )
+			if isfunction(val) then
+				outs[v] = val( useself and v or args_orig[1], unpack(args) )
+			else
+				outs[v] = val
 			end
 		end
 
@@ -56,8 +54,6 @@ function meta.__index(self, key)
 	return func
 end
 
-function UnionTable:new()
-	return setmetatable({}, self.Meta)
+function UnionTable:Initialize(t)
+	if t then return setmetatable(t, UnionTable) end
 end
-UnionTable.__call = UnionTable.new
-setmetatable(UnionTable, UnionTable)

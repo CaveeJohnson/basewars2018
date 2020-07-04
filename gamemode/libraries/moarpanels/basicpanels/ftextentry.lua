@@ -14,7 +14,7 @@ function TE:Init()
 
 	self.BGColor = Color(40, 40, 40)
 	self.TextColor = color_white:Copy()
-	self.HTextColor = color_white:Copy()
+	self.HTextColor = Colors.LightGray:Copy()
 	self.CursorColor = color_white:Copy()
 	self.PHTextColor = color_white:Copy()
 

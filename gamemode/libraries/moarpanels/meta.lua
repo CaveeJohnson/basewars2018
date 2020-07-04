@@ -24,6 +24,11 @@ function META:GetCenter(xfrac, yfrac)
 	return x, y
 end
 
+local dred = Color(160, 40, 40, 120)
+function META:Debug()
+	self.Paint = function(self, w, h) draw.RoundedBox(8, 0, 0, w, h, dred) end
+end
+
 function META:AddDockPadding(l, t, r, b)
 	l, t, r, b = l or 0, t or 0, r or 0, b or 0
 
@@ -75,7 +80,7 @@ function META:GetCloud(name)
 	return IsValid(cls[name]) and cls[name]
 end
 
-function META:Lerp(key, val, dur, del, ease)
+function META:Lerp(key, val, dur, del, ease, forceswap)
 	local anims = self.__Animations or {}
 	self.__Animations = anims
 
@@ -86,7 +91,7 @@ function META:Lerp(key, val, dur, del, ease)
 
 	if anims[key] then
 		anim = anims[key]
-		if anim.ToVal == val then return anim, false end --don't re-create animation if we're already lerping to that anyways
+		if anim.ToVal == val and not forceswap then return anim, false end --don't re-create animation if we're already lerping to that anyways
 
 		anim.ToVal = val
 		anim:Swap(dur, del, ease)
@@ -99,6 +104,10 @@ function META:Lerp(key, val, dur, del, ease)
 		anim.ToVal = val
 		anims[key] = anim
 	end
+
+	anim:On("End", "RemoveAnim", function()
+		anims[key] = nil
+	end)
 
 	anim.Think = function(anim, self, fr)
 		self[key] = Lerp(fr, from, val)
@@ -115,7 +124,7 @@ local function hex(t)
 	return format("%p", t)
 end
 
-function META:MemberLerp(tbl, key, val, dur, del, ease)
+function META:MemberLerp(tbl, key, val, dur, del, ease, forceswap)
 	local anims = self.__Animations or {}
 	self.__Animations = anims
 
@@ -127,7 +136,7 @@ function META:MemberLerp(tbl, key, val, dur, del, ease)
 	if tbl[key] == val then return end
 
 	if anim then
-		if anim.ToVal == val then return end
+		if anim.ToVal == val and not forceswap then return end
 
 		anim.ToVal = val
 		anim:Swap(dur, del, ease)
@@ -142,6 +151,10 @@ function META:MemberLerp(tbl, key, val, dur, del, ease)
 		anims[key .. as_str] = anim
 	end
 
+	anim:On("End", "RemoveAnim", function()
+		anims[key] = nil
+	end)
+
 	anim.Think = function(anim, self, fr)
 		tbl[key] = Lerp(fr, from, val)
 	end
@@ -149,14 +162,15 @@ function META:MemberLerp(tbl, key, val, dur, del, ease)
 end
 
 --CW has its' own LerpColor which seems to work differently from this
-local function LerpColor(frac, col1, col2)
+--src will be the source color from which the lerp starts
+local function LerpColor(frac, col1, col2, src)
 
-	col1.r = Lerp(frac, col1.r, col2.r)
-	col1.g = Lerp(frac, col1.g, col2.g)
-	col1.b = Lerp(frac, col1.b, col2.b)
+	col1.r = Lerp(frac, src.r, col2.r)
+	col1.g = Lerp(frac, src.g, col2.g)
+	col1.b = Lerp(frac, src.b, col2.b)
 
-	if col1.a ~= col2.a then
-		col1.a = Lerp(frac, col1.a, col2.a)
+	if src.a ~= col2.a then
+		col1.a = Lerp(frac, src.a, col2.a)
 	end
 
 end
@@ -179,18 +193,20 @@ draw.LerpColorFrom = LerpColorFrom
 	Because colors are tables, instead of giving a key you can give LerpColor a color as the first arg,
 	so the color structure will be changed instead
 ]]
-function META:LerpColor(key, val, dur, del, ease)
+function META:LerpColor(key, val, dur, del, ease, forceswap)
 	local anims = self.__Animations or {}
 	self.__Animations = anims
 
 	local anim
 
 	local iscol = IsColor(key)
-	local from = (iscol and key) or self[key] or color_white
+	local from = (iscol and key) or self[key]
+	if not from then errorf("Didn't find color when provided %s (%s)", key, type(key)) end
+	if from == val then return end
 
 	if anims[key] then
 		anim = anims[key]
-		if anim.ToVal == val then return end --don't re-create animation if we're already lerping to that anyways
+		if anim.ToVal == val and not forceswap then return end --don't re-create animation if we're already lerping to that anyways
 
 		anim.ToVal = val
 		anim:Swap(dur, del, ease)
@@ -205,12 +221,16 @@ function META:LerpColor(key, val, dur, del, ease)
 
 	local newfrom = from:Copy()
 
+	anim:On("End", "RemoveAnim", function()
+		anims[key] = nil
+	end)
+
 	anim.Think = function(anim, self, fr)
 		if iscol then
 			LerpColorFrom(fr, newfrom, val, from)
 		else
-			self[key] = (IsColor(self[key]) and self[key]) or from:Copy()
-			LerpColor(fr, newfrom, val, self[key])
+			self[key] = (IsColor(self[key]) and self[key]) or from
+			LerpColor(fr, from, val, newfrom)
 		end
 	end
 
@@ -218,16 +238,23 @@ end
 
 
 
-function META:On(event, name, cb)
+function META:On(event, name, cb, ...)
 	self.__Events = self.__Events or muldim:new()
+
 	local events = self.__Events
+	local vararg
 
 	if isfunction(name) then
+		vararg = cb
 		cb = name
 		name = #(events:GetOrSet(event)) + 1
+
+		local t = {cb, vararg, ...}
+		events:Set(t, event, name)
+	else
+		events:Set({cb, ...}, event, name)
 	end
 
-	events:Set(cb, event, name)
 end
 
 function META:Emit(event, ...)
@@ -239,7 +266,18 @@ function META:Emit(event, ...)
 		for k,v in pairs(evs) do
 			--if event name isn't a string, isn't a number and isn't valid then bail
 			if not (isstring(k) or isnumber(k) or IsValid(k)) then evs[k] = nil continue end
-			v(self, ...)
+			--v[1] is the callback function
+			--every other key-value is what was passed by On
+
+			if #v > 1 then --AHHAHAHAHAHAHAHAHAHAHHA AAAA
+				local t = {unpack(v, 2)}
+				table.InsertVararg(t, ...)
+
+				v[1](self, unpack(t))
+			else
+				v[1](self, ...)
+			end
+
 		end
 	end
 end
@@ -262,6 +300,18 @@ function META:PopOut(dur, del, rem)
 	end
 
 	return self:AlphaTo(0, dur or 0.1, del or 0, func)
+end
+
+function META:PopInShow(dur, del, rem)
+	self:Show()
+	return self:PopIn(dur or 0.1, del or 0, nil, true)
+end
+
+function META:PopOutHide(dur, del, rem)
+	return self:PopOut(dur or 0.1, del or 0, function(_, self)
+		self:Hide()
+		if rem then rem(_, self) end
+	end)
 end
 
 --[[
@@ -528,3 +578,59 @@ local function AnimationsThink()
 end
 
 hook.Add("Think", "Animations", AnimationsThink)
+
+
+-- Drag'n'drop callbacks
+-- (Why are there none by default!?)
+if not DetouredDragFuncs then
+	local startDragging, stopDragging = META.OnStartDragging, META.OnStopDragging
+
+	META.OnDragStart, META.OnDragStop = BlankFunc, BlankFunc
+
+	function META:OnStartDragging()
+
+		self.Dragging = true
+		self:InvalidateLayout()
+
+		if ( self:IsSelectable() ) then
+
+			local canvas = self:GetSelectionCanvas()
+
+			if ( !self:IsSelected() ) then
+				canvas:UnselectAll()
+			end
+
+		end
+
+		self:OnDragStart()
+	end
+
+	function META:OnStopDragging()
+		self.Dragging = false
+		self:OnDragStop()
+	end
+
+	DetouredDragFuncs = true
+end
+
+
+function META:Bond(to)
+	if not self.__HasBonded then
+		local name = ("bondThink:%p:%p"):format(self, to) --ptrs
+
+		hook.Add("Think", name, function()
+			if not IsValid(to) then
+				if IsValid(self) then self:Remove() end
+				hook.Remove("Think", name)
+				return
+			end
+
+			if not IsValid(self) then
+				hook.Remove("Think", name)
+			end
+		end)
+
+	end
+
+	self.__HasBonded = to
+end

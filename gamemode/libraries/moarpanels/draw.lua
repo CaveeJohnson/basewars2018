@@ -36,6 +36,44 @@ local sin = math.sin
 local cos = math.cos
 local mrad = math.rad
 
+local sizes = {}
+
+function surface.CharSizes(tx, font, unicode)
+	local szs = {}
+	surface.SetFont(font)
+	local cache = sizes[font] or {}
+	sizes[font] = cache
+
+	if unicode then
+		local codes = {utf8.codepoint(tx, 1, #tx)}
+		for i=1, #codes do
+			local char = utf8.char(codes[i])
+			local sz = cache[char]
+
+			if not sz then
+				sz = (surface.GetTextSize(char))
+				cache[char] = sz
+			end
+
+			szs[i] = sz
+		end
+
+	else
+		for i=1, #tx do
+			local char = tx[i]
+			local sz = cache[char]
+
+			if not sz then
+				sz = (surface.GetTextSize(char))
+				cache[char] = sz
+			end
+
+			szs[i] = sz
+		end
+	end
+
+	return szs
+end
 
 local function FetchUpValuePanel()
 	return debug.getlocal(3, 1)
@@ -383,7 +421,7 @@ function draw.RoundedPolyBox(rad, x, y, w, h, col, notr, nobr, nobl, notl)
 		coords for post-rounded corners
 	]]
 
-	surface.SetDrawColor(col)
+	surface.SetDrawColor(col:Unpack())
 	draw.NoTexture()
 
 	local cache = rbcache:Get(rad, x, y, w, h, notr, nobr, nobl, notl)
@@ -604,6 +642,40 @@ function draw.DrawMaterialCircle(x, y, rad)	--i hate it but its the only way to 
 end
 
 draw.MaterialCircle = draw.DrawMaterialCircle
+
+function draw.BeginMask(mask, ...)
+	render.SetStencilPassOperation( STENCIL_KEEP )
+
+	render.SetStencilEnable(true)
+
+		render.ClearStencil()
+
+		render.SetStencilTestMask(0xFF)
+		render.SetStencilWriteMask(0xFF)
+
+		render.SetStencilCompareFunction( STENCIL_NEVER )
+		render.SetStencilFailOperation( STENCIL_REPLACE )
+
+		render.SetStencilReferenceValue( 1 ) --include
+
+		mask(...)
+
+end
+
+function draw.DeMask(demask, ...) --requires mask to be started
+	render.SetStencilReferenceValue( 0 ) --exclude
+	demask(...)
+end
+
+function draw.DrawOp()
+	render.SetStencilCompareFunction( STENCIL_NOTEQUAL )
+	render.SetStencilFailOperation( STENCIL_KEEP )
+	render.SetStencilReferenceValue( 0 )
+end
+
+function draw.FinishMask()
+	render.SetStencilEnable(false)
+end
 
 function draw.Masked(mask, op, demask, deop, ...)
 
@@ -1014,7 +1086,7 @@ function DownloadGIF(url, name)
 			MoarPanelsMats[name].downloading = true
 
 			hdl.DownloadFile(url, ("temp_gif%s.dat"):format(name), function(fn, body)
-				if body:find("404 Not Found") then return end
+				if body:find("404 %-") then errorf("404'd while attempting to download %q", name) return end
 				local bytes = {}
 
 				local chunk = body:sub(#body - 20, #body)
@@ -1070,7 +1142,7 @@ function surface.DrawNewlined(tx, x, y, first_x, first_y)
 
 end
 
-function draw.DrawGIF(url, name, x, y, dw, dh, frw, frh, start, pnl)
+function draw.DrawGIF(url, name, x, y, dw, dh, frw, frh, start, frametime, pnl)
 	local mat = DownloadGIF(url, name)
 	if not mat then return end
 
@@ -1093,15 +1165,20 @@ function draw.DrawGIF(url, name, x, y, dw, dh, frw, frh, start, pnl)
 	if not start then start = 0 end
 	local ct = CurTime()
 
-	local t = ((ct - start) % mat.dur) * 100
+	local dur = (frametime and frametime * mat.i.amt / 100) or mat.dur
+	local t = ((ct - start) % dur) * 100
 
 	local frame = 0
 
-	for i=1, #mat.timings do
+	if frametime then --we were given frame time to use
+		frame = math.floor(t / frametime)
+	else
+		for i=1, #mat.timings do
 
-		if t < mat.timings[i] then
-			frame = i - 1
-			break
+			if t < mat.timings[i] then
+				frame = i - 1
+				break
+			end
 		end
 	end
 
@@ -1122,4 +1199,45 @@ function draw.DrawGIF(url, name, x, y, dw, dh, frw, frh, start, pnl)
 
 															--i spent 4 days fixing this and turns out i just needed to sub 1 PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands PepeHands
 	surface.DrawTexturedRectUV(x, y, dw, dh, u1, v1, u2, v2)
+end
+
+-- THANK U BASED GigsD4X
+-- https://gist.github.com/GigsD4X/8513963
+
+local rets = {
+	function(v, p, q, t) return v, t, p end,
+	function(v, p, q, t) return q, v, p end,
+	function(v, p, q, t) return p, v, t end,
+	function(v, p, q, t) return p, q, v end,
+	function(v, p, q, t) return t, p, v end,
+	function(v, p, q, t) return v, p, q end
+}
+
+function draw.HSVToColor(hue, saturation, value)
+	value = math.Clamp(value, 0, 1)
+	if saturation == 0 then
+		return value * 255, value * 255, value * 255
+	end
+
+	hue = hue % 360
+
+	local hue_sector, hue_sector_offset = math.modf(hue / 60)
+
+	-- in the gist, hue_sector_offset is a negative value, so to use modf
+	-- and compensate for it, i changed the signs in maths below
+
+	-- also  *255 because gmod
+
+	local p = value * ( 1 - saturation ) * 255
+	local q = value * ( 1 - saturation * hue_sector_offset ) * 255
+	local t = value * ( 1 - saturation * ( 1 - hue_sector_offset ) ) * 255
+
+	value = value * 255
+	--also utilize a jump table here
+
+	return rets[hue_sector + 1] (value, p, q, t)
+end
+
+function draw.ColorModHSV(col, h, s, v)
+	col.r, col.g, col.b = draw.HSVToColor(h, s, v)
 end

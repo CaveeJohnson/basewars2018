@@ -34,6 +34,10 @@ end
 local NavbarChoice = {}
 local questionMark
 
+hook.Add("OnScreenSizeChanged", "garry_die", function()
+	questionMark = nil
+end)
+
 function NavbarChoice:Init()
 	self:SetText("")
 	self:SetTall(64)
@@ -89,9 +93,8 @@ function NavbarChoice:SetIcon(url, name, h)
 	self.IconSizeOverride = h
 end
 
-function NavbarChoice:SetName(name)
-	self.Name = name
-end
+AccessorFunc(NavbarChoice, "Name", "Name")
+
 
 function NavbarChoice:SetDescription(desc)
 	self.Description = desc
@@ -196,16 +199,20 @@ end
 function NavbarChoice:OnSelect()
 end
 
-function NavbarChoice:DoClick()
+function NavbarChoice:Select(noanim)
+	if self.Active then return end
+	local can = self:OnSelect()
+	if can == false then return end
 
-	if not self.Active then
-		local can = self:OnSelect()
-		if can == false then return end
-
-		self.Navbar:OnSelect(self)
-		self.Active = true
+	self.Navbar:OnSelect(self, noanim)
+	self.Active = true
+	if noanim then
+		self.ActiveFrac = 1
 	end
+end
 
+function NavbarChoice:DoClick()
+	self:Select()
 end
 
 vgui.Register("NavbarChoice", NavbarChoice, "DButton")
@@ -279,6 +286,8 @@ function Navbar:Init()
 
 	self.ExpandFrac = 0
 	self.RetractedSize = 50
+
+	self.Tabs = {}
 end
 
 function Navbar:OnClick()
@@ -294,15 +303,15 @@ function Navbar:OnClick()
 	end
 end
 
-function Navbar:OnSelect(btn)
+function Navbar:OnSelect(btn, noanim)
 	if IsValid(self.ActiveBtn) then
-		self.ActiveBtn:Emit("Unselect", self)
+		self.ActiveBtn:Emit("Deselect", self, noanim)
 		self.ActiveBtn.Active = false
 	end
 
 	self.ActiveBtn = btn
 	btn.Active = true
-	btn:Emit("Select", self)
+	btn:Emit("Select", self, noanim)
 end
 
 function Navbar:Expand()
@@ -363,6 +372,7 @@ function Navbar:Add(fr)
 		fr:OnExpand(self)
 	end)
 
+	self.Tabs[#self.Tabs + 1] = fr
 end
 
 function Navbar:PrePaint()
@@ -468,6 +478,9 @@ function NavPanel:SetRetractedSize(size)
 	navbar.X = x
 end
 
+function NavPanel:SetExpandedSize(size)
+	self.Navbar:SetWide(size)
+end
 function NavPanel:SetTabSize(size)
 	self.TabSize = size
 	local l, t, r, b = self:GetDockPadding()
@@ -491,6 +504,8 @@ function NavPanel:PerformLayout(w, h)
 		self.__InvisButton:SetPos(self.RetractedSize, self.HeaderSize)
 		self.__InvisButton:SetSize(self:GetWide(), self:GetTall())
 	end
+
+	self:Emit("PerformLayout", w, h)
 end
 
 function NavPanel:AddCustomElement(fr)
@@ -503,11 +518,13 @@ function NavPanel:PositionPanel(pnl)
 	pnl:SetSize(self:GetWide() - self.RetractedSize, self:GetTall() - self.HeaderSize)
 end
 
-function NavPanel:SetActivePanel(pnl, nopopout) --nil is acceptable as pnl
+function NavPanel:SetActivePanel(pnl, nopopout, noanim) --nil is acceptable as pnl
+
 	if IsValid(self.ActivePnl) and not self.ActivePnl.__navNoPopout then
 		self.ActivePnl:PopOut(nil, nil, function(_, self)
 			self:SetVisible(false)
 		end)
+		self.ActivePnl:MoveBy(0, 24, 0.1, 0, 0.2)
 	end
 
 	self.ActivePnl = pnl
@@ -516,7 +533,8 @@ function NavPanel:SetActivePanel(pnl, nopopout) --nil is acceptable as pnl
 		pnl.__navNoPopout = nopopout
 		pnl:SetPos(self.RetractedSize, self.HeaderSize)
 		pnl:SetSize(self:GetWide() - self.RetractedSize, self:GetTall() - self.HeaderSize)
-		pnl:PopIn()
+
+		if not noanim then pnl:PopIn() end
 		pnl:SetVisible(true)
 	end
 end
@@ -524,20 +542,24 @@ end
 function NavPanel:AddTab(name, onopen, onclose)
 	local tab = vgui.Create("NavbarChoice", self.Navbar)
 	tab:SetName(name)
+	tab.NavPanel = self
 
-	tab:On("Select", function(btn, ...)
-		local pnl, nofade
+	tab:On("Select", function(btn, navbar, noanim, ...)
+		local pnl, nofade, noanimret
 
 		if onopen then
-			pnl, nofade = onopen(btn, btn.HiddenPanel, ...)
+			pnl, nofade, noanimret = onopen(btn.NavPanel, btn, btn.HiddenPanel, noanim, ...)
+			noanim = noanim or noanimret
 		end
 
-		self:SetActivePanel(pnl, nofade)
+		self:SetActivePanel(pnl, nofade, noanim)
 		btn.HiddenPanel = pnl
 	end)
 
 	if onclose then
-		tab:On("Deselect", onclose)
+		tab:On("Deselect", function(btn, ...)
+			onclose(btn.NavPanel, btn, btn.HiddenPanel, ...)
+		end)
 	end
 
 	self.Navbar:Add(tab)
@@ -545,8 +567,19 @@ function NavPanel:AddTab(name, onopen, onclose)
 	return tab
 end
 
-function NavPanel:SelectTab(name, dontanim)
+function NavPanel:GetNavbarSize()
+	return self.Navbar:GetWide(), self.RetractedSize
+end
 
+function NavPanel:SelectTab(name, dontanim)
+	local tabs = self.Navbar.Tabs
+
+	for k,v in pairs(tabs) do
+
+		if v:GetName() == name then
+			v:Select(dontanim)
+		end
+	end
 end
 
 function NavPanel:Paint(w,h)
@@ -558,14 +591,17 @@ function NavPanel:Paint(w,h)
 end
 
 function NavPanel:PaintOver(w, h)
-	self:On("PaintOver", w, h)
-	if not self.Dim then return end
-	surface.SetDrawColor(0, 0, 0, self.Navbar.ExpandFrac * 210)
-	surface.DrawRect(self.Navbar.X + self.Navbar:GetWide(), self.HeaderSize, w, h)
+
+	if self.Dim then
+		surface.SetDrawColor(0, 0, 0, self.Navbar.ExpandFrac * 210)
+		surface.DrawRect(self.Navbar.X + self.Navbar:GetWide(), self.HeaderSize, w, h)
+	end
+
+	self:Emit("PaintOver", w, h)
 end
 
 vgui.Register("NavFrame", NavPanel, "FFrame")
-
+vgui.Register("NavPanel", NavPanel, "FFrame")
 
 local Testing = false
 

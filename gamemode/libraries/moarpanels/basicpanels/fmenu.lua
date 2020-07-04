@@ -201,7 +201,7 @@ function FM:CreateDescription()
 	function f:Paint(w,h)
 
 		if not wrapped[self.desc] or wrapped[self.desc].font ~= m.DescriptionFont then 
-			wrapped[self.desc] = {txt = string.WordWrap(self.desc, w-12, m.DescriptionFont), font = m.DescriptionFont}
+			wrapped[self.desc] = {txt = string.WordWrap2(self.desc, w-12, m.DescriptionFont), font = m.DescriptionFont}
 		end
 
 		surface.DisableClipping(true)

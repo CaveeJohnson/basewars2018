@@ -29,6 +29,7 @@ function tag:Initialize(name, ...)
 	end
 
 	local tag = MarkupTagTable[name]
+
 	local args = {...}
 
 	self.Name = name
@@ -76,9 +77,9 @@ function tag:Initialize(name, ...)
 	end
 end
 
-local function eval_exp(self, key, f)
+local function eval_exp(self, key, f, ...)
 
-	local ok, ret = pcall(f)
+	local ok, ret = pcall(f, ...)
 	if not ok then print("Tag error!", ret) self.Errs[key] = true end
 
 	local arg = self.BaseTag.args[key]
@@ -104,13 +105,13 @@ local function eval_exp(self, key, f)
 
 end
 
-function tag:Run(buffer)
+function tag:Run(buffer, ...)
 
 	local args = {}
 
 	for k, arg in pairs(self.Args) do
 		if isfunction(arg) then
-			args[#args + 1] = eval_exp(self, k, arg)
+			args[#args + 1] = eval_exp(self, k, arg, ...)
 		else
 			args[#args + 1] = arg
 		end
@@ -159,6 +160,8 @@ function tag:GetEnder()
 	return ender
 
 end
+
+ChainAccessor(tag, "BaseTag", "BaseTag")
 
 MarkupBaseTag = MarkupBaseTag or Class:callable()
 local bt = MarkupBaseTag
@@ -225,9 +228,11 @@ end
 
 local alphabet = string.char(unpack(t)) --wtf
 
-function buf:Initialize()
+function buf:Initialize(w)
 	self.x = 0
 	self.y = 0
+
+	self.width = w
 end
 
 function buf:SetFont(font)
@@ -266,6 +271,13 @@ function buf:Offset(x, y)
 	self.y = self.y + (y or 0)
 end
 
+function buf:AllocateSpace(w, h)
+	if self.x + w > self.width then
+		self.x = 0
+		self.y = self.y + h/2
+	end
+end
+
 function buf:WrapText(tx, width, font)
 	if not self:GetTextHeight() then
 		error("please :SetFont() on the buffer before wrapping text")
@@ -295,7 +307,7 @@ function buf:WrapText(tx, width, font)
 	else
 
 		local wrapped, cur_wid, didwrap = string.WordWrap2(tx, {width - self.x, width}, font)
-		print("wrapped into", wrapped)
+
 		local offX = 0
 
 		if not didwrap then 				--if we didn't wrap text, then we should offset textW from current X (cuz cur_wid doesn't current X already)
@@ -334,6 +346,8 @@ tr:SetEnd(function(tag, buf, args)
 	cam.PopModelMatrix(mtrx2)
 end)
 
+
+
 local hsv = MarkupBaseTag("hsv")
 
 hsv:AddArg("number", 0)	--H
@@ -352,4 +366,60 @@ end)
 
 hsv:SetEnd(function(tag, buf, args)
 	buf:SetTextColor(tag.curColor)
+end)
+
+local col = MarkupBaseTag("color")
+
+col:AddArg("number", 255)	--R
+col:AddArg("number", 255)	--G
+col:AddArg("number", 255)	--B
+
+col:SetStart(function(tag, buf, args)
+	local cur = buf:GetTextColor()
+
+	tag.curColor = tag.curColor or {}
+	tag.curColor[1], tag.curColor[2], tag.curColor[3] = cur:Unpack()
+
+	cur:Set(args[1], args[2], args[3])
+end)
+
+col:SetEnd(function(tag, buf, args)
+	buf:GetTextColor():Set(tag.curColor[1], tag.curColor[2], tag.curColor[3])
+end)
+
+local chtr = MarkupBaseTag("chartranslate")
+
+chtr:AddArg("number", 0)	--x
+chtr:AddArg("number", 0)	--y
+
+chtr:SetStart(function(tag, buf, args)
+	local vec = Vector(args[1], args[2])
+
+	mtrx2:Set(mtrx)
+	mtrx2:Translate(vec)
+	cam.PushModelMatrix(mtrx2)
+end)
+
+chtr:SetEnd(function(tag, buf, args)
+	cam.PopModelMatrix(mtrx2)
+end)
+
+chtr.ExecutePerChar = true
+
+local emote = MarkupBaseTag("emote")
+
+emote:AddArg("string", "__error") --emote name
+emote:AddArg("number", 32) --width
+emote:AddArg("number", 32) --height
+
+emote:SetDraw(function(tag, buf, args)
+
+	local emote = chathud.Emotes[args[1]]
+	if not emote then return end
+
+	buf:AllocateSpace(args[2], args[3])
+
+	surface.SetDrawColor(255, 255, 255)
+	local x, y = buf:GetPos()
+	emote:Paint(x, y, args[2], args[3])
 end)

@@ -8,13 +8,14 @@
 	Cloud:SetTextColor(col, g, b, a)
 
 	Cloud:AddFormattedText(txt, col, font, overy, num)	--num: index for tbl(can replace texts); overy = y offset(leave nil to default)
+	Cloud:AddSeparator(col, offx, offy, num)
 	Cloud:ClearFormattedText()
 
 	Cloud:SetAbsPos(x, y)
 
 	Cloud:FullInit()
 	Cloud:Popup(bool)
-	
+
 	Cloud:Bond(pnl) 	--if the panel is gone, so is the cloud
 
 	Stuff you can modify:
@@ -25,9 +26,9 @@
 		Cloud.Label
 		Cloud.HOffset
 		Cloud.Speed -- popup speed
-		Cloud.Color 
-		Cloud.TextColor 
-	
+		Cloud.Color
+		Cloud.TextColor
+
 		Cloud.Middle 	-- 0-1 (or less/more for full zane)
 
 		Cloud.YAlign	--like text aligns, except the cloud aligns there : 0/1/2
@@ -36,7 +37,7 @@
 		Cloud.Shadow = {}
 
 		Cloud.Min/MaxW
-		
+
 ---------------------------------------------------------------------------]]
 
 CLOUDS = CLOUDS or {}
@@ -51,7 +52,7 @@ end
 local Cloud = {}
 
 function Cloud:Init()
-	self.Color = Color(35, 35, 35)
+
 	self.Font = "OS24"
 	self.DescFont = "OSL18"
 	self:SetSize(2,2)
@@ -83,7 +84,7 @@ function Cloud:Init()
 	--self.Speed = 25
 
 	self.Color = Color(40, 40, 40)
-	self.TextColor = Color(255,255,255)
+	self.TextColor = color_white:Copy()
 	self:SetDrawOnTop(true)
 
 	self.HOverride = nil
@@ -98,7 +99,7 @@ function Cloud:Init()
 
 	self.wwrapped = {}
 
-	self.Seperators = {}
+	self.Separators = {}
 	self.SepH = 0
 
 	self.MinW = 0
@@ -193,38 +194,47 @@ function Cloud:Paint()
 
 	local lasttext = ""
 
-	for k,v in ipairs(self.DoneText) do
-		if not v.Continuation then
-			lasttext = v.Text
-		else
-			lasttext = lasttext .. v.Text
+	local doneText = self.DoneText
+	local doneLen = #doneText
+
+	for k = 1, doneLen do
+		local v = doneText[k]
+
+		if istable(v) then
+			if not v.Continuation then
+				lasttext = v.Text
+			else
+				lasttext = lasttext .. v.Text
+			end
+
+			boxh = boxh + v.YOff
+			frmtd = true
+
+			if v.Font then
+				surface.SetFont(v.Font)
+			else
+				surface.SetFont(self.DescFont)
+			end
+
+		elseif ispanel(v) then
+			boxh = boxh + v:GetTall()
+			frmtd = true
 		end
 
-		boxh = boxh + v.YOff
-		frmtd = true
-
-		if v.Font then
-			surface.SetFont(v.Font)
-		else
-			surface.SetFont(self.DescFont)
-		end
-
-		if not self.DoneText[k + 1] then
-			boxh = boxh + 4
-		end
 	end
 
 	finY = yoff + boxh * aY
 
 	local oldX, oldY = xoff, finY
 
-	surface.DisableClipping(true)
+	DisableClipping(true)
 
 		if self.Shadow and self.DrawShadow then
 			BSHADOWS.BeginShadow()
 			xoff, finY = self:LocalToScreen(xoff, finY)
 		end
 
+		-- the box of the cloud
 		draw.RoundedBox(4, xoff - cw*self.Middle, finY, cw, boxh, self.Color)
 
 		if self.Shadow then
@@ -239,41 +249,69 @@ function Cloud:Paint()
 			xoff, finY = oldX, oldY
 		end
 
+		-- draw the label
 		draw.DrawText(lab, self.Font, xoff + 8 - cw*self.Middle,  finY + 2, self.TextColor, 0)
 
-		local offy = finY + ch + 4
+		local offy = finY + ch + 2
 
-		for k,v in ipairs(self.DoneText) do
+		-- there's a separator at index 0 which means
+		-- right after the label, not after a formatted text
 
-			local font = v.Font or self.DescFont
-			local tx = xoff + 8 - cw*self.Middle
+		if self.Separators[0] then
+			local sep = self.Separators[0]
 
-			draw.DrawText(v.Text, font, xoff + 8 - cw*self.Middle,  offy, v.Color, 0)
+			surface.SetDrawColor(sep.col)
 
-			offy = offy + v.YOff
+			local sx = sep.offx
+			local sy = sep.offy
 
-			if self.Seperators[k] then 
-				local sep = self.Seperators[k]
+			surface.DrawLine(xoff - cw*self.Middle + sx, offy + sy, (xoff - cw*self.Middle) + cw - sx, offy + sy)
+			offy = offy + sy*2
+		end
 
-				surface.SetDrawColor(sep.col)
+		-- now draw all the formatted text
 
-				local sx = sep.offx
-				local sy = sep.offy
+		for k = 1, doneLen do--,v in ipairs(self.DoneText) do
+			local v = doneText[k]
 
-				surface.DrawLine(xoff - cw*self.Middle + sx, offy + sy, (xoff - cw*self.Middle) + cw - sx, offy + sy)
-				offy = offy + sy*2
+			if ispanel(v) then
+				if not v.NoCloudFit and v:GetWide() ~= cw then v:SetWide(cw) end
+				local scrX, scrY = self:LocalToScreen(xoff - cw*self.Middle, offy)
+				v:PaintAt(scrX + v.X, scrY)
+				offy = offy + v:GetTall()
+			else
+
+				local font = v.Font or self.DescFont
+				local tx = xoff + 8 - cw*self.Middle
+				-- text first
+				draw.DrawText(v.Text, font, xoff + 8 - cw*self.Middle,  offy, v.Color, 0)
+
+				offy = offy + v.YOff
+
+				-- check if that text had a separator after it
+				if self.Separators[k] then
+					local sep = self.Separators[k]
+
+					surface.SetDrawColor(sep.col)
+
+					local sx = sep.offx
+					local sy = sep.offy
+
+					surface.DrawLine(xoff - cw*self.Middle + sx, offy + sy, (xoff - cw * self.Middle) + cw - sx, offy + sy)
+					offy = offy + sy*2
+				end
+
 			end
 		end
 
-	surface.DisableClipping(false)
+	DisableClipping(false)
 
 	self:PostPaint()
 end
 
 function Cloud:AddFormattedText(txt, col, font, overy, num) --if you're updating the text, for example, you can use "num" to position it where you want it
 
-	local wid = (self.MaxW or self.MaxWidth or self.MinW) - 16
-
+	local wid = (self.MaxW or self.MaxWidth or self.MinW)
 	local nd = string.WordWrap2(txt, wid, font or self.Font)
 
 	local yo = 0
@@ -299,10 +337,9 @@ function Cloud:AddFormattedText(txt, col, font, overy, num) --if you're updating
 				break
 			end
 		end
-		tbl = tbl or {}
-	else
-		tbl = {}
 	end
+
+	tbl = tbl or {}
 
 	tbl.Text = nd
 	tbl.Color = col
@@ -329,20 +366,24 @@ function Cloud:AddFormattedText(txt, col, font, overy, num) --if you're updating
 
 end
 
-function Cloud:AddSeperator(col, offx, offy, num)
-	offx = offx or 4 
-	offy = offy or 2 
+function Cloud:AddSeparator(col, offx, offy, num)
+	offx = offx or 4
+	offy = offy or 2
 
-	self.Seperators[#self.DoneText] = {col = col or Color(70, 70, 70), offx = offx, offy = offy}
+	self.Separators[num or #self.DoneText] = {col = col or Color(70, 70, 70), offx = offx, offy = offy}
 	self.SepH = self.SepH + offy * 2
 end
 
 function Cloud:ClearFormattedText()
-
 	table.Empty(self.DoneText)
-
 end
 
+function Cloud:AddPanel(p, num)
+
+	self.MaxWidth = math.Clamp(p:GetWide() + 16, math.max(self.MinW, self.MaxWidth), self.MaxW)
+
+	self.DoneText[num or (#self.DoneText + 1)] = p
+end
 
 function Cloud:SetAbsPos(x, y)
 	local sx, sy = self:ScreenToLocal(x, y)
@@ -370,9 +411,9 @@ function Cloud:Think()
 		self:To("Frac", 0, self.DisappearTime, 0, self.DisappearEase)
 	end
 
-	if self.Frac == 0 and self.RemoveWhenDone then 
-		self:Remove() 
-		return 
+	if self.Frac == 0 and self.RemoveWhenDone then
+		self:Remove()
+		return
 	end
 
 	self:SetAlpha(self.Frac * 255)
@@ -386,7 +427,7 @@ end
 
 function Cloud:Popup(bool)
 
-	self.Active = bool
+	self.Active = (bool == nil and true) or bool
 
 end
 

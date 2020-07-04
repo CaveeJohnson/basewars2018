@@ -5,7 +5,7 @@
 ]]
 
 DeltaTextEvent = DeltaTextEvent or Object:extend()
-local emeta = DeltaTextEvent.Meta
+local emeta = DeltaTextEvent
 
 function emeta:Initialize(key)
 	self.IsEvent = true

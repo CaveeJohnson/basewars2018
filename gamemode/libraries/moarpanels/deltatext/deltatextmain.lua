@@ -6,9 +6,8 @@
 
 
 DeltaText = DeltaText or Object:callable() 	--allow autorefresh of existing objects' metas
-local dmeta = DeltaText.Meta
 
-function dmeta:Initialize()
+function DeltaText:Initialize()
 	self.Elements = {}
 	self.Active = {}
 
@@ -28,9 +27,9 @@ function dmeta:Initialize()
 	self.Font = "OS24"
 end
 
-ChainAccessor(dmeta, "Font", "Font")
+ChainAccessor(DeltaText, "Font", "Font")
 
-function dmeta:AddText(tx, rep, timing)
+function DeltaText:AddText(tx, rep, timing)
 
 	local key = #self.Elements + 1
 	local t
@@ -72,17 +71,17 @@ function dmeta:AddText(tx, rep, timing)
 	return t, key
 end
 
-function dmeta:RemoveElement(num)
+function DeltaText:RemoveElement(num)
 	if not self.Elements[num] then error("Can't remove a non-existent element!") return end
 	table.remove(self.Elements, num)
 end
 
-function dmeta:SetAlignment(a)
+function DeltaText:SetAlignment(a)
 	self.Alignment = a
 	return self
 end
 
-function dmeta:AddEvent(timing)
+function DeltaText:AddEvent(timing)
 	local key = #self.Elements + 1
 
 	local t = DeltaTextEvent:new(key)
@@ -105,7 +104,7 @@ function dmeta:AddEvent(timing)
 	return t
 end
 
-function dmeta:CycleReset()
+function DeltaText:CycleReset()
 	local last
 
 	for i=1, #self.Active do
@@ -127,19 +126,19 @@ function dmeta:CycleReset()
 	end
 end
 
-function dmeta:GetElements()
+function DeltaText:GetElements()
 	return self.Elements
 end
 
-function dmeta:GetPreviousElement()
+function DeltaText:GetPreviousElement()
 	return self.Active[self.LastActive - 1]
 end
 
-function dmeta:GetCurrentElement()
+function DeltaText:GetCurrentElement()
 	return self.Active[self.LastActive]
 end
 
-function dmeta:CycleNext()
+function DeltaText:CycleNext()
 
 	self:ActivateElement( (self.LastActive or #self.Active) + 1 )
 	--[[local key = self.LastActive or #self.Active
@@ -179,7 +178,7 @@ function dmeta:CycleNext()
 
 end
 
-function dmeta:DisappearCurrentElement()
+function DeltaText:DisappearCurrentElement()
 
 	local cur = self:GetCurrentElement()
 
@@ -189,7 +188,7 @@ function dmeta:DisappearCurrentElement()
 
 end
 
-function dmeta:GetSize()
+function DeltaText:GetSize()
 
 	--[[
 		TODO: make dmeta loop around all of its' active objects and
@@ -198,7 +197,7 @@ function dmeta:GetSize()
 
 end
 
-function dmeta:ActivateElement(num) 	--this skips certain elements from the cycle
+function DeltaText:ActivateElement(num) 	--this skips certain elements from the cycle
 
 	local tx = self.Elements[num] --new object to activate
 	local lasttx = self.LastActiveText
@@ -242,7 +241,7 @@ function dmeta:ActivateElement(num) 	--this skips certain elements from the cycl
 	end
 end
 
-function dmeta:Paint(x, y)
+function DeltaText:Paint(x, y)
 
 	--[[
 		Grab text full width

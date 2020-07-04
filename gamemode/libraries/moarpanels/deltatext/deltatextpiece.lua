@@ -21,7 +21,7 @@ local function NewFragment(text, col)
 	}
 end
 
-local pmeta = DeltaTextPiece.Meta
+local pmeta = DeltaTextPiece
 
 function pmeta:Initialize(par, tx, font, key, rep)
 	self.Text = tx

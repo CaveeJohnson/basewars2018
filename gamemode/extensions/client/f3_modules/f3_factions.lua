@@ -301,8 +301,6 @@ function ext.generateNewFactionControls(par)
 	name.Y = 48
 	name:SetPlaceholderText("Faction name...")
 
-	print(ext.lastFacName, ext.lastFacPW)
-
 	if ext.lastFacName then
 		name:SetValue(ext.lastFacName)
 	end
@@ -1039,7 +1037,8 @@ function ext:F3_CreateTab(FF)
 	ext.fac = LocalPlayer():getFaction()
 	ext.FF = FF
 
-	local btn = FF:AddTab("Factions", function(_, oldpanel, navbar)
+	local btn = FF:AddTab("Factions", function(navpnl, tab, oldpanel, hasanim)
+
 		if IsValid(oldpanel) then
 			return oldpanel
 		end
@@ -1262,7 +1261,7 @@ function ext:F3_CreateTab(FF)
 
 		return f
 	end)
-
+	
 	FF:SelectTab("Factions", true)
 
 	FF:On("Show", function()
@@ -1272,6 +1271,7 @@ function ext:F3_CreateTab(FF)
 	btn:SetIcon("https://i.imgur.com/MLRSYYG.png", "faction.png")
 	btn:SetDescription("faction n' shit")
 
+	_wtf = btn
 
 	local btn = FF:AddTab("settings or smth", function(_, navbar)
 		local b = vgui.Create("FButton", FF)

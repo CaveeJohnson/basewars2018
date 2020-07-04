@@ -13,6 +13,7 @@ IncluderFunc = IncluderFunc or FInc.FromHere
 IncluderFunc("hdl/*", _SH)
 IncluderFunc("cl_quickmenus.lua", _CL)
 
+LibItUp = "LibbedItUp"
 
 local lib_files = 0
 

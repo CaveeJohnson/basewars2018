@@ -76,7 +76,13 @@ function Class:extend(...)
 	setmetatable(new.Meta, old)
 
 	new.__index = function(t, k)
-		return rawget(new, k) or new.Meta[k]
+		local parval = rawget(new, k)
+
+		if parval ~= nil then
+			return parval
+		else
+			return new.Meta[k]
+		end
 	end
 
 	new.__parent = old

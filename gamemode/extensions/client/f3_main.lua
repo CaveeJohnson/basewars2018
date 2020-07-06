@@ -3,10 +3,10 @@ local ext = basewars.__ext["f3.menu"] or basewars.createExtension"f3.menu" 	--do
 setfenv(1, _G)
 
 local is_down = false
-ext.scale = math.max(ScrH() / 1080 * 1.5, 0.5)
+ext.scale = math.max(ScrH() / 1080, 0.5)
 
 function ext.createMenu()
-	if IsValid(ext.FF) then ext.FF:Remove() end --we never want more than 2 F3 menus open
+	if IsValid(ext.FF) then ext.FF:Remove() end --we never want more than 1 F3 menus open
 	local FF = vgui.Create("NavFrame")
 	ext.FF = FF
 

@@ -88,6 +88,18 @@ local families = {
 FontFamilies = families
 
 local sizes = {12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 48, 64, 72, 96, 128}
+local picks = {} --caching for Fonts.PickFont
+
+function Fonts.PickSize(sz)
+	if picks[sz] then return picks[sz] end
+
+	for i=2, #sizes do
+		if sizes[i] > sz and sizes[i-1] then
+			picks[sz] = sizes[i-1]
+			return sizes[i-1]
+		end
+	end
+end
 
 for k,v in pairs(families) do
 

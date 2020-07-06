@@ -15,12 +15,12 @@ if SERVER then
 end
 
 function ext:EntityRemoved(ent)
-	if ent.isCore then 
+	if ent.isCore then
 		local fac = self.factionTable[ent]
-		if not fac then return end 
+		if not fac then return end
 
 		self.factions[fac.name] = nil
-		self.factions[fac.name:lower()] = nil 
+		self.factions[fac.name:lower()] = nil
 		self.factions[fac.name:upper()] = nil
 
 		self.factionTable[ent] = nil
@@ -264,8 +264,8 @@ ext.eventHandlers.disband = function(_, fac, sid64)
 	local ply = player.GetBySteamID64(sid64)
 	hook.Run("BW_FactionDisband", fac, ply, sid64)
 
-	ext.factions[fac.name:lower()] = nil 
-	ext.factions[fac.name] = nil 
+	ext.factions[fac.name:lower()] = nil
+	ext.factions[fac.name] = nil
 	ext.factions[fac.name:upper()] = nil
 
 	if SERVER then

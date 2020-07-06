@@ -16,13 +16,7 @@ local pickBorderColor = function(h, s, v)	--called to determine if we should pic
 	end
 end
 
-local memFont = ext:getTag() .. "_member"
-
-surface.CreateFont(memFont, {
-	font = "Open Sans",
-	size = 24,
-	weight = 400,
-})
+local memFont = "OS"
 
 local pickFactionTextColor = function(h, s, v, fcol)
 	return v > 0.4 and fcol or color_white
@@ -38,17 +32,16 @@ local memberColor = Color(160, 160, 160) 	--plebian member color
 --expansion of the member list box
 --https://i.imgur.com/gp08ObO.png
 
-
 --i recommend keeping expH = iconExpH
 
 local iconExpH = 4
-local expW, expH = 12, iconExpH
+local expW, expH = 0, iconExpH
 
 
 local rankPaints = {
 	owner = function(lbl, lW, lH, info)
 		surface.SetDrawColor(ownerColor)
-		surface.DrawMaterial("https://i.imgur.com/ddd8Wca.png", "crown32.png", lW + expW + 4, lH / 2 - 8, 16, 16)
+		surface.DrawMaterial("https://i.imgur.com/ddd8Wca.png", "crown32.png", lW + expW + 8, lH / 2 - 8, 16, 16)
 		return 0, 2
 	end,
 
@@ -167,26 +160,41 @@ end
 function ext.createMemberList(par, plys)
 
 	local membs = vgui.Create("InvisPanel", par)
+	local fac = vgui.Create("Icon", membs)
+
 	membs:SetPos(24, 64)
 
+	local fontHeight = Fonts.PickSize(14 + f3ext.scale * 12)
+	local scale = f3ext.scale
+
 	function membs:Paint(w, h)
+		--oh lord
+		local boxX = fac:GetWide() + 6 - expW
+		local boxY = -iconExpH
+
+		local memBoxX = fac:GetWide() + expW + 4
+		local memBoxW = w - memBoxX - 8 --8 = member icon padding
+		local memBoxH = h + expH
+
 		surface.DisableClipping(true)
-			draw.RoundedBoxEx(8, -4, -iconExpH, w + 4, 32 + iconExpH*2, Colors.DarkGray, true, false, true, false)
-			draw.RoundedBox(8, 32 + 16 - expW, -iconExpH, w - 48 + expW*2, h + expH + iconExpH, Colors.DarkGray)
-			draw.RoundedBox(8, 32 + 16 - expW + 2, -iconExpH + 2, w - 48 + expW*2 - 4, h + expH + iconExpH - 4, f3ext.FF.BackgroundColor)
+			draw.RoundedBoxEx(8, -4, boxY, memBoxX + 4, fac:GetTall() + iconExpH + 4, Colors.DarkGray, true, false, true, false) 	--box behind the icon on the left
+			draw.RoundedBoxEx(8, memBoxX - 2, boxY, w - memBoxX + 4, memBoxH + 4, Colors.DarkGray, false, true, true, true)	--black box behind the members
+			draw.RoundedBox(8, memBoxX, boxY + 2, w - memBoxX, memBoxH, f3ext.FF.BackgroundColor) --gray box behind the members
 		surface.DisableClipping(false)
 
+		--surface.SetDrawColor(Colors.Red)
+		--surface.DrawOutlinedRect(memBoxX, boxY, w-memBoxX, memBoxH)
 		self:Emit("Paint", w, h)
 	end
 
+	
 
-	local fac = vgui.Create("Icon", membs)
-	fac:SetSize(32, 32)
+	fac:SetSize(16 + scale * 16, 16 + scale * 16)
 
 	fac.IconURL = "https://i.imgur.com/Nn1MHPd.png"
 	fac.IconName = "faction_32.png"
 
-	local x = fac:GetWide() + expW + 4
+	local x = fac:GetWide() + expW + 8
 
 	local y
 
@@ -201,10 +209,18 @@ function ext.createMemberList(par, plys)
 		local lbl = vgui.Create("DLabel", membs)
 		memLabels[#memLabels + 1] = lbl
 		lbl:SetPos(x, y or 0)
-		lbl:SetFont(memFont)
-		lbl:SetText(info.name)
+
+		local fnt = memFont .. Fonts.PickSize(12 + f3ext.scale * 14)
+
+		local wraptx = string.WordWrap2(info.name, par:GetWide() - fac:GetWide() - membs.X - 16, fnt)
+		local tx = wraptx:gsub("%c.+$", "...") --galaxy brain
+
+
+		lbl:SetFont(fnt)
+		lbl:SetText(tx)
 		lbl:SetTextColor(info.col)
 		lbl:SizeToContents()
+		--lbl:SetWide(lbl:GetWide() + 2)
 		lbl:SetMouseInputEnabled(true)
 
 		if not y then
@@ -229,7 +245,7 @@ function ext.createMemberList(par, plys)
 	end
 
 	function membs:Resize()
-		self:SetSize(fullW + 32 + 16, fullH + 8)
+		self:SetSize(fac:GetWide() + expW + 8 + fullW + 2, fullH + 8)
 	end
 
 	function membs:ReloadMembers(fac, plys)
@@ -294,11 +310,14 @@ function ext.generateNewFactionControls(par)
 	pnl.nameLenFrac = 0
 	pnl.FactionCreation = true
 
+	local hgtFrac = par:GetTall() / 388
+	local txHgt = 32 * hgtFrac
+
 	local name = vgui.Create("FTextEntry", pnl)
-	name:SetFont("OSB28")
-	name:SetSize(300, 32)
+	name:SetFont("OSB" .. Fonts.PickSize(txHgt - 2))
+	name:SetSize(pnl:GetWide() - (48 * hgtFrac), txHgt)
 	name:CenterHorizontal()
-	name.Y = 48
+	name.Y = 32 * hgtFrac
 	name:SetPlaceholderText("Faction name...")
 
 	if ext.lastFacName then
@@ -331,8 +350,8 @@ function ext.generateNewFactionControls(par)
 	end)]]
 
 	local pw = vgui.Create("FTextEntry", pnl)
-	pw:SetFont("OSB28")
-	pw:SetSize(250, 32)
+	pw:SetFont("OSB" .. Fonts.PickSize(txHgt - 2))
+	pw:SetSize(pnl:GetWide() - (96 * hgtFrac), txHgt)
 	pw:CenterHorizontal()
 	pw.Y = name.Y + name:GetTall() + 8
 	pw:SetPlaceholderText("Password...")
@@ -347,7 +366,7 @@ function ext.generateNewFactionControls(par)
 	col:SetLabel(false)
 	col:SetAlphaBar(false)
 
-	col:SetSize(220, 150)
+	col:SetSize(pnl:GetWide() - 32, hgtFrac * 150)
 	col:CenterHorizontal()
 
 	local h, s, v
@@ -401,7 +420,7 @@ function ext.generateNewFactionControls(par)
 	local me = LocalPlayer()
 
 	local errDT = DeltaText()
-	errDT:SetFont("OS20")
+	errDT:SetFont("OS" .. Fonts.PickSize(8 + 12 * hgtFrac))
 	errDT.AlignX = 1
 	--local errpiece = errDT:AddText("")
 	--errDT:CycleNext()
@@ -533,12 +552,15 @@ function ext.generateFactionControls(par, fac)	--panel that lets you control or 
 	end)
 
 	local disband = vgui.Create("FButton", pnl)
-	disband:SetSize(150, 35)
-	disband.X = pnl:GetWide()/2 - 150 - 8
-	disband.Y = pnl:GetTall() - 50 - 10
+	local btnW = 80 + f3ext.scale * 70
 
-	disband.Font = "OS24"
+	disband:SetSize(btnW, 25 + f3ext.scale * 20)
+	local pad = 4 + 12 * f3ext.scale
 
+	disband.X = pnl:GetWide()/2 - btnW - pad
+	disband.Y = pnl:GetTall() - disband:GetTall() - 10
+
+	disband.Font = "OS" .. Fonts.PickSize(16 + f3ext.scale * 8)
 
 
 	local red = Color(190, 70, 70)			--used for Leave Faction
@@ -595,7 +617,7 @@ function ext.generateFactionControls(par, fac)	--panel that lets you control or 
 			draw.RoundedBox(self.RBRadius, 0, 0, w, h, brightred)
 		render.SetScissorRect(0, 0, 0, 0, false)
 
-		draw.SimpleText("Disband Faction", "OS24", w/2, h/2, color_white, 1, 1) --doing it in postpaint because of the roundedbox above
+		draw.SimpleText("Disband Faction", self.Font, w/2, h/2, color_white, 1, 1) --doing it in postpaint because of the roundedbox above
 	end
 
 	function disband:OnHover()
@@ -631,9 +653,10 @@ function ext.generateFactionControls(par, fac)	--panel that lets you control or 
 
 	local leave = vgui.Create("FButton", pnl)
 	leave:SetSize(disband:GetSize())
-	leave.X = pnl:GetWide()/2 + 8
+	leave.X = pnl:GetWide()/2 + pad
 	leave.Y = disband.Y
 	leave.Color = red
+	leave.Font = "OS" .. Fonts.PickSize(16 + f3ext.scale * 8)
 
 	local lX, lY = leave:GetPos()
 
@@ -668,7 +691,7 @@ function ext.generateFactionControls(par, fac)	--panel that lets you control or 
 			draw.RoundedBox(self.RBRadius, 0, 0, w, h, brighterred)
 		render.SetScissorRect(0, 0, 0, 0, false)
 
-		draw.SimpleText("Leave Faction", "OS24", w/2, h/2, color_white, 1, 1) --doing it in postpaint because of the roundedbox above
+		draw.SimpleText("Leave Faction", self.Font, w/2, h/2, color_white, 1, 1) --doing it in postpaint because of the roundedbox above
 
 	end
 
@@ -834,7 +857,7 @@ local facBtns = {
 	...
 	]]
 }
-_G.facBtns = facBtns
+
 function ext:BW_FactionCreated(owsid, fac)
 	if IsValid(self.Scroll) then
 		self.Scroll:AddButton(fac)
@@ -1033,6 +1056,10 @@ end
 
 
 function ext:F3_CreateTab(FF)
+	for k,v in pairs(facBtns) do
+		if IsValid(v) then v:Remove() end
+	end
+	facBtns = {}
 
 	ext.fac = LocalPlayer():getFaction()
 	ext.FF = FF
@@ -1051,7 +1078,7 @@ function ext:F3_CreateTab(FF)
 		f.Scroll = scr
 		f.MainFrame = FF
 
-		scr:SetWide(250)
+		scr:SetWide(150 + f3ext.scale * 100)
 		scr:Dock(LEFT)
 		scr:InvalidateParent(true)
 		scr.GradBorder = true
@@ -1149,6 +1176,7 @@ function ext:F3_CreateTab(FF)
 		local makeFac = vgui.Create("FButton", f)
 		makeFac:SetPos(scr.X + 24, f:GetTall() - 44)
 		makeFac:SetSize(scr:GetWide() - 48, 40)
+		makeFac.Font = "OS" .. Fonts.PickSize(16 + 10 * f3ext.scale)
 
 		local ply = LocalPlayer()
 		local canCol = Color(65, 190, 65)
@@ -1207,7 +1235,7 @@ function ext:F3_CreateTab(FF)
 		local inactiveShadCol = color_black
 
 		--yes its a plus icon stfu
-		makeFac:SetIcon("https://i.imgur.com/dO5eomW.png", "plus.png", 16, 16)
+		makeFac:SetIcon("https://i.imgur.com/dO5eomW.png", "plus.png", 8 + 12 * f3ext.scale, 8 + 12 * f3ext.scale)
 
 		function makeFac:PrePaint()
 			draw.LerpColorFrom(self.ShadowFrac, inactiveShadCol, activeShadCol, self.Shadow.Color2)
@@ -1281,7 +1309,7 @@ function ext:F3_CreateTab(FF)
 		return b
 	end)
 
-	btn:SetIcon("https://i.imgur.com/ZDzJwTM.png", "gear64.png", 48)
+	btn:SetIcon("https://i.imgur.com/ZDzJwTM.png", "gear64.png")
 	btn:SetDescription("poggers settings, you can setup so much shit!!! fuckin AMAZING")
 end
 

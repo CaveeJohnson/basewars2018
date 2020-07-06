@@ -3,20 +3,23 @@ local ext = basewars.__ext["f3.menu"] or basewars.createExtension"f3.menu" 	--do
 setfenv(1, _G)
 
 local is_down = false
+ext.scale = math.max(ScrH() / 1080 * 1.5, 0.5)
 
 function ext.createMenu()
 	if IsValid(ext.FF) then ext.FF:Remove() end --we never want more than 2 F3 menus open
 	local FF = vgui.Create("NavFrame")
 	ext.FF = FF
 
-	FF:SetSize(730, 420)
+	local w = math.max(ext.scale * 750, 600)
+	FF:SetSize(w, w * 0.565)
 	FF:Center()
 
 	FF:PopIn()
 	FF.Shadow = {}
 	FF:MakePopup()
 	FF:AddDockPadding(4, 4, 4, 4)
-	FF:SetRetractedSize(64)
+	FF:SetRetractedSize(w * 0.08)
+	FF:SetTabSize(48 + w * 0.02)
 
 	function FF:OnKeyCodePressed(key)
 		if key == KEY_F3 then
@@ -39,7 +42,7 @@ function ext.createMenu()
 			self.moveAnim:Stop()
 		end
 
-		self.moveAnim = self:MoveBy(0, 16, 0.2, 0, 0.5)
+		self.moveAnim = self:MoveBy(0, 16, 0.25, 0, 0.5)
 
 		self.hiding = true
 		return false
@@ -62,9 +65,9 @@ end)
 hook.Add("PlayerButtonDown", "Basewars.F3", function(ply, key)
 	if key ~= KEY_F3 then return end
 	if not IsFirstTimePredicted() then return end
-	
+
 	if CW_CUSTOMIZE ~= nil then
-		local wep = ply:GetActiveWeapon().dt 
+		local wep = ply:GetActiveWeapon().dt
 		if IsValid(wep) and (wep.dt and wep.dt.State == CW_CUSTOMIZE) then return end --cw 2.0 support
 	end
 
@@ -116,3 +119,18 @@ function ext:F3_ModuleLoaded()
 		menu:SetVisible(vis)
 	end
 end
+
+ext:F3_ModuleLoaded()
+
+concommand.Add("f3_remove", function()
+	if IsValid(ext.FF) then
+		ext.FF:Remove()
+	end
+end)
+
+hook.Add("OnScreenSizeChanged", "F3Reset", function()
+	if IsValid(ext.FF) then
+		ext.FF:Remove()
+	end
+end)
+

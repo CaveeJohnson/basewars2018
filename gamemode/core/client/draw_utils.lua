@@ -51,7 +51,7 @@ do
 	end
 
 	local function textInternal(text, x, y)
-		
+
 		setTextPos(x, y)
 
 		drawText(text)
@@ -95,7 +95,7 @@ do
 
 	local function textInternalLT(text, x, y)
 		setTextPos(x, y)
-		
+
 		drawText(text)
 	end
 

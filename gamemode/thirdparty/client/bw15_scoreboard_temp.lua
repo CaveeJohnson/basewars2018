@@ -1,4 +1,5 @@
---if IsValid(Scoreboard) then Scoreboard:Remove() end
+-- if IsValid(Scoreboard) then Scoreboard:Remove() end
+if SERVER then return end
 
 -- local stuff
 
@@ -35,6 +36,10 @@ end
 
 local function cmd(...)
 	RunConsoleCommand("aowl", ...)
+end
+
+local function cmd2(...)
+	RunConsoleCommand("ulx", ...)
 end
 
 local function AddKick(reason, entid, pnl, mode)
@@ -249,8 +254,13 @@ function SCOREBOARD_LINE:Load(ply)
 		elseif mouse == MOUSE_LEFT and _self.MousePressed < SysTime() then
 			_self.MousePressed = nil
 		elseif mouse == MOUSE_LEFT and _self.MousePressed > SysTime() then
-			if LocalPlayer():IsMod() and aowl and entindex ~= LocalPlayer():EntIndex() then
-				cmd("goto", "_" .. entindex)
+			if LocalPlayer():IsMod() and entindex ~= LocalPlayer():EntIndex() then
+				if aowl then
+					cmd("goto", "_" .. entindex)
+				elseif ulx then
+					cmd2("goto", self.ply:Nick()) --my god ulx is retarded
+					LocalPlayer():EmitSound("buttons/combine_button_locked.wav")
+				end
 			end
 			_self.MousePressed = nil
 		end
@@ -311,12 +321,12 @@ function SCOREBOARD_LINE:Load(ply)
 		end
 
 		if entindex ~= LocalPlayer():EntIndex() then
-			menu:AddOption(self.ply:IsMuted() and "Unmute" or "Mute", function()
+			menu:AddOption(self.ply:IsMuted() and "Unmute Voice" or "Mute Voice", function()
 				self.ply:SetMuted(not self.ply:IsMuted())
 			end):SetImage(self.ply:IsMuted() and "icon16/sound_add.png" or "icon16/sound_mute.png")
 
-			menu:AddOption(muted_players[self.ply:SteamID()] and "Ungag" or "Gag", function()
-				if self.ply:IsMod() then return end
+			menu:AddOption(muted_players[self.ply:SteamID()] and "Unmute Chat" or "Mute Chat", function()
+				if self.ply:IsMod() then LocalPlayer():EmitSound("buttons/combine_button_locked.wav") return end
 
 				muted_players[self.ply:SteamID()] = not muted_players[self.ply:SteamID()]
 			end):SetImage(muted_players[self.ply:SteamID()] and "icon16/comments_add.png" or "icon16/comments_delete.png")
